@@ -3,18 +3,18 @@ import { getAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'dummy-api-key',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyCcvsPsIkpMTl87LlnhbdaCrwhdxUXVmRw',
   authDomain:
     import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
-    'centro-educativo-f5cc5.firebaseapp.com',
+    'educore-systems-dd8a3.firebaseapp.com',
   projectId:
-    import.meta.env.VITE_FIREBASE_PROJECT_ID || 'centro-educativo-f5cc5',
+    import.meta.env.VITE_FIREBASE_PROJECT_ID || 'educore-systems-dd8a3',
   storageBucket:
     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    'centro-educativo-f5cc5.appspot.com',
+    'educore-systems-dd8a3.firebasestorage.app',
   messagingSenderId:
-    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || 'dummy-sender-id',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || 'dummy-app-id',
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '34032202235',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:34032202235:web:d55794496203dda8555b5e',
 };
 
 const app = initializeApp(firebaseConfig);
