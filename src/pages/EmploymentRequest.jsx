@@ -5,13 +5,12 @@ import FileUploadZone from '../components/molecules/FileUploadZone';
 import SuccessModal from '../components/molecules/SuccessModal';
 import EmploymentHero from '../components/organisms/EmploymentHero';
 import EmploymentBento from '../components/organisms/EmploymentBento';
+import { validarFormularioEmpleo } from '../utils/validators';
 
 const EmploymentRequest = () => {
-    // Form and UI refs for smooth scroll
     const bentoSectionRef = useRef(null);
     const formSectionRef = useRef(null);
 
-    // Form field states
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -24,75 +23,47 @@ const EmploymentRequest = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
-    // Scroll helper
     const scrollToSection = (ref) => {
         if (ref && ref.current) {
             ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
-    // Scroll and set area helper
     const handleExploreArea = (areaValue) => {
         setFormData(prev => ({ ...prev, area: areaValue }));
         scrollToSection(formSectionRef);
     };
 
-    // Form inputs change handlers
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
+    const handleInputChange = (eventoFormulario) => {
+        const { name, value, type, checked } = eventoFormulario.target;
         setFormData(prev => ({
             ...prev,
             [name]: type === 'checkbox' ? checked : value
         }));
         
-        // Clean error as the user types
         if (errors[name]) {
             setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[name];
-                return newErrors;
+                const nuevosErrores = { ...prev };
+                delete nuevosErrores[name];
+                return nuevosErrores;
             });
         }
     };
 
-    // Form validations and submit
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        const validationErrors = {};
+    const handleSubmit = (eventoEnvio) => {
+        eventoEnvio.preventDefault();
+        const errores = validarFormularioEmpleo(formData, cvFile);
 
-        if (!formData.name.trim()) {
-            validationErrors.name = 'El nombre completo es requerido.';
-        } else if (formData.name.trim().length < 3) {
-            validationErrors.name = 'El nombre debe tener al menos 3 caracteres.';
+        if (errores.cv) {
+            setCvError(errores.cv);
         }
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!formData.email) {
-            validationErrors.email = 'El correo electrónico es requerido.';
-        } else if (!emailRegex.test(formData.email)) {
-            validationErrors.email = 'Por favor, introduce un correo electrónico válido.';
-        }
-
-        if (!formData.area) {
-            validationErrors.area = 'Debes seleccionar un área de interés principal.';
-        }
-
-        if (!cvFile) {
-            setCvError('Debes adjuntar tu currículum (PDF).');
-            validationErrors.cv = 'Requerido';
-        }
-
-        if (!formData.privacy) {
-            validationErrors.privacy = 'Debes aceptar las políticas de privacidad para continuar.';
-        }
-
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
+        if (Object.keys(errores).length > 0) {
+            setErrors(errores);
             scrollToSection(formSectionRef);
             return;
         }
 
-        // Simulating highly premium submit animation
         setIsSubmitting(true);
         setErrors({});
         setCvError('');
