@@ -49,7 +49,5 @@ Cuando la rama `develop` sea estable y esté lista para la entrega oficial:
 * Calidad de Código: Husky + Prettier + ESLint
 
 ### 👥 Integrantes del Equipo
-* Erick Vicentin (Responsable de Entorno y GitHub)
+* Fabricio Alegre (Responsable de Entorno y GitHub)
 * Damian Ramirez
-* Lautaro Höfer
-* Fabricio Alegre
