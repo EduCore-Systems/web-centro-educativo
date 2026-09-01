@@ -110,19 +110,16 @@ const Login = () => {
     setPassword('');
   };
 
-  // Logged-in screen (Simulated Firebase Auth View)
   if (isLoggedIn && user) {
-    // Determine the role for the logged-in user (mapping claims to ROLES_INFO)
-    let activeRoleKey = 'Estudiante';
-    if (user.role === 'user_admin') {
-      activeRoleKey = 'Administrador';
-    } else if (user.role === 'Staff' || user.role === 'Administrativo') {
-      activeRoleKey = 'Staff';
-    } else if (user.role === 'Padre' || user.role === 'Padre/Tutor') {
-      activeRoleKey = 'Padre/Tutor';
-    } else if (user.role === 'Estudiante') {
-      activeRoleKey = 'Estudiante';
-    }
+    const ROL_A_INFO_KEY = {
+      user_admin: 'Administrador',
+      Staff: 'Staff',
+      Administrativo: 'Staff',
+      Padre: 'Padre/Tutor',
+      'Padre/Tutor': 'Padre/Tutor',
+      Estudiante: 'Estudiante',
+    };
+    const activeRoleKey = ROL_A_INFO_KEY[user.role] || 'Estudiante';
     const currentRole = ROLES_INFO[activeRoleKey];
 
     return (
