@@ -1,5 +1,5 @@
 const baseUrl =
-  'https://firebasestorage.googleapis.com/v0/b/centro-educativo-f5cc5.firebasestorage.app/o/';
+  'https://firebasestorage.googleapis.com/v0/b/educore-systems-dd8a3.firebasestorage.app/o/';
 
 export const images = {
   notFound404: `${baseUrl}404.png?alt=media&token=a6a846fb-fedc-4cf4-b198-282ca1bd2686`,

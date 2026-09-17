@@ -24,5 +24,7 @@ dist-ssr
 *.sw?
 
 .env
-serviceAccountKey.json
-/scratch
+
+functions/serviceAccountKey.json
+functions/set-claims.js
+functions/scratch

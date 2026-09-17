@@ -66,7 +66,7 @@ const AdminPanel = () => {
       // 1. Check local mock/real context
       const savedUser = localStorage.getItem('school_user');
       const currentUser = savedUser ? JSON.parse(savedUser) : null;
-      
+
       if (currentUser && currentUser.role === 'user_admin') {
         return;
       }
@@ -105,7 +105,7 @@ const AdminPanel = () => {
     } catch (err) {
       console.error("Error cargando datos de Firestore:", err);
       setDataError("No se pudieron cargar datos reales de Firestore. Mostrando datos simulados.");
-      
+
       // Fallback a datos simulados premium para visualización en local
       setParentsList([
         { id: 'parent-1', nombre: 'Eduardo Gómez', email: 'eduardo@ejemplo.com', emailInvalid: false, studentIds: ['student-1', 'student-2'] },
@@ -147,8 +147,8 @@ const AdminPanel = () => {
 
     setIsSubmitting(true);
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/centro-educativo-f5cc5/us-central1' : 'https://us-central1-centro-educativo-f5cc5.cloudfunctions.net');
-      
+      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
+
       let token = 'mock-admin-token';
       if (auth.currentUser) {
         token = await auth.currentUser.getIdToken();
@@ -206,8 +206,8 @@ const AdminPanel = () => {
 
     setIsSubmitting(true);
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/centro-educativo-f5cc5/us-central1' : 'https://us-central1-centro-educativo-f5cc5.cloudfunctions.net');
-      
+      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
+
       let token = 'mock-admin-token';
       if (auth.currentUser) {
         token = await auth.currentUser.getIdToken();
@@ -281,7 +281,7 @@ const AdminPanel = () => {
       return;
     }
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/centro-educativo-f5cc5/us-central1' : 'https://us-central1-centro-educativo-f5cc5.cloudfunctions.net');
+      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
       let token = 'mock-admin-token';
       if (auth.currentUser) {
         token = await auth.currentUser.getIdToken();
@@ -313,7 +313,7 @@ const AdminPanel = () => {
     e.preventDefault();
     if (!editingUser) return;
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/centro-educativo-f5cc5/us-central1' : 'https://us-central1-centro-educativo-f5cc5.cloudfunctions.net');
+      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
       let token = 'mock-admin-token';
       if (auth.currentUser) {
         token = await auth.currentUser.getIdToken();
@@ -360,12 +360,12 @@ const AdminPanel = () => {
 
   // Filter logic on the dashboard list
   const filteredStudents = studentsList.filter(student => {
-    const matchesSearch = 
+    const matchesSearch =
       (student.nombre || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (student.studentID_login || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (student.dni || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (student.emailPadre || '').toLowerCase().includes(searchFilter.toLowerCase());
-    
+
     const matchesLevel = levelFilter === 'todos' || (student.nivel || 'inicial') === levelFilter;
 
     return matchesSearch && matchesLevel;
@@ -376,7 +376,7 @@ const AdminPanel = () => {
     const isStaff = user.role === 'user_admin' || user.role === 'Staff' || user.role === 'Administrativo';
     if (!isStaff) return false;
 
-    const matchesSearch = 
+    const matchesSearch =
       (user.nombre || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (user.email || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (user.dni || '').toLowerCase().includes(searchFilter.toLowerCase());
@@ -400,11 +400,10 @@ const AdminPanel = () => {
           <div className="flex bg-slate-200/60 p-1.5 rounded-full border border-slate-200">
             <button
               onClick={() => setActiveTab('dashboard')}
-              className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${
-                activeTab === 'dashboard'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'dashboard'
+                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                : 'text-slate-600 hover:text-slate-900'
+                }`}
             >
               <div className="flex items-center gap-2">
                 <Icon name="dashboard" className="text-lg" />
@@ -414,11 +413,10 @@ const AdminPanel = () => {
             {user?.role === 'user_admin' && (
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${
-                  activeTab === 'create'
-                    ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'create'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <Icon name="person_add" className="text-lg" />
@@ -432,7 +430,7 @@ const AdminPanel = () => {
         {/* Dashboard Tab Content */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
-            
+
             {/* Filters Bar */}
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
               <div className="relative w-full md:w-96">
@@ -475,21 +473,19 @@ const AdminPanel = () => {
             <div className="flex bg-slate-200/40 p-1 rounded-xl border border-slate-200/50 max-w-md">
               <button
                 onClick={() => setDashboardSubTab('students')}
-                className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${
-                  dashboardSubTab === 'students'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
+                className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${dashboardSubTab === 'students'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
               >
                 Estudiantes y Tutores
               </button>
               <button
                 onClick={() => setDashboardSubTab('staff')}
-                className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${
-                  dashboardSubTab === 'staff'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
+                className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${dashboardSubTab === 'staff'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
               >
                 Personal Institucional
               </button>
@@ -537,11 +533,10 @@ const AdminPanel = () => {
                                   </div>
                                 </td>
                                 <td className="py-5 px-6">
-                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    (student.nivel || 'inicial') === 'inicial' ? 'bg-secondary-container/20 text-secondary' :
+                                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${(student.nivel || 'inicial') === 'inicial' ? 'bg-secondary-container/20 text-secondary' :
                                     (student.nivel || 'inicial') === 'primaria' ? 'bg-primary-container/20 text-primary' :
-                                    'bg-tertiary-container/20 text-tertiary-dim'
-                                  }`}>
+                                      'bg-tertiary-container/20 text-tertiary-dim'
+                                    }`}>
                                     {(student.nivel || 'inicial').toUpperCase()}
                                   </span>
                                 </td>
@@ -562,19 +557,17 @@ const AdminPanel = () => {
                                 </td>
                                 <td className="py-5 px-6">
                                   <div className="flex flex-col gap-1.5">
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold w-max ${
-                                      student.mustChangePassword
-                                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                        : 'bg-green-50 text-green-700 border border-green-200'
-                                    }`}>
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold w-max ${student.mustChangePassword
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-green-50 text-green-700 border border-green-200'
+                                      }`}>
                                       <span className={`h-1.5 w-1.5 rounded-full ${student.mustChangePassword ? 'bg-amber-500' : 'bg-green-600'}`} />
                                       Alumno: {student.mustChangePassword ? 'Temporal (DNI)' : 'Cambiada'}
                                     </span>
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold w-max ${
-                                      parent.mustChangePassword
-                                        ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                        : 'bg-green-50 text-green-700 border border-green-200'
-                                    }`}>
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold w-max ${parent.mustChangePassword
+                                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                      : 'bg-green-50 text-green-700 border border-green-200'
+                                      }`}>
                                       <span className={`h-1.5 w-1.5 rounded-full ${parent.mustChangePassword ? 'bg-amber-500' : 'bg-green-600'}`} />
                                       Tutor: {parent.mustChangePassword ? 'Temporal (DNI)' : 'Cambiada'}
                                     </span>
@@ -660,11 +653,10 @@ const AdminPanel = () => {
                                 <span className="font-bold text-base text-slate-800 leading-tight">{student.nombre}</span>
                                 <span className="text-xs text-slate-400 font-mono">{student.studentID_login}</span>
                               </div>
-                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap ${
-                                (student.nivel || 'inicial') === 'inicial' ? 'bg-secondary-container/20 text-secondary' :
+                              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap ${(student.nivel || 'inicial') === 'inicial' ? 'bg-secondary-container/20 text-secondary' :
                                 (student.nivel || 'inicial') === 'primaria' ? 'bg-primary-container/20 text-primary' :
-                                'bg-tertiary-container/20 text-tertiary-dim'
-                              }`}>
+                                  'bg-tertiary-container/20 text-tertiary-dim'
+                                }`}>
                                 {(student.nivel || 'inicial').toUpperCase()}
                               </span>
                             </div>
@@ -695,16 +687,14 @@ const AdminPanel = () => {
                             </div>
 
                             <div className="flex flex-wrap gap-2 pt-1">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                student.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
-                              }`}>
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${student.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
+                                }`}>
                                 <span className={`h-1.5 w-1.5 rounded-full ${student.mustChangePassword ? 'bg-amber-500' : 'bg-green-600'}`} />
                                 Alumno: {student.mustChangePassword ? 'Temporal' : 'Activa'}
                               </span>
                               {student.parentId && (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                  parent.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
-                                }`}>
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${parent.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
+                                  }`}>
                                   <span className={`h-1.5 w-1.5 rounded-full ${parent.mustChangePassword ? 'bg-amber-500' : 'bg-green-600'}`} />
                                   Tutor: {parent.mustChangePassword ? 'Temporal' : 'Activa'}
                                 </span>
@@ -809,25 +799,23 @@ const AdminPanel = () => {
                                 </div>
                               </td>
                               <td className="py-5 px-6">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                  staff.role === 'user_admin' ? 'bg-red-50 text-red-700 border border-red-200' :
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${staff.role === 'user_admin' ? 'bg-red-50 text-red-700 border border-red-200' :
                                   staff.role === 'Administrativo' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
-                                  'bg-green-50 text-green-700 border border-green-200'
-                                }`}>
+                                    'bg-green-50 text-green-700 border border-green-200'
+                                  }`}>
                                   {staff.role === 'user_admin' ? 'Administrador General' :
-                                   staff.role === 'Administrativo' ? 'Administrativo' :
-                                   'Docente / Staff'}
+                                    staff.role === 'Administrativo' ? 'Administrativo' :
+                                      'Docente / Staff'}
                                 </span>
                               </td>
                               <td className="py-5 px-6">
                                 <span className="text-slate-600">{staff.email}</span>
                               </td>
                               <td className="py-5 px-6">
-                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                                  staff.mustChangePassword 
-                                    ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                                    : 'bg-green-50 text-green-700 border border-green-200'
-                                }`}>
+                                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${staff.mustChangePassword
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-green-50 text-green-700 border border-green-200'
+                                  }`}>
                                   <span className={`h-2 w-2 rounded-full ${staff.mustChangePassword ? 'bg-amber-500 animate-pulse' : 'bg-green-600'}`} />
                                   {staff.mustChangePassword ? 'Temporal (DNI)' : 'Clave Segura'}
                                 </span>
@@ -876,14 +864,13 @@ const AdminPanel = () => {
                               <span className="font-bold text-base text-slate-800 leading-tight">{staff.nombre}</span>
                               <span className="text-xs text-slate-400 font-mono">DNI: {staff.dni || 'No registrado'}</span>
                             </div>
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap ${
-                              staff.role === 'user_admin' ? 'bg-red-50 text-red-700 border border-red-200' :
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase whitespace-nowrap ${staff.role === 'user_admin' ? 'bg-red-50 text-red-700 border border-red-200' :
                               staff.role === 'Administrativo' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
-                              'bg-green-50 text-green-700 border border-green-200'
-                            }`}>
+                                'bg-green-50 text-green-700 border border-green-200'
+                              }`}>
                               {staff.role === 'user_admin' ? 'Admin' :
-                               staff.role === 'Administrativo' ? 'Admin. Interno' :
-                               'Docente'}
+                                staff.role === 'Administrativo' ? 'Admin. Interno' :
+                                  'Docente'}
                             </span>
                           </div>
 
@@ -894,9 +881,8 @@ const AdminPanel = () => {
 
                           <div>
                             <span className="text-slate-400 block font-semibold uppercase tracking-wider text-[9px]">Estado de Credenciales</span>
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold mt-1 ${
-                              staff.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
-                            }`}>
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold mt-1 ${staff.mustChangePassword ? 'bg-amber-50 text-amber-700 border border-amber-100' : 'bg-green-50 text-green-700 border border-green-100'
+                              }`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${staff.mustChangePassword ? 'bg-amber-500 animate-pulse' : 'bg-green-600'}`} />
                               Clave: {staff.mustChangePassword ? 'Temporal (DNI)' : 'Cambiada / Segura'}
                             </span>
@@ -959,11 +945,10 @@ const AdminPanel = () => {
                   setCreationType('parent_student');
                   setFormError('');
                 }}
-                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${
-                  creationType === 'parent_student'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
+                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'parent_student'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
               >
                 Tutor y Estudiantes
               </button>
@@ -973,11 +958,10 @@ const AdminPanel = () => {
                   setCreationType('administrative');
                   setFormError('');
                 }}
-                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${
-                  creationType === 'administrative'
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                }`}
+                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'administrative'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  }`}
               >
                 Personal / Administrativo
               </button>
@@ -1051,9 +1035,9 @@ const AdminPanel = () => {
                             <Icon name="delete" />
                           </button>
                         )}
-                        
+
                         <h4 className="font-label font-bold text-xs text-orange-600">Estudiante #{idx + 1}</h4>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                           <div className="flex flex-col gap-2">
                             <label className="text-xs font-semibold text-slate-600">Nombre Completo</label>
@@ -1253,11 +1237,11 @@ const AdminPanel = () => {
               <h3 className="font-headline text-2xl font-bold text-slate-800 flex items-center gap-2">
                 <Icon name="edit" className="text-orange-500" />
                 <span>
-                  Editar {editingUser.type === 'student' ? 'Estudiante' : 
-                          editingUser.type === 'parent' ? 'Tutor' : 'Personal'}
+                  Editar {editingUser.type === 'student' ? 'Estudiante' :
+                    editingUser.type === 'parent' ? 'Tutor' : 'Personal'}
                 </span>
               </h3>
-              <button 
+              <button
                 onClick={() => setEditingUser(null)}
                 className="text-slate-400 hover:text-slate-600 transition-colors border-none bg-transparent cursor-pointer"
               >
