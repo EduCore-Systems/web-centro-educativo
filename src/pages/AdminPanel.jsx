@@ -41,6 +41,31 @@ const AdminPanel = () => {
   const [cursoAsignado, setCursoAsignado] = useState('');
   const [aprobacionError, setAprobacionError] = useState('');
   const [isAprobando, setIsAprobando] = useState(false);
+  const [isCustomCurso, setIsCustomCurso] = useState(false);
+
+  const predefinedCourses = {
+    inicial: [
+      'Sala de 3 Años - Mañana', 'Sala de 3 Años - Tarde',
+      'Sala de 4 Años - Mañana', 'Sala de 4 Años - Tarde',
+      'Sala de 5 Años - Mañana', 'Sala de 5 Años - Tarde'
+    ],
+    primaria: [
+      '1° Grado A', '1° Grado B',
+      '2° Grado A', '2° Grado B',
+      '3° Grado A', '3° Grado B',
+      '4° Grado A', '4° Grado B',
+      '5° Grado A', '5° Grado B',
+      '6° Grado A', '6° Grado B',
+      '7° Grado A', '7° Grado B'
+    ],
+    secundaria: [
+      '1° Año A', '1° Año B',
+      '2° Año A', '2° Año B',
+      '3° Año A', '3° Año B',
+      '4° Año A', '4° Año B',
+      '5° Año A', '5° Año B'
+    ]
+  };
 
   // Profile Editor Modal State
   const [editingUser, setEditingUser] = useState(null); // { id, type, fields: { nombre, email, dni, ... } }
@@ -1075,6 +1100,7 @@ const AdminPanel = () => {
                                 setAprobandoSolicitud(solicitud);
                                 setCursoAsignado('');
                                 setAprobacionError('');
+                                setIsCustomCurso(false);
                               }}
                               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors cursor-pointer border-none"
                             >
@@ -1589,16 +1615,53 @@ const AdminPanel = () => {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-bold text-slate-700 mb-2">
+              <label className="block text-sm font-bold text-slate-700 mb-2" htmlFor="cursoSelect">
                 Curso asignado *
               </label>
-              <input
-                type="text"
-                placeholder="Ej: 3° Grado A, Sala de 4, 2° Año B"
-                value={cursoAsignado}
-                onChange={(e) => setCursoAsignado(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm"
-              />
+              
+              {!isCustomCurso ? (
+                <select
+                  id="cursoSelect"
+                  value={cursoAsignado}
+                  onChange={(e) => {
+                    if (e.target.value === 'otro') {
+                      setIsCustomCurso(true);
+                      setCursoAsignado('');
+                    } else {
+                      setCursoAsignado(e.target.value);
+                    }
+                  }}
+                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm appearance-none mb-2"
+                >
+                  <option value="" disabled>Seleccione un curso...</option>
+                  {aprobandoSolicitud?.nivel && predefinedCourses[aprobandoSolicitud.nivel]?.map((curso) => (
+                    <option key={curso} value={curso}>{curso}</option>
+                  ))}
+                  <option value="otro">Otro (personalizado)...</option>
+                </select>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    id="cursoCustom"
+                    placeholder="Ej: 3° Grado A, Sala de 4, 2° Año B"
+                    value={cursoAsignado}
+                    onChange={(e) => setCursoAsignado(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm"
+                    autoFocus
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setIsCustomCurso(false);
+                      setCursoAsignado('');
+                    }}
+                    className="text-xs text-orange-600 font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
+                  >
+                    Volver a la lista de cursos
+                  </button>
+                </div>
+              )}
             </div>
             {aprobacionError && (
               <p className="text-red-600 text-sm font-medium mb-4">{aprobacionError}</p>
