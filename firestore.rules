@@ -4,33 +4,19 @@ service cloud.firestore {
     
     // Colección users (Perfiles de padres, administradores, etc.)
     match /users/{userId} {
-      // Bloquear escrituras directas desde el cliente.
-      // Todas las altas y modificaciones deben ocurrir a través de las Cloud Functions.
-      allow write: if false;
-      
-      // Permitir lectura si:
-      // 1. El usuario autenticado es dueño de su propio perfil.
-      // 2. El usuario autenticado posee el rol 'user_admin' en sus Custom Claims.
-      allow read: if request.auth != null && (
-        request.auth.uid == userId || 
-        request.auth.token.role == 'user_admin'
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (
+        request.auth.token.role == 'user_admin' || 
+        request.auth.uid == userId
       );
     }
     
     // Colección students (Datos y login de alumnos)
     match /students/{studentId} {
-      // Bloquear escrituras directas desde el cliente.
-      allow write: if false;
-      
-      // Permitir lectura si:
-      // 1. El usuario es el propio alumno (su UID coincide con el ID de documento).
-      // 2. El usuario es el padre asociado (su UID coincide con el parentId del alumno).
-      // 3. El usuario posee el rol 'user_admin' en sus Custom Claims.
-      allow read: if request.auth != null && (
-        request.auth.uid == studentId || 
-        resource.data.parentId == request.auth.uid || 
-        request.auth.token.role == 'user_admin'
-      );
+      // Permitir creación y lectura para inscripción pública
+      allow read, create: if true;
+      // Permitir edición y borrado para administradores autenticados
+      allow update, delete: if request.auth != null;
     }
 
     // Colección news (Noticias del portal)

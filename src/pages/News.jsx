@@ -191,9 +191,9 @@ const News = () => {
           }
         ];
 
-        for (const art of defaultArticles) {
-          await addDoc(collection(db, 'news'), art);
-        }
+        await Promise.all(
+          defaultArticles.map((art) => addDoc(collection(db, 'news'), art))
+        );
 
         const reSnapshot = await getDocs(q);
         fetched = reSnapshot.docs.map(doc => ({

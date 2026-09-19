@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SuccessModal from '../components/molecules/SuccessModal';
 import '../styles/Registration.css';
+import { db } from '../services/firebase';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 
 const NIVELES = [
   {
@@ -50,13 +52,63 @@ const Registration = () => {
     if (validarPaso()) setPasoActual(pasoActual + 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validarPaso()) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrores({});
+
+    try {
+      //validamos que el dni del alumno no se encuentre validado
+      const alumnosRef = collection(db, 'students');
+      const consultaDni = query(alumnosRef, where('dni', '==', datosFormulario.dniAlumno.trim()));
+      const resultadoDni = await getDocs(consultaDni);
+
+      if (!resultadoDni.empty) {
+        setErrores({ dniAlumno: 'Ya existe un alumno registrado con este número de DNI.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      //Generamos codigo unico de estudiante
+      const anioActual = new Date().getFullYear();
+      const snapShotConteo = await getCountFromServer(alumnosRef);
+      const totalRegistrados = snapShotConteo.data().count;
+      const siguienteNumero = totalRegistrados + 1;
+      const numeroFormateado = String(siguienteNumero).padStart(5, '0'); //rellena con ceros: "00001",00002"
+      const studentID_login = `EST-${anioActual}-${numeroFormateado}`;
+
+      //guardamos el nuevo registro en firestore 
+      await addDoc(alumnosRef, {
+        studentID_login,
+        nombre: datosFormulario.nombreAlumno.trim(),
+        dni: datosFormulario.dniAlumno.trim(),
+        fechaNacimiento: datosFormulario.fechaNacimiento,
+        nivel: datosFormulario.nivel,
+        genero: '',
+        observaciones: datosFormulario.observaciones || '',
+
+        //datos del tutor
+        nombreTutor: datosFormulario.nombreTutor.trim(),
+        dniTutor: datosFormulario.dniTutor.trim(),
+        emailPadre: datosFormulario.correo.trim(),
+        telefonoTutor: datosFormulario.telefono.trim(),
+        parentId: null,
+
+        //estado institucional
+        status: 'pendiente',
+        curso: null,
+        createdAt: serverTimestamp()
+      });
+
+      //mostrar el mensaje de exito
       setShowSuccessModal(true);
-    }, 1500);
+
+    } catch (error) {
+      console.error('Error durante el registro del alumno', error);
+      alert('Tuvimos inconvenientes durante el proceso de inscripción. Intente nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const pasoAnterior = () => {
@@ -65,7 +117,7 @@ const Registration = () => {
 
   const handleChange = (campo, valor) => {
     let nuevoValor = valor;
-    
+
     if (campo === 'dniTutor' || campo === 'dniAlumno') {
       nuevoValor = valor.replace(/\D/g, ''); // Solo números
     }
@@ -85,7 +137,7 @@ const Registration = () => {
       if (!datosFormulario.nombreTutor.trim()) {
         e.nombreTutor = 'El campo es obligatorio';
       }
-      
+
       if (!datosFormulario.dniTutor.trim()) {
         e.dniTutor = 'El campo es obligatorio';
       } else if (datosFormulario.dniTutor.length < 7 || datosFormulario.dniTutor.length > 9) {
@@ -210,8 +262,9 @@ const Registration = () => {
               <h2 className="paso-titulo">Paso 2: Datos del Tutor</h2>
               <div className="form-grid">
                 <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO</label>
+                  <label htmlFor="nombreTutor" className="form-label">NOMBRE COMPLETO</label>
                   <input
+                    id="nombreTutor"
                     className={`form-input ${errores.nombreTutor ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Ej. Juan Pérez"
@@ -221,8 +274,9 @@ const Registration = () => {
                   {errores.nombreTutor && <p className="form-error">{errores.nombreTutor}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">DNI</label>
+                  <label htmlFor="dniTutor" className="form-label">DNI</label>
                   <input
+                    id="dniTutor"
                     className={`form-input ${errores.dniTutor ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Número de documento"
@@ -232,8 +286,9 @@ const Registration = () => {
                   {errores.dniTutor && <p className="form-error">{errores.dniTutor}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">CORREO ELECTRÓNICO</label>
+                  <label htmlFor="correoTutor" className="form-label">CORREO ELECTRÓNICO</label>
                   <input
+                    id="correoTutor"
                     className={`form-input ${errores.correo ? 'form-input--error' : ''}`}
                     type="email"
                     placeholder="correo@ejemplo.com"
@@ -243,8 +298,9 @@ const Registration = () => {
                   {errores.correo && <p className="form-error">{errores.correo}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">TELÉFONO DE CONTACTO</label>
+                  <label htmlFor="telefonoTutor" className="form-label">TELÉFONO DE CONTACTO</label>
                   <input
+                    id="telefonoTutor"
                     className={`form-input ${errores.telefono ? 'form-input--error' : ''}`}
                     type="tel"
                     placeholder="+549 11 2345-6789"
@@ -263,8 +319,9 @@ const Registration = () => {
               <h2 className="paso-titulo">Paso 3: Datos del Alumno</h2>
               <div className="form-grid">
                 <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO DEL ALUMNO</label>
+                  <label htmlFor="nombreAlumno" className="form-label">NOMBRE COMPLETO DEL ALUMNO</label>
                   <input
+                    id="nombreAlumno"
                     className={`form-input ${errores.nombreAlumno ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Nombre y apellido"
@@ -274,8 +331,9 @@ const Registration = () => {
                   {errores.nombreAlumno && <p className="form-error">{errores.nombreAlumno}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">DNI DEL ALUMNO</label>
+                  <label htmlFor="dniAlumno" className="form-label">DNI DEL ALUMNO</label>
                   <input
+                    id="dniAlumno"
                     className={`form-input ${errores.dniAlumno ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Número de documento"
@@ -285,8 +343,9 @@ const Registration = () => {
                   {errores.dniAlumno && <p className="form-error">{errores.dniAlumno}</p>}
                 </div>
                 <div className="form-grupo form-grupo--full">
-                  <label className="form-label">FECHA DE NACIMIENTO</label>
+                  <label htmlFor="fechaNacimiento" className="form-label">FECHA DE NACIMIENTO</label>
                   <input
+                    id="fechaNacimiento"
                     className={`form-input ${errores.fechaNacimiento ? 'form-input--error' : ''}`}
                     type="date"
                     min={obtenerLimitesFecha().min}
@@ -297,8 +356,9 @@ const Registration = () => {
                   {errores.fechaNacimiento && <p className="form-error">{errores.fechaNacimiento}</p>}
                 </div>
                 <div className="form-grupo form-grupo--full">
-                  <label className="form-label">OBSERVACIONES / NECESIDADES ESPECIALES</label>
+                  <label htmlFor="observaciones" className="form-label">OBSERVACIONES / NECESIDADES ESPECIALES</label>
                   <textarea
+                    id="observaciones"
                     className="form-input form-textarea"
                     placeholder="Indicá cualquier información relevante..."
                     value={datosFormulario.observaciones}
@@ -334,7 +394,7 @@ const Registration = () => {
 
         </div>
       </main>
-      <SuccessModal 
+      <SuccessModal
         isOpen={showSuccessModal}
         onClose={() => navigate('/')}
         title="¡Inscripción Exitosa!"

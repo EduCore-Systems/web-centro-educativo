@@ -4,7 +4,9 @@ import Navbar from '../components/Navbar';
 import Icon from '../components/atoms/Icon';
 import SuccessModal from '../components/molecules/SuccessModal';
 import { db, auth } from '../services/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 
 const AdminPanel = () => {
@@ -33,6 +35,12 @@ const AdminPanel = () => {
 
   // Dashboard Sub-Tab ('students' or 'staff')
   const [dashboardSubTab, setDashboardSubTab] = useState('students');
+
+  //estado del modal de aprobacion de solicitudes
+  const [aprobandoSolicitud, setAprobandoSolicitud] = useState(null);
+  const [cursoAsignado, setCursoAsignado] = useState('');
+  const [aprobacionError, setAprobacionError] = useState('');
+  const [isAprobando, setIsAprobando] = useState(false);
 
   // Profile Editor Modal State
   const [editingUser, setEditingUser] = useState(null); // { id, type, fields: { nombre, email, dni, ... } }
@@ -358,8 +366,10 @@ const AdminPanel = () => {
     });
   };
 
-  // Filter logic on the dashboard list
+  // filtro para solo alumnos y tutores activos
   const filteredStudents = studentsList.filter(student => {
+    if (student.status === 'pendiente') return false;
+
     const matchesSearch =
       (student.nombre || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
       (student.studentID_login || '').toLowerCase().includes(searchFilter.toLowerCase()) ||
@@ -370,6 +380,9 @@ const AdminPanel = () => {
 
     return matchesSearch && matchesLevel;
   });
+
+  // Solicitudes pendientes — para el sub-tab "Solicitudes"
+  const solicitudesPendientes = studentsList.filter(s => s.status === 'pendiente');
 
   const filteredStaff = parentsList.filter(user => {
     // Solo personal institucional (user_admin, Staff, Administrativo)
@@ -383,6 +396,92 @@ const AdminPanel = () => {
 
     return matchesSearch;
   });
+
+  const handleAprobarSolicitud = async () => {
+    // Validación: el curso es obligatorio antes de aprobar
+    if (!cursoAsignado.trim()) {
+      setAprobacionError('Debés asignar un curso antes de aprobar.');
+      return;
+    }
+    setIsAprobando(true);
+    setAprobacionError('');
+
+    try {
+      const existingSecondaryApp = getApps().find(app => app.name === 'secondary');
+      const firebaseConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      };
+      const secondaryApp = existingSecondaryApp || initializeApp(firebaseConfig, 'secondary');
+      const secondaryAuth = getAuth(secondaryApp);
+
+      // Creamos la cuenta del padre en Firebase Auth con su email y su DNI como contraseña
+      const credencialPadre = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        aprobandoSolicitud.emailPadre,
+        aprobandoSolicitud.dniTutor
+      );
+      const uidPadre = credencialPadre.user.uid;
+
+      // Importante: cerrar sesión en la instancia secundaria
+      await signOut(secondaryAuth);
+
+      // Creamos el perfil del tutor en users
+      await setDoc(doc(db, 'users', uidPadre), {
+        role: 'Padre',
+        nombre: aprobandoSolicitud.nombreTutor,
+        email: aprobandoSolicitud.emailPadre,
+        dni: aprobandoSolicitud.dniTutor,
+        telefono: aprobandoSolicitud.telefonoTutor || '',
+        mustChangePassword: true,
+        emailInvalid: false,
+        studentIds: [aprobandoSolicitud.id],
+      });
+
+      // Actualizamos el documento del alumno en Firestore vinculando el uid del padre
+      await updateDoc(doc(db, 'students', aprobandoSolicitud.id), {
+        status: 'activo',
+        curso: cursoAsignado.trim(),
+        parentId: uidPadre,
+      });
+
+      // Cerramos y actualizamos la vista
+      setAprobandoSolicitud(null);
+      setCursoAsignado('');
+      fetchDashboardData();
+
+      alert(`✅ Solicitud aprobada con éxito. La cuenta del tutor ${aprobandoSolicitud.nombreTutor} fue creada. Su contraseña inicial es su DNI: ${aprobandoSolicitud.dniTutor}`);
+    } catch (error) {
+      console.error('Error al aprobar solicitud', error);
+      if (error.code === 'auth/email-already-in-use') {
+        setAprobacionError('Este email ya tiene una cuenta en el sistema. El tutor puede iniciar sesión directamente.');
+      } else {
+        setAprobacionError('Ocurrió un error: ' + error.message);
+      }
+    } finally {
+      setIsAprobando(false);
+    }
+  };
+
+  const handleRechazarSolicitud = async (studentId, nombreAlumno) => {
+    //confirm() muestra un dialogo del navegador pidiendo confirmación.
+    const confirmar = window.confirm(
+      `¿Seguro que quieres rechazar la solicitud de ${nombreAlumno}? Esta acción no se puede deshacer.`
+    );
+    if (!confirmar) return;
+
+    try {
+      //deleteDoc elimina el documento de firestore.
+      await deleteDoc(doc(db, 'students', studentId));
+      fetchDashboardData(); //recarga la lista
+    } catch (err) {
+      alert('Error al rechazar la solicitud: ' + err.message);
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-slate-50 text-slate-800 font-body">
@@ -438,8 +537,10 @@ const AdminPanel = () => {
                   <Icon name="search" />
                 </span>
                 <input
+                  id="searchFilter"
                   type="text"
                   placeholder="Buscar por alumno, email del tutor o ID..."
+                  aria-label="Buscar por alumno, email del tutor o ID"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm"
@@ -447,8 +548,9 @@ const AdminPanel = () => {
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
-                <label className="text-sm font-semibold text-slate-500 whitespace-nowrap">Nivel Educativo:</label>
+                <label htmlFor="levelFilter" className="text-sm font-semibold text-slate-500 whitespace-nowrap">Nivel Educativo:</label>
                 <select
+                  id="levelFilter"
                   value={levelFilter}
                   onChange={(e) => setLevelFilter(e.target.value)}
                   className="w-full md:w-48 px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none"
@@ -488,6 +590,24 @@ const AdminPanel = () => {
                   }`}
               >
                 Personal Institucional
+              </button>
+              <button
+                onClick={() => setDashboardSubTab('pendientes')}
+                className={`relative flex-1 py-2 px-3 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 ${
+                  dashboardSubTab === 'pendientes'
+                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                    : solicitudesPendientes.length > 0
+                      ? 'bg-amber-100/80 text-amber-900 hover:bg-amber-200 border border-amber-300'
+                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                }`}
+              >
+                <span>Solicitudes</span>
+                {/* Contador con fondo rojo bien visible y legible */}
+                {solicitudesPendientes.length > 0 && (
+                  <span className="bg-red-600 text-white text-[11px] font-extrabold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-sm ring-2 ring-white">
+                    {solicitudesPendientes.length}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -543,16 +663,14 @@ const AdminPanel = () => {
                                 <td className="py-5 px-6">
                                   <div className="flex flex-col gap-0.5">
                                     <span className="font-semibold text-slate-700">{parent.nombre}</span>
-                                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                                      <span>{parent.email || student.emailPadre}</span>
-                                      {parent.dni && <span className="text-slate-300">| DNI: {parent.dni}</span>}
-                                      {parent.emailInvalid && (
-                                        <span className="flex items-center gap-0.5 text-red-500 font-bold uppercase tracking-wider text-[9px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
-                                          <Icon name="error" className="text-[10px]" />
-                                          Email Inválido
-                                        </span>
-                                      )}
-                                    </div>
+                                    <span className="text-xs text-slate-500">{parent.email || student.emailPadre}</span>
+                                    {parent.dni && <span className="text-xs text-slate-500">DNI: {parent.dni}</span>}
+                                    {parent.emailInvalid && (
+                                      <span className="flex items-center gap-0.5 text-red-500 font-bold uppercase tracking-wider text-[9px] bg-red-50 px-1.5 py-0.5 rounded border border-red-200 w-max mt-0.5">
+                                        <Icon name="error" className="text-[10px]" />
+                                        Email Inválido
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td className="py-5 px-6">
@@ -677,6 +795,7 @@ const AdminPanel = () => {
                               <div className="flex flex-col">
                                 <span className="font-bold text-xs text-slate-700">{parent.nombre}</span>
                                 <span className="text-xs text-slate-500">{parent.email || student.emailPadre}</span>
+                                {parent.dni && <span className="text-xs text-slate-500">DNI: {parent.dni}</span>}
                                 {parent.emailInvalid && (
                                   <span className="flex items-center gap-1 text-red-500 font-bold uppercase tracking-wider text-[9px] mt-1">
                                     <Icon name="error" className="text-[10px]" />
@@ -775,7 +894,7 @@ const AdminPanel = () => {
                       })}
                     </div>
                   </>
-                ) : (
+                ) : dashboardSubTab === 'staff' ? (
                   <>
                     {/* Vista Desktop (Tabla) */}
                     <div className="hidden md:block">
@@ -919,7 +1038,61 @@ const AdminPanel = () => {
                       ))}
                     </div>
                   </>
-                )}
+                ) : dashboardSubTab === 'pendientes' ? (
+                  <div className="p-6 space-y-4">
+                    {solicitudesPendientes.length === 0 ? (
+                      <div className="p-16 text-center text-slate-500">
+                        <p className="font-bold text-lg">No hay solicitudes pendientes</p>
+                        <p className="text-sm mt-1">Todas las preinscripciones han sido procesadas.</p>
+                      </div>
+                    ) : solicitudesPendientes.map((solicitud) => (
+                      <div key={solicitud.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+
+                          {/* Datos del alumno y tutor */}
+                          <div className="flex-1 space-y-2">
+                            <div>
+                              <p className="text-xs text-amber-600 font-bold uppercase">Alumno</p>
+                              <p className="font-bold text-slate-800 text-lg">{solicitud.nombre}</p>
+                              <p className="text-sm text-slate-500">
+                                DNI: {solicitud.dni} | Nivel: {solicitud.nivel?.toUpperCase()} | Nac.: {solicitud.fechaNacimiento}
+                              </p>
+                              <p className="text-xs font-mono text-slate-400">{solicitud.studentID_login}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-amber-600 font-bold uppercase mt-2">Tutor Responsable</p>
+                              <p className="font-semibold text-slate-700">{solicitud.nombreTutor}</p>
+                              <p className="text-sm text-slate-500">
+                                {solicitud.emailPadre} | DNI: {solicitud.dniTutor} | Tel: {solicitud.telefonoTutor}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Botones de acción */}
+                          <div className="flex flex-col gap-2 min-w-[180px]">
+                            <button
+                              onClick={() => {
+                                setAprobandoSolicitud(solicitud);
+                                setCursoAsignado('');
+                                setAprobacionError('');
+                              }}
+                              className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors cursor-pointer border-none"
+                            >
+                              ✓ Revisar y Aprobar
+                            </button>
+                            <button
+                              onClick={() => handleRechazarSolicitud(solicitud.id, solicitud.nombre)}
+                              className="bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 px-4 rounded-xl text-sm transition-colors cursor-pointer border-none"
+                            >
+                              ✗ Rechazar
+                            </button>
+                          </div>
+
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -928,292 +1101,301 @@ const AdminPanel = () => {
         {/* Creation Tab Content */}
         {activeTab === 'create' && user?.role === 'user_admin' && (
           <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xl max-w-4xl mx-auto">
-            <h2 className="font-headline text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-4">
-              <Icon name="person_add" className="text-orange-500" />
-              <span>
-                {creationType === 'parent_student'
-                  ? 'Registrar Tutor y Estudiantes'
-                  : 'Registrar Personal / Administrativo'}
-              </span>
-            </h2>
+        <h2 className="font-headline text-2xl font-bold mb-6 text-slate-800 flex items-center gap-2 border-b border-slate-100 pb-4">
+          <Icon name="person_add" className="text-orange-500" />
+          <span>
+            {creationType === 'parent_student'
+              ? 'Registrar Tutor y Estudiantes'
+              : 'Registrar Personal / Administrativo'}
+          </span>
+        </h2>
 
-            {/* Sub-selector for creation type */}
-            <div className="flex bg-slate-100 p-1.5 rounded-full border border-slate-200 mb-8 max-w-md mx-auto">
-              <button
-                type="button"
-                onClick={() => {
-                  setCreationType('parent_student');
-                  setFormError('');
-                }}
-                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'parent_student'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                  }`}
-              >
-                Tutor y Estudiantes
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setCreationType('administrative');
-                  setFormError('');
-                }}
-                className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'administrative'
-                  ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
-                  }`}
-              >
-                Personal / Administrativo
-              </button>
+        {/* Sub-selector for creation type */}
+        <div className="flex bg-slate-100 p-1.5 rounded-full border border-slate-200 mb-8 max-w-md mx-auto">
+          <button
+            type="button"
+            onClick={() => {
+              setCreationType('parent_student');
+              setFormError('');
+            }}
+            className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'parent_student'
+              ? 'bg-orange-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 bg-transparent'
+              }`}
+          >
+            Tutor y Estudiantes
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCreationType('administrative');
+              setFormError('');
+            }}
+            className={`flex-1 py-2 rounded-full font-label font-bold text-xs transition-all cursor-pointer border-none ${creationType === 'administrative'
+              ? 'bg-orange-500 text-white shadow-sm'
+              : 'text-slate-600 hover:text-slate-900 bg-transparent'
+              }`}
+          >
+            Personal / Administrativo
+          </button>
+        </div>
+
+        {creationType === 'parent_student' ? (
+          <form onSubmit={handleCreateSubmit} className="space-y-8">
+            {/* Tutor Section */}
+            <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-4 text-left">
+              <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Datos del Padre/Tutor</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="createParentName" className="text-sm font-semibold text-slate-600">Nombre Completo del Tutor</label>
+                  <input
+                    id="createParentName"
+                    type="text"
+                    placeholder="Ej. Andrés Martínez"
+                    value={parentName}
+                    onChange={(e) => setParentName(e.target.value)}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="createParentDni" className="text-sm font-semibold text-slate-600">DNI del Tutor</label>
+                  <input
+                    id="createParentDni"
+                    type="text"
+                    placeholder="Número de DNI"
+                    value={parentDni}
+                    onChange={(e) => setParentDni(e.target.value.replace(/\D/g, ''))}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="createParentEmail" className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
+                  <input
+                    id="createParentEmail"
+                    type="email"
+                    placeholder="tutor@ejemplo.com"
+                    value={parentEmail}
+                    onChange={(e) => setParentEmail(e.target.value)}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+              </div>
             </div>
 
-            {creationType === 'parent_student' ? (
-              <form onSubmit={handleCreateSubmit} className="space-y-8">
-                {/* Tutor Section */}
-                <div className="bg-slate-50/50 p-6 rounded-2xl border border-slate-200/60 space-y-4 text-left">
-                  <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Datos del Padre/Tutor</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">Nombre Completo del Tutor</label>
-                      <input
-                        type="text"
-                        placeholder="Ej. Andrés Martínez"
-                        value={parentName}
-                        onChange={(e) => setParentName(e.target.value)}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">DNI del Tutor</label>
-                      <input
-                        type="text"
-                        placeholder="Número de DNI"
-                        value={parentDni}
-                        onChange={(e) => setParentDni(e.target.value.replace(/\D/g, ''))}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
-                      <input
-                        type="email"
-                        placeholder="tutor@ejemplo.com"
-                        value={parentEmail}
-                        onChange={(e) => setParentEmail(e.target.value)}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hijos Section */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Estudiantes Vinculados</h3>
-                    <button
-                      type="button"
-                      onClick={addStudentField}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-600 font-bold text-xs rounded-full transition-all cursor-pointer border-none"
-                    >
-                      <Icon name="add" className="text-sm" />
-                      <span>Añadir Hijo</span>
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {students.map((student, idx) => (
-                      <div key={idx} className="relative border border-slate-100 p-4 sm:p-6 rounded-2xl bg-white shadow-sm space-y-4 text-left">
-                        {students.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeStudentField(idx)}
-                            className="absolute right-4 top-4 text-slate-400 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer"
-                          >
-                            <Icon name="delete" />
-                          </button>
-                        )}
-
-                        <h4 className="font-label font-bold text-xs text-orange-600">Estudiante #{idx + 1}</h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-slate-600">Nombre Completo</label>
-                            <input
-                              type="text"
-                              placeholder="Ej. Lucas Martínez"
-                              value={student.nombre}
-                              onChange={(e) => handleStudentChange(idx, 'nombre', e.target.value)}
-                              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
-                              required
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-slate-600">DNI</label>
-                            <input
-                              type="text"
-                              placeholder="Número de DNI"
-                              value={student.dni}
-                              onChange={(e) => handleStudentChange(idx, 'dni', e.target.value.replace(/\D/g, ''))}
-                              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
-                              required
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-slate-600">Fecha de Nacimiento</label>
-                            <input
-                              type="date"
-                              value={student.fechaNacimiento}
-                              onChange={(e) => handleStudentChange(idx, 'fechaNacimiento', e.target.value)}
-                              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
-                              required
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-slate-600">Nivel Educativo</label>
-                            <select
-                              value={student.nivel}
-                              onChange={(e) => handleStudentChange(idx, 'nivel', e.target.value)}
-                              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"
-                              required
-                            >
-                              <option value="inicial">Nivel Inicial</option>
-                              <option value="primaria">Primaria</option>
-                              <option value="secundaria">Secundaria</option>
-                            </select>
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <label className="text-xs font-semibold text-slate-600">Género</label>
-                            <select
-                              value={student.genero || 'Masculino'}
-                              onChange={(e) => handleStudentChange(idx, 'genero', e.target.value)}
-                              className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"
-                              required
-                            >
-                              <option value="Masculino">Masculino</option>
-                              <option value="Femenino">Femenino</option>
-                              <option value="Otro">Otro / No Binario</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {formError && (
-                  <p className="text-xs text-red-500 font-bold bg-red-50 border border-red-100 p-3.5 rounded-xl text-center">{formError}</p>
-                )}
-
-                {/* Submit Buttons */}
+            {/* Hijos Section */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Estudiantes Vinculados</h3>
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex justify-center items-center py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-base rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed border-none"
+                  type="button"
+                  onClick={addStudentField}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-orange-100 hover:bg-orange-200 text-orange-600 font-bold text-xs rounded-full transition-all cursor-pointer border-none"
                 >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Creando Cuentas y Vinculando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="person_add" className="mr-2" />
-                      <span>Crear Cuentas y Enviar Activación</span>
-                    </>
-                  )}
+                  <Icon name="add" className="text-sm" />
+                  <span>Añadir Hijo</span>
                 </button>
-              </form>
-            ) : (
-              <form onSubmit={handleCreateAdminSubmit} className="space-y-8">
-                {/* Personal Section */}
-                <div className="bg-slate-50/50 p-4 sm:p-6 rounded-2xl border border-slate-200/60 space-y-4 text-left">
-                  <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Datos del Personal / Administrativo</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">Nombre Completo</label>
-                      <input
-                        type="text"
-                        placeholder="Ej. Juan Pérez"
-                        value={adminName}
-                        onChange={(e) => setAdminName(e.target.value)}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">DNI del Personal</label>
-                      <input
-                        type="text"
-                        placeholder="Número de DNI"
-                        value={adminDni}
-                        onChange={(e) => setAdminDni(e.target.value.replace(/\D/g, ''))}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
-                      <input
-                        type="email"
-                        placeholder="juan.perez@ejemplo.com"
-                        value={adminEmail}
-                        onChange={(e) => setAdminEmail(e.target.value)}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
-                        required
-                      />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-semibold text-slate-600">Rol Institucional</label>
-                      <select
-                        value={adminRole}
-                        onChange={(e) => setAdminRole(e.target.value)}
-                        className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none"
-                        required
+              </div>
+
+              <div className="space-y-4">
+                {students.map((student, idx) => (
+                  <div key={idx} className="relative border border-slate-100 p-4 sm:p-6 rounded-2xl bg-white shadow-sm space-y-4 text-left">
+                    {students.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeStudentField(idx)}
+                        className="absolute right-4 top-4 text-slate-400 hover:text-red-500 transition-colors border-none bg-transparent cursor-pointer"
                       >
-                        <option value="Staff">Docente / Staff</option>
-                        <option value="Administrativo">Administrativo</option>
-                        <option value="user_admin">Administrador General</option>
-                      </select>
+                        <Icon name="delete" />
+                      </button>
+                    )}
+
+                    <h4 className="font-label font-bold text-xs text-orange-600">Estudiante #{idx + 1}</h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor={`studentName_${idx}`} className="text-xs font-semibold text-slate-600">Nombre Completo</label>
+                        <input
+                          id={`studentName_${idx}`}
+                          type="text"
+                          placeholder="Ej. Lucas Martínez"
+                          value={student.nombre}
+                          onChange={(e) => handleStudentChange(idx, 'nombre', e.target.value)}
+                          className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor={`studentDni_${idx}`} className="text-xs font-semibold text-slate-600">DNI</label>
+                        <input
+                          id={`studentDni_${idx}`}
+                          type="text"
+                          placeholder="Número de DNI"
+                          value={student.dni}
+                          onChange={(e) => handleStudentChange(idx, 'dni', e.target.value.replace(/\D/g, ''))}
+                          className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor={`studentDob_${idx}`} className="text-xs font-semibold text-slate-600">Fecha de Nacimiento</label>
+                        <input
+                          id={`studentDob_${idx}`}
+                          type="date"
+                          value={student.fechaNacimiento}
+                          onChange={(e) => handleStudentChange(idx, 'fechaNacimiento', e.target.value)}
+                          className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs"
+                          required
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor={`studentLevel_${idx}`} className="text-xs font-semibold text-slate-600">Nivel Educativo</label>
+                        <select
+                          id={`studentLevel_${idx}`}
+                          value={student.nivel}
+                          onChange={(e) => handleStudentChange(idx, 'nivel', e.target.value)}
+                          className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"
+                          required
+                        >
+                          <option value="inicial">Nivel Inicial</option>
+                          <option value="primaria">Primaria</option>
+                          <option value="secundaria">Secundaria</option>
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <label htmlFor={`studentGender_${idx}`} className="text-xs font-semibold text-slate-600">Género</label>
+                        <select
+                          id={`studentGender_${idx}`}
+                          value={student.genero || 'Masculino'}
+                          onChange={(e) => handleStudentChange(idx, 'genero', e.target.value)}
+                          className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"
+                          required
+                        >
+                          <option value="Masculino">Masculino</option>
+                          <option value="Femenino">Femenino</option>
+                          <option value="Otro">Otro / No Binario</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                </div>
+                ))}
+              </div>
+            </div>
 
-                {formError && (
-                  <p className="text-xs text-red-500 font-bold bg-red-50 border border-red-100 p-3.5 rounded-xl text-center">{formError}</p>
-                )}
-
-                {/* Submit Buttons */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex justify-center items-center py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-base rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed border-none"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      <span>Creando Cuenta...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="person_add" className="mr-2" />
-                      <span>Crear Cuenta de Personal</span>
-                    </>
-                  )}
-                </button>
-              </form>
+            {formError && (
+              <p className="text-xs text-red-500 font-bold bg-red-50 border border-red-100 p-3.5 rounded-xl text-center">{formError}</p>
             )}
-          </div>
+
+            {/* Submit Buttons */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex justify-center items-center py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-base rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed border-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Creando Cuentas y Vinculando...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="person_add" className="mr-2" />
+                  <span>Crear Cuentas y Enviar Activación</span>
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleCreateAdminSubmit} className="space-y-8">
+            {/* Personal Section */}
+            <div className="bg-slate-50/50 p-4 sm:p-6 rounded-2xl border border-slate-200/60 space-y-4 text-left">
+              <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Datos del Personal / Administrativo</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-600">Nombre Completo</label>
+                  <input
+                    type="text"
+                    placeholder="Ej. Juan Pérez"
+                    value={adminName}
+                    onChange={(e) => setAdminName(e.target.value)}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-600">DNI del Personal</label>
+                  <input
+                    type="text"
+                    placeholder="Número de DNI"
+                    value={adminDni}
+                    onChange={(e) => setAdminDni(e.target.value.replace(/\D/g, ''))}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
+                  <input
+                    type="email"
+                    placeholder="juan.perez@ejemplo.com"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm"
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-slate-600">Rol Institucional</label>
+                  <select
+                    value={adminRole}
+                    onChange={(e) => setAdminRole(e.target.value)}
+                    className="px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none"
+                    required
+                  >
+                    <option value="Staff">Docente / Staff</option>
+                    <option value="Administrativo">Administrativo</option>
+                    <option value="user_admin">Administrador General</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {formError && (
+              <p className="text-xs text-red-500 font-bold bg-red-50 border border-red-100 p-3.5 rounded-xl text-center">{formError}</p>
+            )}
+
+            {/* Submit Buttons */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full flex justify-center items-center py-4 bg-orange-600 hover:bg-orange-700 text-white font-bold text-base rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed border-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Creando Cuenta...</span>
+                </>
+              ) : (
+                <>
+                  <Icon name="person_add" className="mr-2" />
+                  <span>Crear Cuenta de Personal</span>
+                </>
+              )}
+            </button>
+          </form>
         )}
-      </main>
+      </div>
+    )}
+
+  </main>
 
       {/* Success Reusable Modal */}
       <SuccessModal
@@ -1249,144 +1431,198 @@ const AdminPanel = () => {
               </button>
             </div>
 
-            <form onSubmit={handleEditSubmit} className="space-y-6">
-              {editingUser.type === 'student' && (
-                <>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Completo</label>
-                    <input
-                      type="text"
-                      value={editingUser.fields.nombre || ''}
-                      onChange={(e) => handleEditFieldChange('nombre', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">DNI</label>
-                    <input
-                      type="text"
-                      value={editingUser.fields.dni || ''}
-                      onChange={(e) => handleEditFieldChange('dni', e.target.value.replace(/\D/g, ''))}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha de Nacimiento</label>
-                    <input
-                      type="date"
-                      value={editingUser.fields.fechaNacimiento || ''}
-                      onChange={(e) => handleEditFieldChange('fechaNacimiento', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nivel Educativo</label>
-                    <select
-                      value={editingUser.fields.nivel || 'inicial'}
-                      onChange={(e) => handleEditFieldChange('nivel', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
-                      required
-                    >
-                      <option value="inicial">Nivel Inicial</option>
-                      <option value="primaria">Primaria</option>
-                      <option value="secundaria">Secundaria</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Género</label>
-                    <select
-                      value={editingUser.fields.genero || 'Masculino'}
-                      onChange={(e) => handleEditFieldChange('genero', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
-                      required
-                    >
-                      <option value="Masculino">Masculino</option>
-                      <option value="Femenino">Femenino</option>
-                      <option value="Otro">Otro / No Binario</option>
-                    </select>
-                  </div>
-                </>
-              )}
-
-              {(editingUser.type === 'parent' || editingUser.type === 'administrative') && (
-                <>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Completo</label>
-                    <input
-                      type="text"
-                      value={editingUser.fields.nombre || ''}
-                      onChange={(e) => handleEditFieldChange('nombre', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">DNI</label>
-                    <input
-                      type="text"
-                      value={editingUser.fields.dni || ''}
-                      onChange={(e) => handleEditFieldChange('dni', e.target.value.replace(/\D/g, ''))}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Correo Electrónico</label>
-                    <input
-                      type="email"
-                      value={editingUser.fields.email || ''}
-                      onChange={(e) => handleEditFieldChange('email', e.target.value)}
-                      className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                      required
-                    />
-                  </div>
-
-                  {editingUser.type === 'administrative' && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rol Institucional</label>
-                      <select
-                        value={editingUser.fields.role || 'Staff'}
-                        onChange={(e) => handleEditFieldChange('role', e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
-                        required
-                      >
-                        <option value="Staff">Docente / Staff</option>
-                        <option value="Administrativo">Administrativo</option>
-                        <option value="user_admin">Administrador General</option>
-                      </select>
-                    </div>
-                  )}
-                </>
-              )}
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setEditingUser(null)}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-full transition-all cursor-pointer border-none"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer border-none"
-                >
-                  Guardar Cambios
-                </button>
+        <form onSubmit={handleEditSubmit} className="space-y-6">
+          {editingUser.type === 'student' && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={editingUser.fields.nombre || ''}
+                  onChange={(e) => handleEditFieldChange('nombre', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
               </div>
-            </form>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">DNI</label>
+                <input
+                  type="text"
+                  value={editingUser.fields.dni || ''}
+                  onChange={(e) => handleEditFieldChange('dni', e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha de Nacimiento</label>
+                <input
+                  type="date"
+                  value={editingUser.fields.fechaNacimiento || ''}
+                  onChange={(e) => handleEditFieldChange('fechaNacimiento', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nivel Educativo</label>
+                <select
+                  value={editingUser.fields.nivel || 'inicial'}
+                  onChange={(e) => handleEditFieldChange('nivel', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
+                  required
+                >
+                  <option value="inicial">Nivel Inicial</option>
+                  <option value="primaria">Primaria</option>
+                  <option value="secundaria">Secundaria</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Género</label>
+                <select
+                  value={editingUser.fields.genero || 'Masculino'}
+                  onChange={(e) => handleEditFieldChange('genero', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
+                  required
+                >
+                  <option value="Masculino">Masculino</option>
+                  <option value="Femenino">Femenino</option>
+                  <option value="Otro">Otro / No Binario</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {(editingUser.type === 'parent' || editingUser.type === 'administrative') && (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre Completo</label>
+                <input
+                  type="text"
+                  value={editingUser.fields.nombre || ''}
+                  onChange={(e) => handleEditFieldChange('nombre', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">DNI</label>
+                <input
+                  type="text"
+                  value={editingUser.fields.dni || ''}
+                  onChange={(e) => handleEditFieldChange('dni', e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Correo Electrónico</label>
+                <input
+                  type="email"
+                  value={editingUser.fields.email || ''}
+                  onChange={(e) => handleEditFieldChange('email', e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
+                  required
+                />
+              </div>
+
+              {editingUser.type === 'administrative' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Rol Institucional</label>
+                  <select
+                    value={editingUser.fields.role || 'Staff'}
+                    onChange={(e) => handleEditFieldChange('role', e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
+                    required
+                  >
+                    <option value="Staff">Docente / Staff</option>
+                    <option value="Administrativo">Administrativo</option>
+                    <option value="user_admin">Administrador General</option>
+                  </select>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setEditingUser(null)}
+              className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-full transition-all cursor-pointer border-none"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-full shadow-lg shadow-orange-600/10 transition-all cursor-pointer border-none"
+            >
+              Guardar Cambios
+            </button>
+          </div>
+        </form>
           </div>
         </div>
       )}
+
+      {/* Modal de Aprobación de Solicitud */}
+      {aprobandoSolicitud && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8">
+            <h3 className="font-headline text-2xl font-bold text-slate-800 mb-1">
+              Aprobar Solicitud
+            </h3>
+            <p className="text-slate-500 text-sm mb-6">
+              Revisá los datos y asigná el curso para activar al alumno.
+            </p>
+            <div className="bg-slate-50 rounded-2xl p-4 space-y-1 mb-6 text-sm">
+              <p><strong>Alumno:</strong> {aprobandoSolicitud.nombre} (DNI: {aprobandoSolicitud.dni})</p>
+              <p><strong>Nivel:</strong> {aprobandoSolicitud.nivel?.toUpperCase()}</p>
+              <p><strong>Tutor:</strong> {aprobandoSolicitud.nombreTutor}</p>
+              <p><strong>Email tutor:</strong> {aprobandoSolicitud.emailPadre}</p>
+              <p><strong>DNI tutor (será su contraseña inicial):</strong> {aprobandoSolicitud.dniTutor}</p>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Curso asignado *
+              </label>
+              <input
+                type="text"
+                placeholder="Ej: 3° Grado A, Sala de 4, 2° Año B"
+                value={cursoAsignado}
+                onChange={(e) => setCursoAsignado(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm"
+              />
+            </div>
+            {aprobacionError && (
+              <p className="text-red-600 text-sm font-medium mb-4">{aprobacionError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setAprobandoSolicitud(null)}
+                disabled={isAprobando}
+                className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAprobarSolicitud}
+                disabled={isAprobando}
+                className="flex-1 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-colors cursor-pointer border-none disabled:opacity-60"
+              >
+                {isAprobando ? 'Procesando...' : '✓ Confirmar Aprobación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
