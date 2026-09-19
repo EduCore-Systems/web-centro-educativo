@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/Button.css';
+import styles from '../styles/Button.module.css';
 
 /**
  * Componente Button reutilizable
@@ -18,7 +18,7 @@ const Button = ({
   return (
     <button
       type={type}
-      className={`custom-button ${variant} ${size} ${className}`}
+      className={`${styles['custom-button']} ${styles[variant] || ''} ${styles[size] || ''} ${className}`}
       onClick={onClick}
       disabled={disabled}
     >
