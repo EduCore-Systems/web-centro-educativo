@@ -1,16 +1,16 @@
 import React from 'react';
 import BentoCard from '../molecules/BentoCard';
 import Badge from '../atoms/Badge';
-import '../../styles/organisms/ServicesBento.css';
+import styles from '../../styles/organisms/ServicesBento.module.css';
 
 const ServicesBento = ({
   onMindfulnessClick = () => alert('Inscripción al taller realizada con éxito. ¡Te esperamos!'),
 }) => {
   return (
-    <section className="services-section">
-      <h2 className="services-section-title">Nuestros Servicios de Apoyo</h2>
+    <section className={styles['services-section']}>
+      <h2 className={styles['services-section-title']}>Nuestros Servicios de Apoyo</h2>
       
-      <div className="services-bento-grid">
+      <div className={styles['services-bento-grid']}>
         <BentoCard 
           spanColumns={2}
           bgLow={true}

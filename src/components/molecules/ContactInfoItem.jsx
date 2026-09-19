@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '../atoms/Icon';
-import '../../styles/Contact.css'; // Compartirá los estilos generales de Contact
+import styles from '../../styles/Contact.module.css'; // Compartirá los estilos generales de Contact
 
 /**
  * Molécula ContactInfoItem
@@ -13,13 +13,13 @@ const ContactInfoItem = ({
   value
 }) => {
   return (
-    <div className="contact-info-item">
-      <div className={`contact-info-icon-wrapper ${iconVariant}`}>
+    <div className={styles['contact-info-item']}>
+      <div className={`${styles['contact-info-icon-wrapper']} ${styles[iconVariant] || ''}`}>
         <Icon name={icon} filled={true} className="text-2xl" />
       </div>
-      <div className="contact-info-text-container">
-        <h3 className="contact-info-label">{label}</h3>
-        <div className="contact-info-value">{value}</div>
+      <div className={styles['contact-info-text-container']}>
+        <h3 className={styles['contact-info-label']}>{label}</h3>
+        <div className={styles['contact-info-value']}>{value}</div>
       </div>
     </div>
   );

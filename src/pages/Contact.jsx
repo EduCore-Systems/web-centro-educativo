@@ -3,28 +3,28 @@ import Navbar from '../components/Navbar';
 import ContactInfoCard from '../components/organisms/ContactInfoCard';
 import MapCard from '../components/molecules/MapCard';
 import ContactForm from '../components/organisms/ContactForm';
-import '../styles/Contact.css';
+import styles from '../styles/Contact.module.css';
 
 const Contact = () => {
   return (
-    <div className="contact-page-container">
+    <div className={styles['contact-page-container']}>
       <Navbar />
       
-      <main className="contact-main-content">
-        <div className="contact-header">
-          <h1 className="contact-title">Estamos aquí para ayudarte</h1>
-          <p className="contact-subtitle">
+      <main className={styles['contact-main-content']}>
+        <div className={styles['contact-header']}>
+          <h1 className={styles['contact-title']}>Estamos aquí para ayudarte</h1>
+          <p className={styles['contact-subtitle']}>
             Conéctate con nosotros para cualquier consulta, inscripción o simplemente para conocer más sobre nuestro enfoque educativo vibrante en Resistencia.
           </p>
         </div>
 
-        <div className="contact-grid">
-          <div className="contact-left-col">
+        <div className={styles['contact-grid']}>
+          <div className={styles['contact-left-col']}>
             <ContactInfoCard />
             <MapCard />
           </div>
 
-          <div className="contact-right-col">
+          <div className={styles['contact-right-col']}>
             <ContactForm />
           </div>
         </div>

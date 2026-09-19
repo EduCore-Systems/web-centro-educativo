@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../styles/atoms/Badge.css';
+import styles from '../../styles/atoms/Badge.module.css';
 
 /**
  * Componente Badge/Píldora para etiquetas y estados
@@ -15,8 +15,8 @@ const Badge = ({
   className = ''
 }) => {
   return (
-    <div className={`custom-badge ${variant} ${className}`}>
-      {animated && <span className="badge-pulse-dot" aria-hidden="true" />}
+    <div className={`${styles['custom-badge']} ${styles[variant] || ''} ${className}`}>
+      {animated && <span className={styles['badge-pulse-dot']} aria-hidden="true" />}
       <span>{text}</span>
     </div>
   );
