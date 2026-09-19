@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SuccessModal from '../components/molecules/SuccessModal';
 import '../styles/Registration.css';
+import { db } from '../services/firebase';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 
 const NIVELES = [
   {
@@ -50,13 +52,63 @@ const Registration = () => {
     if (validarPaso()) setPasoActual(pasoActual + 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validarPaso()) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrores({});
+
+    try {
+      //validamos que el dni del alumno no se encuentre validado
+      const alumnosRef = collection(db, 'students');
+      const consultaDni = query(alumnosRef, where('dni', '==', datosFormulario.dniAlumno.trim()));
+      const resultadoDni = await getDocs(consultaDni);
+
+      if (!resultadoDni.empty) {
+        setErrores({ dniAlumno: 'Ya existe un alumno registrado con este número de DNI.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      //Generamos codigo unico de estudiante
+      const anioActual = new Date().getFullYear();
+      const snapShotConteo = await getCountFromServer(alumnosRef);
+      const totalRegistrados = snapShotConteo.data().count;
+      const siguienteNumero = totalRegistrados + 1;
+      const numeroFormateado = String(siguienteNumero).padStart(5, '0'); //rellena con ceros: "00001",00002"
+      const studentID_login = `EST-${anioActual}-${numeroFormateado}`;
+
+      //guardamos el nuevo registro en firestore 
+      await addDoc(alumnosRef, {
+        studentID_login,
+        nombre: datosFormulario.nombreAlumno.trim(),
+        dni: datosFormulario.dniAlumno.trim(),
+        fechaNacimiento: datosFormulario.fechaNacimiento,
+        nivel: datosFormulario.nivel,
+        genero: '',
+        observaciones: datosFormulario.observaciones || '',
+
+        //datos del tutor
+        nombreTutor: datosFormulario.nombreTutor.trim(),
+        dniTutor: datosFormulario.dniTutor.trim(),
+        emailPadre: datosFormulario.correo.trim(),
+        telefonoTutor: datosFormulario.telefono.trim(),
+        parentId: null,
+
+        //estado institucional
+        status: 'pendiente',
+        curso: null,
+        createdAt: serverTimestamp()
+      });
+
+      //mostrar el mensaje de exito
       setShowSuccessModal(true);
-    }, 1500);
+
+    } catch (error) {
+      console.error('Error durante el registro del alumno', error);
+      alert('Tuvimos inconvenientes durante el proceso de inscripción. Intente nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const pasoAnterior = () => {
@@ -65,7 +117,7 @@ const Registration = () => {
 
   const handleChange = (campo, valor) => {
     let nuevoValor = valor;
-    
+
     if (campo === 'dniTutor' || campo === 'dniAlumno') {
       nuevoValor = valor.replace(/\D/g, ''); // Solo números
     }
@@ -85,7 +137,7 @@ const Registration = () => {
       if (!datosFormulario.nombreTutor.trim()) {
         e.nombreTutor = 'El campo es obligatorio';
       }
-      
+
       if (!datosFormulario.dniTutor.trim()) {
         e.dniTutor = 'El campo es obligatorio';
       } else if (datosFormulario.dniTutor.length < 7 || datosFormulario.dniTutor.length > 9) {
@@ -334,7 +386,7 @@ const Registration = () => {
 
         </div>
       </main>
-      <SuccessModal 
+      <SuccessModal
         isOpen={showSuccessModal}
         onClose={() => navigate('/')}
         title="¡Inscripción Exitosa!"
