@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Icon from '../atoms/Icon';
-import '../../styles/Contact.css';
+import styles from '../../styles/Contact.module.css';
 
 const ContactForm = () => {
   const GOOGLE_SHEETS_URL = import.meta.env.VITE_CONTACT_FORM_SHEETS_URL || '';
@@ -103,24 +103,24 @@ const ContactForm = () => {
   };
 
   return (
-    <div className="contact-form-card">
-      <div className="contact-form-bg-decorator" />
-      <h2 className="contact-form-title">Envíanos un mensaje</h2>
-      <p className="contact-form-subtitle">
+    <div className={styles['contact-form-card']}>
+      <div className={styles['contact-form-bg-decorator']} />
+      <h2 className={styles['contact-form-title']}>Envíanos un mensaje</h2>
+      <p className={styles['contact-form-subtitle']}>
         Completa el formulario y nos pondremos en contacto contigo a la
         brevedad.
       </p>
 
-      <form className="contact-form-element" onSubmit={handleSubmit}>
-        <div className="contact-form-row">
-          <div className="contact-form-group">
-            <label className="contact-form-label" htmlFor="nombre">
-              Nombre Completo <span className="required-star">*</span>
+      <form className={styles['contact-form-element']} onSubmit={handleSubmit}>
+        <div className={styles['contact-form-row']}>
+          <div className={styles['contact-form-group']}>
+            <label className={styles['contact-form-label']} htmlFor="nombre">
+              Nombre Completo <span className={styles['required-star']}>*</span>
             </label>
             <input
               type="text"
               id="nombre"
-              className="contact-form-input"
+              className={styles['contact-form-input']}
               placeholder="Ej. Ana García"
               value={formData.nombre}
               onChange={handleChange}
@@ -128,14 +128,14 @@ const ContactForm = () => {
             />
           </div>
 
-          <div className="contact-form-group">
-            <label className="contact-form-label" htmlFor="telefono">
+          <div className={styles['contact-form-group']}>
+            <label className={styles['contact-form-label']} htmlFor="telefono">
               Teléfono / WhatsApp
             </label>
             <input
               type="tel"
               id="telefono"
-              className="contact-form-input"
+              className={styles['contact-form-input']}
               placeholder="+54 362..."
               value={formData.telefono}
               onChange={handleChange}
@@ -143,14 +143,14 @@ const ContactForm = () => {
           </div>
         </div>
 
-        <div className="contact-form-group">
-          <label className="contact-form-label" htmlFor="email">
-            Correo Electrónico <span className="required-star">*</span>
+        <div className={styles['contact-form-group']}>
+          <label className={styles['contact-form-label']} htmlFor="email">
+            Correo Electrónico <span className={styles['required-star']}>*</span>
           </label>
           <input
             type="email"
             id="email"
-            className="contact-form-input"
+            className={styles['contact-form-input']}
             placeholder="ana@ejemplo.com"
             value={formData.email}
             onChange={handleChange}
@@ -158,14 +158,14 @@ const ContactForm = () => {
           />
         </div>
 
-        <div className="contact-form-group">
-          <label className="contact-form-label" htmlFor="asunto">
+        <div className={styles['contact-form-group']}>
+          <label className={styles['contact-form-label']} htmlFor="asunto">
             Motivo de la consulta
           </label>
-          <div className="contact-select-wrapper">
+          <div className={styles['contact-select-wrapper']}>
             <select
               id="asunto"
-              className="contact-form-select"
+              className={styles['contact-form-select']}
               value={formData.asunto}
               onChange={handleChange}
             >
@@ -179,13 +179,13 @@ const ContactForm = () => {
           </div>
         </div>
 
-        <div className="contact-form-group">
-          <label className="contact-form-label" htmlFor="mensaje">
-            Mensaje <span className="required-star">*</span>
+        <div className={styles['contact-form-group']}>
+          <label className={styles['contact-form-label']} htmlFor="mensaje">
+            Mensaje <span className={styles['required-star']}>*</span>
           </label>
           <textarea
             id="mensaje"
-            className="contact-form-textarea"
+            className={styles['contact-form-textarea']}
             placeholder="Escribe tu consulta aquí..."
             rows="4"
             value={formData.mensaje}
@@ -194,10 +194,10 @@ const ContactForm = () => {
           ></textarea>
         </div>
 
-        <div className="contact-form-actions">
+        <div className={styles['contact-form-actions']}>
           <button
             type="submit"
-            className="contact-btn-submit"
+            className={styles['contact-btn-submit']}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
@@ -214,7 +214,7 @@ const ContactForm = () => {
             href="https://wa.me/543624123456"
             target="_blank"
             rel="noopener noreferrer"
-            className="contact-btn-whatsapp"
+            className={styles['contact-btn-whatsapp']}
           >
             <Icon name="forum" className="text-xl" />
             <span>WhatsApp Directo</span>

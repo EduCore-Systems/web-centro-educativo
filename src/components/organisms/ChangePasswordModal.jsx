@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Icon from '../atoms/Icon';
-import '../../styles/organisms/ChangePasswordModal.css';
+import styles from '../../styles/organisms/ChangePasswordModal.module.css';
 
 const ChangePasswordModal = () => {
   const { user, changePassword, logout } = useAuth();
@@ -43,84 +43,84 @@ const ChangePasswordModal = () => {
   };
 
   return (
-    <div className="change-password-overlay">
-      <div className="change-password-modal">
+    <div className={styles['change-password-overlay']}>
+      <div className={styles['change-password-modal']}>
         
         {/* Header Icon */}
-        <div className="modal-icon-container">
-          <div className={`modal-icon-circle ${success ? 'success' : 'pending'}`}>
+        <div className={styles['modal-icon-container']}>
+          <div className={`${styles['modal-icon-circle']} ${success ? styles['success'] : styles['pending']}`}>
             <Icon name={success ? 'check_circle' : 'lock_reset'} className="text-3xl" />
           </div>
         </div>
 
         {success ? (
-          <div className="modal-content-container">
-            <h2 className="modal-title">¡Contraseña Actualizada!</h2>
-            <p className="modal-description">
+          <div className={styles['modal-content-container']}>
+            <h2 className={styles['modal-title']}>¡Contraseña Actualizada!</h2>
+            <p className={styles['modal-description']}>
               Tu contraseña ha sido actualizada con éxito. Ya puedes comenzar a utilizar la plataforma con tus nuevas credenciales.
             </p>
-            <div className="modal-actions-group">
+            <div className={styles['modal-actions-group']}>
               <button
                 onClick={() => window.location.reload()}
-                className="btn-modal-success"
+                className={styles['btn-modal-success']}
               >
                 Comenzar
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="modal-form">
-            <div className="form-header-group">
-              <h2 className="modal-title">Actualizar Contraseña</h2>
-              <p className="modal-description">
+          <form onSubmit={handleSubmit} className={styles['modal-form']}>
+            <div className={styles['form-header-group']}>
+              <h2 className={styles['modal-title']}>Actualizar Contraseña</h2>
+              <p className={styles['modal-description']}>
                 Has iniciado sesión con tu contraseña temporal (DNI). Por motivos de seguridad, debes establecer una nueva contraseña para continuar.
               </p>
             </div>
 
-            <div className="form-inputs-group">
-              <div className="input-field-group">
-                <label className="input-label">Nueva Contraseña</label>
+            <div className={styles['form-inputs-group']}>
+              <div className={styles['input-field-group']}>
+                <label className={styles['input-label']}>Nueva Contraseña</label>
                 <input
                   type="password"
                   placeholder="Mínimo 6 caracteres"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="modal-input"
+                  className={styles['modal-input']}
                   required
                 />
               </div>
 
-              <div className="input-field-group">
-                <label className="input-label">Confirmar Contraseña</label>
+              <div className={styles['input-field-group']}>
+                <label className={styles['input-label']}>Confirmar Contraseña</label>
                 <input
                   type="password"
                   placeholder="Repite la contraseña"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="modal-input"
+                  className={styles['modal-input']}
                   required
                 />
               </div>
             </div>
 
             {error && (
-              <p className="modal-error-message">
+              <p className={styles['modal-error-message']}>
                 {error}
               </p>
             )}
 
-            <div className="modal-actions-group">
+            <div className={styles['modal-actions-group']}>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="btn-modal-primary"
+                className={styles['btn-modal-primary']}
               >
                 {isSubmitting ? 'Guardando...' : 'Cambiar Contraseña'}
               </button>
               <button
                 type="button"
                 onClick={() => logout()}
-                className="btn-modal-secondary"
+                className={styles['btn-modal-secondary']}
               >
                 Cerrar Sesión
               </button>
