@@ -36,8 +36,8 @@ const Gallery = () => {
   // Carousel Lightbox State
   const [isCarouselOpen, setIsCarouselOpen] = useState(false);
   const [carouselIndex, setCarouselIndex] = useState(0);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
+  const touchStart = React.useRef(0);
+  const touchEnd = React.useRef(0);
 
 
 
@@ -69,18 +69,18 @@ const Gallery = () => {
 
   // Touch handlers for mobile swiping
   const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    touchStart.current = e.targetTouches[0].clientX;
   };
 
   const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    touchEnd.current = e.targetTouches[0].clientX;
   };
 
   const handleTouchEnd = () => {
-    if (touchStart - touchEnd > 75) {
+    if (touchStart.current - touchEnd.current > 75) {
       handleNext();
     }
-    if (touchStart - touchEnd < -75) {
+    if (touchStart.current - touchEnd.current < -75) {
       handlePrev();
     }
   };

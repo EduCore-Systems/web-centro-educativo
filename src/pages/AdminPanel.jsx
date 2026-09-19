@@ -537,8 +537,10 @@ const AdminPanel = () => {
                   <Icon name="search" />
                 </span>
                 <input
+                  id="searchFilter"
                   type="text"
                   placeholder="Buscar por alumno, email del tutor o ID..."
+                  aria-label="Buscar por alumno, email del tutor o ID"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
                   className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm"
@@ -546,8 +548,9 @@ const AdminPanel = () => {
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
-                <label className="text-sm font-semibold text-slate-500 whitespace-nowrap">Nivel Educativo:</label>
+                <label htmlFor="levelFilter" className="text-sm font-semibold text-slate-500 whitespace-nowrap">Nivel Educativo:</label>
                 <select
+                  id="levelFilter"
                   value={levelFilter}
                   onChange={(e) => setLevelFilter(e.target.value)}
                   className="w-full md:w-48 px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none"
@@ -1144,8 +1147,9 @@ const AdminPanel = () => {
               <h3 className="font-label font-bold text-xs uppercase tracking-widest text-slate-500">Datos del Padre/Tutor</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-600">Nombre Completo del Tutor</label>
+                  <label htmlFor="createParentName" className="text-sm font-semibold text-slate-600">Nombre Completo del Tutor</label>
                   <input
+                    id="createParentName"
                     type="text"
                     placeholder="Ej. Andrés Martínez"
                     value={parentName}
@@ -1155,8 +1159,9 @@ const AdminPanel = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-600">DNI del Tutor</label>
+                  <label htmlFor="createParentDni" className="text-sm font-semibold text-slate-600">DNI del Tutor</label>
                   <input
+                    id="createParentDni"
                     type="text"
                     placeholder="Número de DNI"
                     value={parentDni}
@@ -1166,8 +1171,9 @@ const AdminPanel = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
+                  <label htmlFor="createParentEmail" className="text-sm font-semibold text-slate-600">Correo Electrónico</label>
                   <input
+                    id="createParentEmail"
                     type="email"
                     placeholder="tutor@ejemplo.com"
                     value={parentEmail}
@@ -1210,8 +1216,9 @@ const AdminPanel = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600">Nombre Completo</label>
+                        <label htmlFor={`studentName_${idx}`} className="text-xs font-semibold text-slate-600">Nombre Completo</label>
                         <input
+                          id={`studentName_${idx}`}
                           type="text"
                           placeholder="Ej. Lucas Martínez"
                           value={student.nombre}
@@ -1221,8 +1228,9 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600">DNI</label>
+                        <label htmlFor={`studentDni_${idx}`} className="text-xs font-semibold text-slate-600">DNI</label>
                         <input
+                          id={`studentDni_${idx}`}
                           type="text"
                           placeholder="Número de DNI"
                           value={student.dni}
@@ -1232,8 +1240,9 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600">Fecha de Nacimiento</label>
+                        <label htmlFor={`studentDob_${idx}`} className="text-xs font-semibold text-slate-600">Fecha de Nacimiento</label>
                         <input
+                          id={`studentDob_${idx}`}
                           type="date"
                           value={student.fechaNacimiento}
                           onChange={(e) => handleStudentChange(idx, 'fechaNacimiento', e.target.value)}
@@ -1242,8 +1251,9 @@ const AdminPanel = () => {
                         />
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600">Nivel Educativo</label>
+                        <label htmlFor={`studentLevel_${idx}`} className="text-xs font-semibold text-slate-600">Nivel Educativo</label>
                         <select
+                          id={`studentLevel_${idx}`}
                           value={student.nivel}
                           onChange={(e) => handleStudentChange(idx, 'nivel', e.target.value)}
                           className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"
@@ -1255,8 +1265,9 @@ const AdminPanel = () => {
                         </select>
                       </div>
                       <div className="flex flex-col gap-2">
-                        <label className="text-xs font-semibold text-slate-600">Género</label>
+                        <label htmlFor={`studentGender_${idx}`} className="text-xs font-semibold text-slate-600">Género</label>
                         <select
+                          id={`studentGender_${idx}`}
                           value={student.genero || 'Masculino'}
                           onChange={(e) => handleStudentChange(idx, 'genero', e.target.value)}
                           className="px-4 py-2.5 border border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none transition-all text-xs appearance-none"

@@ -262,8 +262,9 @@ const Registration = () => {
               <h2 className="paso-titulo">Paso 2: Datos del Tutor</h2>
               <div className="form-grid">
                 <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO</label>
+                  <label htmlFor="nombreTutor" className="form-label">NOMBRE COMPLETO</label>
                   <input
+                    id="nombreTutor"
                     className={`form-input ${errores.nombreTutor ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Ej. Juan Pérez"
@@ -273,8 +274,9 @@ const Registration = () => {
                   {errores.nombreTutor && <p className="form-error">{errores.nombreTutor}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">DNI</label>
+                  <label htmlFor="dniTutor" className="form-label">DNI</label>
                   <input
+                    id="dniTutor"
                     className={`form-input ${errores.dniTutor ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Número de documento"
@@ -284,8 +286,9 @@ const Registration = () => {
                   {errores.dniTutor && <p className="form-error">{errores.dniTutor}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">CORREO ELECTRÓNICO</label>
+                  <label htmlFor="correoTutor" className="form-label">CORREO ELECTRÓNICO</label>
                   <input
+                    id="correoTutor"
                     className={`form-input ${errores.correo ? 'form-input--error' : ''}`}
                     type="email"
                     placeholder="correo@ejemplo.com"
@@ -295,8 +298,9 @@ const Registration = () => {
                   {errores.correo && <p className="form-error">{errores.correo}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">TELÉFONO DE CONTACTO</label>
+                  <label htmlFor="telefonoTutor" className="form-label">TELÉFONO DE CONTACTO</label>
                   <input
+                    id="telefonoTutor"
                     className={`form-input ${errores.telefono ? 'form-input--error' : ''}`}
                     type="tel"
                     placeholder="+549 11 2345-6789"
@@ -315,8 +319,9 @@ const Registration = () => {
               <h2 className="paso-titulo">Paso 3: Datos del Alumno</h2>
               <div className="form-grid">
                 <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO DEL ALUMNO</label>
+                  <label htmlFor="nombreAlumno" className="form-label">NOMBRE COMPLETO DEL ALUMNO</label>
                   <input
+                    id="nombreAlumno"
                     className={`form-input ${errores.nombreAlumno ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Nombre y apellido"
@@ -326,8 +331,9 @@ const Registration = () => {
                   {errores.nombreAlumno && <p className="form-error">{errores.nombreAlumno}</p>}
                 </div>
                 <div className="form-grupo">
-                  <label className="form-label">DNI DEL ALUMNO</label>
+                  <label htmlFor="dniAlumno" className="form-label">DNI DEL ALUMNO</label>
                   <input
+                    id="dniAlumno"
                     className={`form-input ${errores.dniAlumno ? 'form-input--error' : ''}`}
                     type="text"
                     placeholder="Número de documento"
@@ -337,8 +343,9 @@ const Registration = () => {
                   {errores.dniAlumno && <p className="form-error">{errores.dniAlumno}</p>}
                 </div>
                 <div className="form-grupo form-grupo--full">
-                  <label className="form-label">FECHA DE NACIMIENTO</label>
+                  <label htmlFor="fechaNacimiento" className="form-label">FECHA DE NACIMIENTO</label>
                   <input
+                    id="fechaNacimiento"
                     className={`form-input ${errores.fechaNacimiento ? 'form-input--error' : ''}`}
                     type="date"
                     min={obtenerLimitesFecha().min}
@@ -349,8 +356,9 @@ const Registration = () => {
                   {errores.fechaNacimiento && <p className="form-error">{errores.fechaNacimiento}</p>}
                 </div>
                 <div className="form-grupo form-grupo--full">
-                  <label className="form-label">OBSERVACIONES / NECESIDADES ESPECIALES</label>
+                  <label htmlFor="observaciones" className="form-label">OBSERVACIONES / NECESIDADES ESPECIALES</label>
                   <textarea
+                    id="observaciones"
                     className="form-input form-textarea"
                     placeholder="Indicá cualquier información relevante..."
                     value={datosFormulario.observaciones}
