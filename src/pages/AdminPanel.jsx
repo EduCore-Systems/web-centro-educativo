@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Icon from '../components/atoms/Icon';
 import SuccessModal from '../components/molecules/SuccessModal';
+import AdminApprovalModal from '../components/organisms/admin/AdminApprovalModal';
 import { db, auth } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -38,34 +39,8 @@ const AdminPanel = () => {
 
   //estado del modal de aprobacion de solicitudes
   const [aprobandoSolicitud, setAprobandoSolicitud] = useState(null);
-  const [cursoAsignado, setCursoAsignado] = useState('');
   const [aprobacionError, setAprobacionError] = useState('');
   const [isAprobando, setIsAprobando] = useState(false);
-  const [isCustomCurso, setIsCustomCurso] = useState(false);
-
-  const predefinedCourses = {
-    inicial: [
-      'Sala de 3 Años - Mañana', 'Sala de 3 Años - Tarde',
-      'Sala de 4 Años - Mañana', 'Sala de 4 Años - Tarde',
-      'Sala de 5 Años - Mañana', 'Sala de 5 Años - Tarde'
-    ],
-    primaria: [
-      '1° Grado A', '1° Grado B',
-      '2° Grado A', '2° Grado B',
-      '3° Grado A', '3° Grado B',
-      '4° Grado A', '4° Grado B',
-      '5° Grado A', '5° Grado B',
-      '6° Grado A', '6° Grado B',
-      '7° Grado A', '7° Grado B'
-    ],
-    secundaria: [
-      '1° Año A', '1° Año B',
-      '2° Año A', '2° Año B',
-      '3° Año A', '3° Año B',
-      '4° Año A', '4° Año B',
-      '5° Año A', '5° Año B'
-    ]
-  };
 
   // Profile Editor Modal State
   const [editingUser, setEditingUser] = useState(null); // { id, type, fields: { nombre, email, dni, ... } }
@@ -422,12 +397,7 @@ const AdminPanel = () => {
     return matchesSearch;
   });
 
-  const handleAprobarSolicitud = async () => {
-    // Validación: el curso es obligatorio antes de aprobar
-    if (!cursoAsignado.trim()) {
-      setAprobacionError('Debés asignar un curso antes de aprobar.');
-      return;
-    }
+  const handleAprobarSolicitud = async (cursoAsignado) => {
     setIsAprobando(true);
     setAprobacionError('');
 
@@ -476,7 +446,6 @@ const AdminPanel = () => {
 
       // Cerramos y actualizamos la vista
       setAprobandoSolicitud(null);
-      setCursoAsignado('');
       fetchDashboardData();
 
       alert(`✅ Solicitud aprobada con éxito. La cuenta del tutor ${aprobandoSolicitud.nombreTutor} fue creada. Su contraseña inicial es su DNI: ${aprobandoSolicitud.dniTutor}`);
@@ -1098,9 +1067,7 @@ const AdminPanel = () => {
                             <button
                               onClick={() => {
                                 setAprobandoSolicitud(solicitud);
-                                setCursoAsignado('');
                                 setAprobacionError('');
-                                setIsCustomCurso(false);
                               }}
                               className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-colors cursor-pointer border-none"
                             >
@@ -1597,94 +1564,13 @@ const AdminPanel = () => {
       )}
 
       {/* Modal de Aprobación de Solicitud */}
-      {aprobandoSolicitud && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-8">
-            <h3 className="font-headline text-2xl font-bold text-slate-800 mb-1">
-              Aprobar Solicitud
-            </h3>
-            <p className="text-slate-500 text-sm mb-6">
-              Revisá los datos y asigná el curso para activar al alumno.
-            </p>
-            <div className="bg-slate-50 rounded-2xl p-4 space-y-1 mb-6 text-sm">
-              <p><strong>Alumno:</strong> {aprobandoSolicitud.nombre} (DNI: {aprobandoSolicitud.dni})</p>
-              <p><strong>Nivel:</strong> {aprobandoSolicitud.nivel?.toUpperCase()}</p>
-              <p><strong>Tutor:</strong> {aprobandoSolicitud.nombreTutor}</p>
-              <p><strong>Email tutor:</strong> {aprobandoSolicitud.emailPadre}</p>
-              <p><strong>DNI tutor (será su contraseña inicial):</strong> {aprobandoSolicitud.dniTutor}</p>
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-bold text-slate-700 mb-2" htmlFor="cursoSelect">
-                Curso asignado *
-              </label>
-              
-              {!isCustomCurso ? (
-                <select
-                  id="cursoSelect"
-                  value={cursoAsignado}
-                  onChange={(e) => {
-                    if (e.target.value === 'otro') {
-                      setIsCustomCurso(true);
-                      setCursoAsignado('');
-                    } else {
-                      setCursoAsignado(e.target.value);
-                    }
-                  }}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm appearance-none mb-2"
-                >
-                  <option value="" disabled>Seleccione un curso...</option>
-                  {aprobandoSolicitud?.nivel && predefinedCourses[aprobandoSolicitud.nivel]?.map((curso) => (
-                    <option key={curso} value={curso}>{curso}</option>
-                  ))}
-                  <option value="otro">Otro (personalizado)...</option>
-                </select>
-              ) : (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    id="cursoCustom"
-                    placeholder="Ej: 3° Grado A, Sala de 4, 2° Año B"
-                    value={cursoAsignado}
-                    onChange={(e) => setCursoAsignado(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:outline-none text-sm"
-                    autoFocus
-                  />
-                  <button 
-                    type="button" 
-                    onClick={() => {
-                      setIsCustomCurso(false);
-                      setCursoAsignado('');
-                    }}
-                    className="text-xs text-orange-600 font-bold hover:underline cursor-pointer bg-transparent border-none p-0"
-                  >
-                    Volver a la lista de cursos
-                  </button>
-                </div>
-              )}
-            </div>
-            {aprobacionError && (
-              <p className="text-red-600 text-sm font-medium mb-4">{aprobacionError}</p>
-            )}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setAprobandoSolicitud(null)}
-                disabled={isAprobando}
-                className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleAprobarSolicitud}
-                disabled={isAprobando}
-                className="flex-1 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-colors cursor-pointer border-none disabled:opacity-60"
-              >
-                {isAprobando ? 'Procesando...' : '✓ Confirmar Aprobación'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AdminApprovalModal
+        solicitud={aprobandoSolicitud}
+        isAprobando={isAprobando}
+        aprobacionError={aprobacionError}
+        onClose={() => setAprobandoSolicitud(null)}
+        onApprove={handleAprobarSolicitud}
+      />
 
     </div>
   );
