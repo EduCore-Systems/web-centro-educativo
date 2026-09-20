@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SuccessModal from '../components/molecules/SuccessModal';
-import '../styles/Registration.css';
+import styles from '../styles/Registration.module.css';
+import { db } from '../services/firebase';
+import { collection, addDoc, query, where, getDocs, serverTimestamp, getCountFromServer } from 'firebase/firestore';
 
 const NIVELES = [
   {
@@ -50,13 +52,63 @@ const Registration = () => {
     if (validarPaso()) setPasoActual(pasoActual + 1);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validarPaso()) return;
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrores({});
+
+    try {
+      //validamos que el dni del alumno no se encuentre validado
+      const alumnosRef = collection(db, 'students');
+      const consultaDni = query(alumnosRef, where('dni', '==', datosFormulario.dniAlumno.trim()));
+      const resultadoDni = await getDocs(consultaDni);
+
+      if (!resultadoDni.empty) {
+        setErrores({ dniAlumno: 'Ya existe un alumno registrado con este número de DNI.' });
+        setIsSubmitting(false);
+        return;
+      }
+
+      //Generamos codigo unico de estudiante
+      const anioActual = new Date().getFullYear();
+      const snapShotConteo = await getCountFromServer(alumnosRef);
+      const totalRegistrados = snapShotConteo.data().count;
+      const siguienteNumero = totalRegistrados + 1;
+      const numeroFormateado = String(siguienteNumero).padStart(5, '0'); //rellena con ceros: "00001",00002"
+      const studentID_login = `EST-${anioActual}-${numeroFormateado}`;
+
+      //guardamos el nuevo registro en firestore 
+      await addDoc(alumnosRef, {
+        studentID_login,
+        nombre: datosFormulario.nombreAlumno.trim(),
+        dni: datosFormulario.dniAlumno.trim(),
+        fechaNacimiento: datosFormulario.fechaNacimiento,
+        nivel: datosFormulario.nivel,
+        genero: '',
+        observaciones: datosFormulario.observaciones || '',
+
+        //datos del tutor
+        nombreTutor: datosFormulario.nombreTutor.trim(),
+        dniTutor: datosFormulario.dniTutor.trim(),
+        emailPadre: datosFormulario.correo.trim(),
+        telefonoTutor: datosFormulario.telefono.trim(),
+        parentId: null,
+
+        //estado institucional
+        status: 'pendiente',
+        curso: null,
+        createdAt: serverTimestamp()
+      });
+
+      //mostrar el mensaje de exito
       setShowSuccessModal(true);
-    }, 1500);
+
+    } catch (error) {
+      console.error('Error durante el registro del alumno', error);
+      alert('Tuvimos inconvenientes durante el proceso de inscripción. Intente nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const pasoAnterior = () => {
@@ -65,7 +117,7 @@ const Registration = () => {
 
   const handleChange = (campo, valor) => {
     let nuevoValor = valor;
-    
+
     if (campo === 'dniTutor' || campo === 'dniAlumno') {
       nuevoValor = valor.replace(/\D/g, ''); // Solo números
     }
@@ -85,7 +137,7 @@ const Registration = () => {
       if (!datosFormulario.nombreTutor.trim()) {
         e.nombreTutor = 'El campo es obligatorio';
       }
-      
+
       if (!datosFormulario.dniTutor.trim()) {
         e.dniTutor = 'El campo es obligatorio';
       } else if (datosFormulario.dniTutor.length < 7 || datosFormulario.dniTutor.length > 9) {
@@ -146,33 +198,33 @@ const Registration = () => {
   return (
     <>
       <Navbar />
-      <main className="registro-main">
-        <div className="registro-hero">
-          <h1 className="registro-titulo">
-            Únete a nuestra <span className="registro-titulo-acento">comunidad</span>
+      <main className={styles['registro-main']}>
+        <div className={styles['registro-hero']}>
+          <h1 className={styles['registro-titulo']}>
+            Únete a nuestra <span className={styles['registro-titulo-acento']}>comunidad</span>
           </h1>
-          <p className="registro-subtitulo">
+          <p className={styles['registro-subtitulo']}>
             Comienza el proceso de inscripción para el nuevo ciclo lectivo. Un camino de
             descubrimiento, aprendizaje y transformación te espera.
           </p>
         </div>
 
 
-        <div className="stepper">
+        <div className={styles['stepper']}>
           {PASOS.map((paso, index) => {
             const numero = index + 1;
             const activo = numero === pasoActual;
             const completado = numero < pasoActual;
             return (
               <React.Fragment key={paso}>
-                <div className={`stepper-paso ${activo ? 'activo' : ''} ${completado ? 'completado' : ''}`}>
-                  <div className="stepper-circulo">
+                <div className={`${styles['stepper-paso']} ${activo ? styles['activo'] : ''} ${completado ? styles['completado'] : ''}`}>
+                  <div className={styles['stepper-circulo']}>
                     {completado ? '✓' : numero}
                   </div>
-                  <span className="stepper-etiqueta">{paso}</span>
+                  <span className={styles['stepper-etiqueta']}>{paso}</span>
                 </div>
                 {index < PASOS.length - 1 && (
-                  <div className={`stepper-linea ${completado ? 'completada' : ''}`} />
+                  <div className={`${styles['stepper-linea']} ${completado ? styles['completada'] : ''}`} />
                 )}
               </React.Fragment>
             );
@@ -180,78 +232,82 @@ const Registration = () => {
         </div>
 
 
-        <div className="registro-card">
+        <div className={styles['registro-card']}>
 
 
           {pasoActual === 1 && (
             <section className="paso">
-              <h2 className="paso-titulo">Paso 1: Selección de Nivel</h2>
-              <div className="niveles-grid">
+              <h2 className={styles['paso-titulo']}>Paso 1: Selección de Nivel</h2>
+              <div className={styles['niveles-grid']}>
                 {NIVELES.map((nivel) => (
                   <button
                     key={nivel.id}
                     type="button"
-                    className={`nivel-card ${datosFormulario.nivel === nivel.id ? 'seleccionado' : ''}`}
+                    className={`${styles['nivel-card']} ${datosFormulario.nivel === nivel.id ? styles['seleccionado'] : ''}`}
                     onClick={() => handleChange('nivel', nivel.id)}
                   >
-                    <span className="nivel-icon">{nivel.icon}</span>
-                    <strong className="nivel-nombre">{nivel.nombre}</strong>
-                    <p className="nivel-desc">{nivel.descripcion}</p>
+                    <span className={styles['nivel-icon']}>{nivel.icon}</span>
+                    <strong className={styles['nivel-nombre']}>{nivel.nombre}</strong>
+                    <p className={styles['nivel-desc']}>{nivel.descripcion}</p>
                   </button>
                 ))}
               </div>
-              {errores.nivel && <p className="form-error">{errores.nivel}</p>}
+              {errores.nivel && <p className={styles['form-error']}>{errores.nivel}</p>}
             </section>
           )}
 
 
           {pasoActual === 2 && (
             <section className="paso">
-              <h2 className="paso-titulo">Paso 2: Datos del Tutor</h2>
-              <div className="form-grid">
-                <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO</label>
+              <h2 className={styles['paso-titulo']}>Paso 2: Datos del Tutor</h2>
+              <div className={styles['form-grid']}>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="nombreTutor" className={styles['form-label']}>NOMBRE COMPLETO</label>
                   <input
-                    className={`form-input ${errores.nombreTutor ? 'form-input--error' : ''}`}
+                    id="nombreTutor"
+                    className={`${styles['form-input']} ${errores.nombreTutor ? styles['form-input--error'] : ''}`}
                     type="text"
                     placeholder="Ej. Juan Pérez"
                     value={datosFormulario.nombreTutor}
                     onChange={(e) => handleChange('nombreTutor', e.target.value)}
                   />
-                  {errores.nombreTutor && <p className="form-error">{errores.nombreTutor}</p>}
+                  {errores.nombreTutor && <p className={styles['form-error']}>{errores.nombreTutor}</p>}
                 </div>
-                <div className="form-grupo">
-                  <label className="form-label">DNI</label>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="dniTutor" className={styles['form-label']}>DNI</label>
                   <input
-                    className={`form-input ${errores.dniTutor ? 'form-input--error' : ''}`}
+                    id="dniTutor"
+                    className={`${styles['form-input']} ${errores.dniTutor ? styles['form-input--error'] : ''}`}
                     type="text"
                     placeholder="Número de documento"
                     value={datosFormulario.dniTutor}
                     onChange={(e) => handleChange('dniTutor', e.target.value)}
                   />
-                  {errores.dniTutor && <p className="form-error">{errores.dniTutor}</p>}
+                  {errores.dniTutor && <p className={styles['form-error']}>{errores.dniTutor}</p>}
                 </div>
-                <div className="form-grupo">
-                  <label className="form-label">CORREO ELECTRÓNICO</label>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="correoTutor" className={styles['form-label']}>CORREO ELECTRÓNICO</label>
                   <input
-                    className={`form-input ${errores.correo ? 'form-input--error' : ''}`}
+                    id="correoTutor"
+                    className={`${styles['form-input']} ${errores.correo ? styles['form-input--error'] : ''}`}
                     type="email"
                     placeholder="correo@ejemplo.com"
                     value={datosFormulario.correo}
                     onChange={(e) => handleChange('correo', e.target.value)}
                   />
-                  {errores.correo && <p className="form-error">{errores.correo}</p>}
+                  {errores.correo && <p className={styles['form-error']}>{errores.correo}</p>}
                 </div>
-                <div className="form-grupo">
-                  <label className="form-label">TELÉFONO DE CONTACTO</label>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="telefonoTutor" className={styles['form-label']}>TELÉFONO DE CONTACTO</label>
                   <input
-                    className={`form-input ${errores.telefono ? 'form-input--error' : ''}`}
+                    id="telefonoTutor"
+                    className={`${styles['form-input']} ${errores.telefono ? styles['form-input--error'] : ''}`}
                     type="tel"
                     placeholder="+549 11 2345-6789"
                     value={datosFormulario.telefono}
                     onChange={(e) => handleChange('telefono', e.target.value)}
                   />
-                  {errores.telefono && <p className="form-error">{errores.telefono}</p>}
+                  {errores.telefono && <p className={styles['form-error']}>{errores.telefono}</p>}
                 </div>
               </div>
             </section>
@@ -260,46 +316,50 @@ const Registration = () => {
 
           {pasoActual === 3 && (
             <section className="paso">
-              <h2 className="paso-titulo">Paso 3: Datos del Alumno</h2>
-              <div className="form-grid">
-                <div className="form-grupo">
-                  <label className="form-label">NOMBRE COMPLETO DEL ALUMNO</label>
+              <h2 className={styles['paso-titulo']}>Paso 3: Datos del Alumno</h2>
+              <div className={styles['form-grid']}>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="nombreAlumno" className={styles['form-label']}>NOMBRE COMPLETO DEL ALUMNO</label>
                   <input
-                    className={`form-input ${errores.nombreAlumno ? 'form-input--error' : ''}`}
+                    id="nombreAlumno"
+                    className={`${styles['form-input']} ${errores.nombreAlumno ? styles['form-input--error'] : ''}`}
                     type="text"
                     placeholder="Nombre y apellido"
                     value={datosFormulario.nombreAlumno}
                     onChange={(e) => handleChange('nombreAlumno', e.target.value)}
                   />
-                  {errores.nombreAlumno && <p className="form-error">{errores.nombreAlumno}</p>}
+                  {errores.nombreAlumno && <p className={styles['form-error']}>{errores.nombreAlumno}</p>}
                 </div>
-                <div className="form-grupo">
-                  <label className="form-label">DNI DEL ALUMNO</label>
+                <div className={styles['form-grupo']}>
+                  <label htmlFor="dniAlumno" className={styles['form-label']}>DNI DEL ALUMNO</label>
                   <input
-                    className={`form-input ${errores.dniAlumno ? 'form-input--error' : ''}`}
+                    id="dniAlumno"
+                    className={`${styles['form-input']} ${errores.dniAlumno ? styles['form-input--error'] : ''}`}
                     type="text"
                     placeholder="Número de documento"
                     value={datosFormulario.dniAlumno}
                     onChange={(e) => handleChange('dniAlumno', e.target.value)}
                   />
-                  {errores.dniAlumno && <p className="form-error">{errores.dniAlumno}</p>}
+                  {errores.dniAlumno && <p className={styles['form-error']}>{errores.dniAlumno}</p>}
                 </div>
-                <div className="form-grupo form-grupo--full">
-                  <label className="form-label">FECHA DE NACIMIENTO</label>
+                <div className={`${styles['form-grupo']} ${styles['form-grupo--full']}`}>
+                  <label htmlFor="fechaNacimiento" className={styles['form-label']}>FECHA DE NACIMIENTO</label>
                   <input
-                    className={`form-input ${errores.fechaNacimiento ? 'form-input--error' : ''}`}
+                    id="fechaNacimiento"
+                    className={`${styles['form-input']} ${errores.fechaNacimiento ? styles['form-input--error'] : ''}`}
                     type="date"
                     min={obtenerLimitesFecha().min}
                     max={obtenerLimitesFecha().max}
                     value={datosFormulario.fechaNacimiento}
                     onChange={(e) => handleChange('fechaNacimiento', e.target.value)}
                   />
-                  {errores.fechaNacimiento && <p className="form-error">{errores.fechaNacimiento}</p>}
+                  {errores.fechaNacimiento && <p className={styles['form-error']}>{errores.fechaNacimiento}</p>}
                 </div>
-                <div className="form-grupo form-grupo--full">
-                  <label className="form-label">OBSERVACIONES / NECESIDADES ESPECIALES</label>
+                <div className={`${styles['form-grupo']} ${styles['form-grupo--full']}`}>
+                  <label htmlFor="observaciones" className={styles['form-label']}>OBSERVACIONES / NECESIDADES ESPECIALES</label>
                   <textarea
-                    className="form-input form-textarea"
+                    id="observaciones"
+                    className={`${styles['form-input']} ${styles['form-textarea']}`}
                     placeholder="Indicá cualquier información relevante..."
                     value={datosFormulario.observaciones}
                     onChange={(e) => handleChange('observaciones', e.target.value)}
@@ -310,20 +370,20 @@ const Registration = () => {
           )}
 
 
-          <div className="botones-navegacion">
+          <div className={styles['botones-navegacion']}>
             {pasoActual > 1 && (
-              <button type="button" className="btn-anterior" onClick={pasoAnterior}>
+              <button type="button" className={styles['btn-anterior']} onClick={pasoAnterior}>
                 ← Paso Anterior
               </button>
             )}
             {pasoActual < 3 ? (
-              <button type="button" className="btn-siguiente" onClick={siguientePaso}>
+              <button type="button" className={styles['btn-siguiente']} onClick={siguientePaso}>
                 Siguiente Paso →
               </button>
             ) : (
               <button
                 type="button"
-                className="btn-finalizar"
+                className={styles['btn-finalizar']}
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -334,7 +394,7 @@ const Registration = () => {
 
         </div>
       </main>
-      <SuccessModal 
+      <SuccessModal
         isOpen={showSuccessModal}
         onClose={() => navigate('/')}
         title="¡Inscripción Exitosa!"

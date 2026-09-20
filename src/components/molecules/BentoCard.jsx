@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '../atoms/Icon';
 import Badge from '../atoms/Badge';
-import '../../styles/molecules/BentoCard.css';
+import styles from '../../styles/molecules/BentoCard.module.css';
 
 /**
  * Componente BentoCard (Molécula)
@@ -27,10 +27,10 @@ const BentoCard = ({
 }) => {
   // Determinar clases de la tarjeta
   const cardClasses = [
-    'bento-card',
-    spanColumns === 2 ? 'span-2' : '',
-    bgLow ? 'bg-low' : '',
-    image ? 'horizontal' : '',
+    styles['bento-card'],
+    spanColumns === 2 ? styles['span-2'] : '',
+    bgLow ? styles['bg-low'] : '',
+    image ? styles['horizontal'] : '',
     className
   ].filter(Boolean).join(' ');
 
@@ -38,15 +38,15 @@ const BentoCard = ({
   if (image) {
     return (
       <div className={cardClasses}>
-        <div className="bento-card-image-wrapper">
+        <div className={styles['bento-card-image-wrapper']}>
           <img
             loading="lazy"
             src={image}
             alt={title}
-            className="bento-card-image"
+            className={styles['bento-card-image']}
           />
         </div>
-        <div className="bento-card-horizontal-content">
+        <div className={styles['bento-card-horizontal-content']}>
           {badgeText && (
             <Badge
               text={badgeText}
@@ -55,11 +55,11 @@ const BentoCard = ({
               className="mb-3"
             />
           )}
-          <h3 className="bento-card-title">{title}</h3>
-          <p className="bento-card-description">{description}</p>
+          <h3 className={styles['bento-card-title']}>{title}</h3>
+          <p className={styles['bento-card-description']}>{description}</p>
 
           {buttonText && (
-            <button onClick={onButtonClick} className="bento-card-btn-action">
+            <button onClick={onButtonClick} className={styles['bento-card-btn-action']}>
               {buttonText}
               <Icon name="chevron_right" className="text-sm" />
             </button>
@@ -73,22 +73,22 @@ const BentoCard = ({
   return (
     <div className={cardClasses}>
       {/* Fondo decorativo con degradado para tarjetas especiales */}
-      {spanColumns === 2 && <div className="bento-card-bg-gradient" />}
+      {spanColumns === 2 && <div className={styles['bento-card-bg-gradient']} />}
 
-      <div className="bento-card-header">
+      <div className={styles['bento-card-header']}>
         {icon && (
-          <div className={`bento-card-icon-wrapper ${iconVariant}`}>
+          <div className={`${styles['bento-card-icon-wrapper']} ${styles[iconVariant] || ''}`}>
             <Icon name={icon} filled={true} className="text-3xl" />
           </div>
         )}
-        <h3 className="bento-card-title">{title}</h3>
-        <p className="bento-card-description">{description}</p>
+        <h3 className={styles['bento-card-title']}>{title}</h3>
+        <p className={styles['bento-card-description']}>{description}</p>
       </div>
 
       {/* Pie de página condicional */}
       {linkText && (
-        <div className="bento-card-footer">
-          <a href={linkHref} className="bento-card-link">
+        <div className={styles['bento-card-footer']}>
+          <a href={linkHref} className={styles['bento-card-link']}>
             {linkText}
             <Icon name="arrow_forward" className="text-sm" />
           </a>
@@ -96,7 +96,7 @@ const BentoCard = ({
       )}
 
       {statusFooter && (
-        <div className="bento-card-status-footer">
+        <div className={styles['bento-card-status-footer']}>
           {statusFooter}
         </div>
       )}

@@ -1,55 +1,55 @@
-# 🏫 Proyecto Centro Educativo "Educar para Transformar"
+# Centro Educativo "EDUCAR PARA TRANSFORMAR"
+> Sistema de Gestión y Portal Web Institucional — Metodología de Sistemas II (TUP - UTN FRRe)
 
-Este es el repositorio oficial para el desarrollo del ecosistema digital del centro educativo.
+## Integrantes (Equipo EduCore Systems)
+* **Alegre, Fabricio**
+* **Ramírez, Damián**
 
----
+## Descripción del Proyecto
+Plataforma web integral para el Centro Educativo "Educar para Transformar". Permite la gestión centralizada de alumnos, docentes, materias, inscripciones a actividades deportivas con control de solapamiento horario, servicios de comedor y transporte escolar, junto con un portal exclusivo para padres y un panel de administración.
 
-## 🛠 Guía de Trabajo con Ramas (Git Flow)
+## Tecnologías Utilizadas
+* **Frontend:** React 19, Vite, React Router DOM v7, CSS Modules
+* **Backend & Base de Datos:** Firebase Authentication, Cloud Firestore, Firebase Storage
+* **Despliegue:** Vercel
 
-Para mantener la estabilidad del proyecto y asegurar que las entregas sean consistentes, utilizaremos un flujo de trabajo basado en dos ramas principales:
+## Cómo ejecutar el proyecto localmente
 
-### 1. Rama `master` (Producción)
-* **Propósito:** Contiene la versión estable, testeada y funcional del proyecto.
-* **Despliegue:** Es la rama que Vercel utiliza para generar la URL oficial que verán los docentes.
-* **Regla de oro:** **NUNCA** se trabaja directamente sobre esta rama. Solo se reciben cambios mediante *merges* desde `develop`.
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/EduCore-Systems/web-centro-educativo.git
+   cd web-centro-educativo
+   ```
 
-### 2. Rama `develop` (Desarrollo e Integración)
-* **Propósito:** Es nuestra rama de trabajo diario. Aquí es donde integramos las nuevas funcionalidades y correcciones de errores.
-* **Despliegue:** Vercel generará automáticamente una **Preview URL** cada vez que subamos cambios aquí para que podamos testearlos en vivo.
+2. **Instalar dependencias:**
+   ```bash
+   npm install
+   ```
 
----
+3. **Configurar variables de entorno:**
+   Crear un archivo `.env` en la raíz con las credenciales de Firebase:
+   ```env
+   VITE_FIREBASE_API_KEY=tu_api_key
+   VITE_FIREBASE_AUTH_DOMAIN=tu_auth_domain
+   VITE_FIREBASE_PROJECT_ID=tu_project_id
+   VITE_FIREBASE_STORAGE_BUCKET=tu_storage_bucket
+   VITE_FIREBASE_MESSAGING_SENDER_ID=tu_sender_id
+   VITE_FIREBASE_APP_ID=tu_app_id
+   ```
 
-## 🔄 Comandos Rápidos para el Equipo
+4. **Iniciar en modo desarrollo:**
+   ```bash
+   npm run dev
+   ```
 
-### 🔹 Al iniciar una tarea de desarrollo:
-Asegúrate de tener la última versión del código de tus compañeros:
-```
-git checkout develop
-git pull origin develop
-```
-Al finalizar una tarea
-Cuando hayas terminado de maquetar un componente o página (ej. Wellness.jsx o Registration.jsx):
-```
-git add .
-git commit -m "Tipo de cambio: Descripción breve de lo que hiciste"
-git push origin develop
-```
-### 🔹 Para pasar a Producción (Vía Pull Request)
-Cuando la rama `develop` sea estable y esté lista para la entrega oficial:
-1.  Andá a GitHub y seleccioná **"New Pull Request"**.
-2.  Configurá `base: master` <- `compare: develop`.
-3.  Asigná a un compañero para que revise los cambios (**Reviewers**).
-4.  Una vez aprobado, realizá el **"Merge pull request"**.
+5. **Compilar para producción:**
+   ```bash
+   npm run build
+   ```
 
-### 🚀 Entorno y Tecnologías
-* Frontend: React + Vite
-* Estilos: CSS Modules
-* Despliegue: Vercel
-* Control de Versiones: Git / GitHub
-* Calidad de Código: Husky + Prettier + ESLint
-
-### 👥 Integrantes del Equipo
-* Erick Vicentin (Responsable de Entorno y GitHub)
-* Damian Ramirez
-* Lautaro Höfer
-* Fabricio Alegre
+## Funcionalidades Principales
+* **Gestión de Alumnos:** Registro guiado en 3 pasos con validación anti-duplicados de DNI.
+* **Panel de Administración:** Gestión integral de usuarios, asignación de materias a docentes y cursos.
+* **Inscripciones y Servicios:** Adhesión a deportes (máx. 2 y control horario), transporte escolar y comedor.
+* **Portal de Padres:** Consulta de notas, profesores y actividades de sus hijos con control de acceso restringido.
+* **Portal Informativo Público:** Noticias, galería multimedia, bolsa de empleo y contacto.

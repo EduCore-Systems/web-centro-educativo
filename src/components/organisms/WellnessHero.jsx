@@ -1,7 +1,7 @@
 import React from 'react';
 import Badge from '../atoms/Badge';
 import Icon from '../atoms/Icon';
-import '../../styles/organisms/WellnessHero.css';
+import styles from '../../styles/organisms/WellnessHero.module.css';
 
 
 const WellnessHero = ({
@@ -12,39 +12,39 @@ const WellnessHero = ({
   onEmergencyClick = () => console.log('Emergencia clicked')
 }) => {
   return (
-    <section className="wellness-hero">
-      <div className="hero-decorator-1" />
-      <div className="hero-decorator-2" />
+    <section className={styles['wellness-hero']}>
+      <div className={styles['hero-decorator-1']} />
+      <div className={styles['hero-decorator-2']} />
 
-      <div className="wellness-hero-content">
+      <div className={styles['wellness-hero-content']}>
         <Badge text={badgeText} variant="secondary" className="mb-4" />
 
-        <h1 className="wellness-hero-title">
-          Cuidando el <span className="text-gradient">Bienestar</span> de
+        <h1 className={styles['wellness-hero-title']}>
+          Cuidando el <span className={styles['text-gradient']}>Bienestar</span> de
           Nuestra Comunidad
         </h1>
 
-        <p className="wellness-hero-description">{description}</p>
+        <p className={styles['wellness-hero-description']}>{description}</p>
 
-        <div className="wellness-hero-actions">
-          <button className="hero-btn-primary" onClick={onScheduleClick}>
+        <div className={styles['wellness-hero-actions']}>
+          <button className={styles['hero-btn-primary']} onClick={onScheduleClick}>
             <Icon name="calendar_month" className="text-xl" />
             <span>Agendar Cita</span>
           </button>
 
-          <button className="hero-btn-secondary" onClick={onEmergencyClick}>
+          <button className={styles['hero-btn-secondary']} onClick={onEmergencyClick}>
             <Icon name="call" className="text-xl" />
             <span>Emergencias</span>
           </button>
         </div>
       </div>
 
-      <div className="wellness-hero-image-container">
+      <div className={styles['wellness-hero-image-container']}>
         <img
           loading="lazy"
           src={imageUrl}
           alt="Estudiantes sonriendo en el campus"
-          className="wellness-hero-image"
+          className={styles['wellness-hero-image']}
         />
       </div>
     </section>

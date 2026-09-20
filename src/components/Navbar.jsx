@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import '../styles/Navbar.css';
+import styles from '../styles/Navbar.module.css';
 import Button from './Button';
 import { images } from '../services/imagesConfig';
 import { useAuth } from '../context/AuthContext';
@@ -35,23 +35,23 @@ const Navbar = ({ noButtons = false }) => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="custom-navbar">
-      <div className="navbar-content">
+    <nav className={styles['custom-navbar']}>
+      <div className={styles['navbar-content']}>
         <Link
           to="/"
-          className="navbar-logo"
+          className={styles['navbar-logo']}
           style={{ textDecoration: 'none', color: 'inherit' }}
         >
           <img
             src={images.logo}
             alt="Logo Educar para Transformar"
-            className="navbar-logo-icon"
+            className={styles['navbar-logo-icon']}
             onError={(e) => (e.target.style.display = 'none')}
           />
-          <span className="logo-text">Educar para Transformar</span>
+          <span className={styles['logo-text']}>Educar para Transformar</span>
         </Link>
         {!noButtons && <DesktopLinks />}
-        <div className="navbar-actions">
+        <div className={styles['navbar-actions']}>
           {isLoggedIn && user ? (
             <UserMenu
               logout={logout}
@@ -70,7 +70,7 @@ const Navbar = ({ noButtons = false }) => {
         {!noButtons && (
           <button
             type="button"
-            className="navbar-hamburger"
+            className={styles['navbar-hamburger']}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Menú principal"
             aria-expanded={isMobileMenuOpen}
@@ -84,7 +84,7 @@ const Navbar = ({ noButtons = false }) => {
         {/* Mobile Menu Backdrop */}
         {isMobileMenuOpen && !noButtons && (
           <div
-            className="mobile-menu-backdrop"
+            className={styles['mobile-menu-backdrop']}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -113,11 +113,11 @@ const Navbar = ({ noButtons = false }) => {
  */
 const DesktopLinks = () => {
   return (
-    <div className="navbar-links">
+    <div className={styles['navbar-links']}>
       <NavLink
         to="/"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Inicio
@@ -125,7 +125,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/wellness"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Bienestar
@@ -133,7 +133,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/news"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Noticias
@@ -141,7 +141,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/gallery"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Galería
@@ -149,7 +149,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/contact"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Contacto
@@ -157,7 +157,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/register"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Inscripciones
@@ -165,7 +165,7 @@ const DesktopLinks = () => {
       <NavLink
         to="/employment-request"
         className={({ isActive }) =>
-          isActive ? 'nav-link active' : 'nav-link'
+          isActive ? `${styles['nav-link']} ${styles['active']}` : styles['nav-link']
         }
       >
         Empleo
@@ -284,25 +284,25 @@ const MobileDrawer = ({
   isAdmin
 }) => {
   return (
-    <div className={`navbar-mobile-drawer ${isOpen ? 'open' : ''}`}>
-      <div className="mobile-drawer-header">
+    <div className={`${styles['navbar-mobile-drawer']} ${isOpen ? styles['open'] : ''}`}>
+      <div className={styles['mobile-drawer-header']}>
         <Link
           to="/"
-          className="navbar-logo"
+          className={styles['navbar-logo']}
           onClick={onClose}
           style={{ textDecoration: 'none', color: 'inherit' }}
         >
           <img
             src={images.logo}
             alt="Logo Educar para Transformar"
-            className="navbar-logo-icon"
+            className={styles['navbar-logo-icon']}
             onError={(e) => (e.target.style.display = 'none')}
           />
-          <span className="logo-text">Educar para Transformar</span>
+          <span className={styles['logo-text']}>Educar para Transformar</span>
         </Link>
         <button
           type="button"
-          className="mobile-drawer-close"
+          className={styles['mobile-drawer-close']}
           onClick={onClose}
           aria-label="Cerrar menú"
         >
@@ -310,12 +310,12 @@ const MobileDrawer = ({
         </button>
       </div>
 
-      <div className="mobile-drawer-links">
+      <div className={styles['mobile-drawer-links']}>
         <NavLink
           to="/"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">home</span>
@@ -325,7 +325,7 @@ const MobileDrawer = ({
           to="/wellness"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">mindfulness</span>
@@ -335,7 +335,7 @@ const MobileDrawer = ({
           to="/news"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">newspaper</span>
@@ -345,7 +345,7 @@ const MobileDrawer = ({
           to="/gallery"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">photo_library</span>
@@ -355,7 +355,7 @@ const MobileDrawer = ({
           to="/contact"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">mail</span>
@@ -365,7 +365,7 @@ const MobileDrawer = ({
           to="/register"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">how_to_reg</span>
@@ -375,7 +375,7 @@ const MobileDrawer = ({
           to="/employment-request"
           onClick={onClose}
           className={({ isActive }) =>
-            isActive ? 'mobile-nav-link active' : 'mobile-nav-link'
+            isActive ? `${styles['mobile-nav-link']} ${styles['active']}` : styles['mobile-nav-link']
           }
         >
           <span className="material-symbols-outlined">work</span>
@@ -383,26 +383,26 @@ const MobileDrawer = ({
         </NavLink>
       </div>
 
-      <div className="mobile-drawer-actions">
+      <div className={styles['mobile-drawer-actions']}>
         {isLoggedIn && user ? (
-          <div className="mobile-user-info">
-            <div className="mobile-user-profile">
+          <div className={styles['mobile-user-info']}>
+            <div className={styles['mobile-user-profile']}>
               <span className="material-symbols-outlined">
                 account_circle
               </span>
-              <div className="mobile-user-details">
-                <span className="mobile-user-welcome">Hola,</span>
-                <span className="mobile-user-name">{displayName}</span>
+              <div className={styles['mobile-user-details']}>
+                <span className={styles['mobile-user-welcome']}>Hola,</span>
+                <span className={styles['mobile-user-name']}>{displayName}</span>
               </div>
             </div>
-            <div className="mobile-user-buttons">
+            <div className={styles['mobile-user-buttons']}>
               <button
                 type="button"
                 onClick={() => {
                   alert('Esta sección de perfil aún no está disponible.');
                   onClose();
                 }}
-                className="mobile-action-btn profile-btn"
+                className={`${styles['mobile-action-btn']} ${styles['profile-btn']}`}
               >
                 <span className="material-symbols-outlined text-lg">person</span>
                 Ver Perfil
@@ -414,7 +414,7 @@ const MobileDrawer = ({
                     navigate('/admin');
                     onClose();
                   }}
-                  className="mobile-action-btn profile-btn"
+                  className={`${styles['mobile-action-btn']} ${styles['profile-btn']}`}
                 >
                   <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                   Panel de usuarios
@@ -427,7 +427,7 @@ const MobileDrawer = ({
                   onClose();
                   navigate('/');
                 }}
-                className="mobile-action-btn logout-btn"
+                className={`${styles['mobile-action-btn']} ${styles['logout-btn']}`}
               >
                 <span className="material-symbols-outlined text-lg">logout</span>
                 Cerrar Sesión

@@ -83,9 +83,9 @@ export const cf_createParentAndStudents = onRequest({ cors: true, invoker: 'publ
     const createdStudentsInfo = [];
 
     // Procesar cada estudiante
-    for (const student of students) {
+    const studentPromises = students.map(async (student: any) => {
       if (!student.nombre || !student.dni) {
-        continue;
+        return null;
       }
       const studentID_login = await generateUniqueStudentIdLogin();
       
@@ -108,12 +108,20 @@ export const cf_createParentAndStudents = onRequest({ cors: true, invoker: 'publ
         createdAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
-      studentDocIds.push(studentRef.id);
-      createdStudentsInfo.push({
+      return {
         id: studentRef.id,
         studentID_login,
         nombre: student.nombre
-      });
+      };
+    });
+
+    const resolvedStudents = await Promise.all(studentPromises);
+    
+    for (const s of resolvedStudents) {
+      if (s) {
+        studentDocIds.push(s.id);
+        createdStudentsInfo.push(s);
+      }
     }
 
     // Guardar los datos del Padre en Firestore
