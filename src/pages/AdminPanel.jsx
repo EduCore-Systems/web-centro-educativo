@@ -7,7 +7,7 @@ import AdminApprovalModal from '../components/organisms/admin/AdminApprovalModal
 import AdminEditProfileModal from '../components/organisms/admin/AdminEditProfileModal';
 import AdminDashboardTab from '../components/organisms/admin/AdminDashboardTab';
 import AdminCreationTab from '../components/organisms/admin/AdminCreationTab';
-import { db, auth } from '../services/firebase';
+import { db, auth, firebaseConfig } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
@@ -246,14 +246,6 @@ const AdminPanel = () => {
 
     try {
       const existingSecondaryApp = getApps().find(app => app.name === 'secondary');
-      const firebaseConfig = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID,
-      };
       const secondaryApp = existingSecondaryApp || initializeApp(firebaseConfig, 'secondary');
       const secondaryAuth = getAuth(secondaryApp);
 
