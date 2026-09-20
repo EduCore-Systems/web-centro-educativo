@@ -2,6 +2,7 @@ import notFound404Img from '../assets/images/404.png';
 import basketImg from '../assets/images/basket.jpg';
 import employmentImg from '../assets/images/employment.png';
 import escuelaImg from '../assets/images/escuela.jpg';
+import feriaImg from '../assets/images/feria.jpeg';
 import labImg from '../assets/images/lab.jpg';
 import lecturaImg from '../assets/images/lectura.jpg';
 import logoImg from '../assets/images/logo.png';
@@ -17,7 +18,7 @@ export const images = {
   basket: basketImg,
   employment: employmentImg,
   escuela: escuelaImg,
-  feria: notFound404Img, // Fallback since it wasn't downloaded
+  feria: feriaImg,
   lab: labImg,
   lectura: lecturaImg,
   logo: logoImg,
