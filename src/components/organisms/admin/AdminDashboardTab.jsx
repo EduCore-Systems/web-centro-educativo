@@ -16,10 +16,10 @@ const AdminDashboardTab = ({
   solicitudesPendientes,
   parentsList,
   setAprobandoSolicitud,
+  setAprobacionError,
   handleRechazarSolicitud,
   setEditingUser,
-  handleResetPassword,
-  handleDeleteUser
+  handleResetPassword
 }) => {
   if (activeTab !== 'dashboard') return null;
 

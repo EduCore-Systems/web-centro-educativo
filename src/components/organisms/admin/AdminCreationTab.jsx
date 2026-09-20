@@ -1,10 +1,52 @@
 import React, { useState } from 'react';
 import Icon from '../../atoms/Icon';
 import SuccessModal from '../../molecules/SuccessModal';
-import { auth } from '../../../services/firebase';
+import { db } from '../../../services/firebase';
+import { collection, doc, setDoc, addDoc, serverTimestamp, getDocs, query, where, limit } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+
+const getSecondaryAuth = () => {
+  const existingSecondaryApp = getApps().find(app => app.name === 'secondary');
+  const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  };
+  const secondaryApp = existingSecondaryApp || initializeApp(firebaseConfig, 'secondary');
+  return getAuth(secondaryApp);
+};
+
+const generateUniqueStudentIdLogin = async () => {
+  const year = new Date().getFullYear();
+  let unique = false;
+  let studentID = '';
+  let attempts = 0;
+
+  while (!unique && attempts < 10) {
+    attempts++;
+    const randomDigits = Math.floor(10000 + Math.random() * 90000);
+    studentID = `EST-${year}-${randomDigits}`;
+
+    try {
+      const q = query(collection(db, 'students'), where('studentID_login', '==', studentID), limit(1));
+      const snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        unique = true;
+      }
+    } catch {
+      unique = true;
+    }
+  }
+
+  return studentID;
+};
 
 const AdminCreationTab = ({ onSwitchToDashboard }) => {
-// Creation Type State ('parent_student' or 'administrative')
+  // Creation Type State ('parent_student' or 'administrative')
   const [creationType, setCreationType] = useState('parent_student');
 
   // Form State for creating Parent & Students
@@ -21,15 +63,12 @@ const AdminCreationTab = ({ onSwitchToDashboard }) => {
   const [adminDni, setAdminDni] = useState('');
   const [adminRole, setAdminRole] = useState('Staff');
 
-const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [successModalData, setSuccessModalData] = useState({ title: '', message: '' });
   const [formError, setFormError] = useState('');
 
-
-
-
-// Handler to call api cf_createParentAndStudents
+  // Handler para crear Padre y Alumnos en Auth y Firestore (Plan Spark sin backend pago)
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     setFormError('');
@@ -49,33 +88,48 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     setIsSubmitting(true);
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
+      // 1. Crear cuenta del Padre en Firebase Auth mediante instancia secundaria
+      const secondaryAuth = getSecondaryAuth();
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        parentEmail.trim(),
+        parentDni.trim()
+      );
+      const parentUid = userCredential.user.uid;
+      await signOut(secondaryAuth);
 
-      let token = 'mock-admin-token';
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
+      // 2. Guardar los alumnos en Firestore vinculados al UID del tutor
+      const studentDocIds = [];
+      for (const std of students) {
+        if (!std.nombre.trim() || !std.dni.trim()) continue;
+        const studentID_login = await generateUniqueStudentIdLogin();
+        const studentRef = await addDoc(collection(db, 'students'), {
+          studentID_login,
+          parentId: parentUid,
+          emailPadre: parentEmail.trim(),
+          status: 'active',
+          mustChangePassword: true,
+          nombre: std.nombre.trim(),
+          dni: std.dni.trim(),
+          genero: std.genero || 'No especificado',
+          fechaNacimiento: std.fechaNacimiento || '',
+          nivel: std.nivel || 'inicial',
+          createdAt: serverTimestamp()
+        });
+        studentDocIds.push(studentRef.id);
       }
 
-      const response = await fetch(`${FUNCTIONS_BASE_URL}/cf_createParentAndStudents`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          parentEmail: parentEmail.trim(),
-          parentName: parentName.trim(),
-          parentDni: parentDni.trim(),
-          students
-        })
+      // 3. Crear documento del Tutor en la colección users
+      await setDoc(doc(db, 'users', parentUid), {
+        role: 'Padre',
+        email: parentEmail.trim(),
+        nombre: parentName.trim(),
+        dni: parentDni.trim(),
+        mustChangePassword: true,
+        emailInvalid: false,
+        studentIds: studentDocIds,
+        createdAt: serverTimestamp()
       });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Error en la petición.');
-      }
-
-      await response.json();
 
       setSuccessModalData({
         title: '¡Tutor y Alumnos Creados!',
@@ -91,7 +145,11 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     } catch (err) {
       console.error(err);
-      setFormError(`Fallo al registrar: ${err.message || 'Error de conexión.'}`);
+      if (err.code === 'auth/email-already-in-use') {
+        setFormError('Este correo electrónico ya está registrado en el sistema.');
+      } else {
+        setFormError(`Fallo al registrar: ${err.message || 'Error de conexión.'}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -108,33 +166,26 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     setIsSubmitting(true);
     try {
-      const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
+      // 1. Crear usuario institucional en Firebase Auth mediante instancia secundaria
+      const secondaryAuth = getSecondaryAuth();
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        adminEmail.trim(),
+        adminDni.trim()
+      );
+      const adminUid = userCredential.user.uid;
+      await signOut(secondaryAuth);
 
-      let token = 'mock-admin-token';
-      if (auth.currentUser) {
-        token = await auth.currentUser.getIdToken();
-      }
-
-      const response = await fetch(`${FUNCTIONS_BASE_URL}/cf_createAdministrativeUser`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          email: adminEmail.trim(),
-          name: adminName.trim(),
-          role: adminRole,
-          dni: adminDni.trim()
-        })
+      // 2. Guardar en users con su rol correspondiente
+      await setDoc(doc(db, 'users', adminUid), {
+        role: adminRole,
+        email: adminEmail.trim(),
+        nombre: adminName.trim(),
+        dni: adminDni.trim(),
+        mustChangePassword: true,
+        emailInvalid: false,
+        createdAt: serverTimestamp()
       });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Error en la petición.');
-      }
-
-      await response.json();
 
       setSuccessModalData({
         title: '¡Usuario Creado!',
@@ -150,7 +201,11 @@ const [isSubmitting, setIsSubmitting] = useState(false);
 
     } catch (err) {
       console.error(err);
-      setFormError(`Fallo al registrar: ${err.message || 'Error de conexión.'}`);
+      if (err.code === 'auth/email-already-in-use') {
+        setFormError('Este correo electrónico ya está registrado en el sistema.');
+      } else {
+        setFormError(`Fallo al registrar: ${err.message || 'Error de conexión.'}`);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -160,6 +215,16 @@ const [isSubmitting, setIsSubmitting] = useState(false);
   const handleStudentChange = (index, field, value) => {
     const updated = [...students];
     updated[index][field] = value;
+    setStudents(updated);
+  };
+
+  const addStudentField = () => {
+    setStudents([...students, { nombre: '', dni: '', fechaNacimiento: '', nivel: 'inicial', genero: 'Masculino' }]);
+  };
+
+  const removeStudentField = (index) => {
+    if (students.length === 1) return;
+    const updated = students.filter((_, i) => i !== index);
     setStudents(updated);
   };
 
@@ -456,7 +521,7 @@ const [isSubmitting, setIsSubmitting] = useState(false);
               )}
             </button>
           </form>
-
+        )}
       </div>
 {/* Success Reusable Modal */}
       <SuccessModal
