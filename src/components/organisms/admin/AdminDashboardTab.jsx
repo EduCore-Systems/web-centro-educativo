@@ -116,7 +116,7 @@ const AdminDashboardTab = ({
                     <div className="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
                     <p className="font-semibold">Cargando base de datos...</p>
                   </div>
-                ) : (dashboardSubTab === 'students' ? filteredStudents.length === 0 : filteredStaff.length === 0) ? (
+                ) : (dashboardSubTab === 'students' && filteredStudents.length === 0) || (dashboardSubTab === 'staff' && filteredStaff.length === 0) ? (
                   <div className="p-16 text-center text-slate-500">
                     <Icon name="person_off" className="text-5xl text-slate-300 mb-4" />
                     <p className="font-bold text-lg">No se encontraron usuarios</p>
