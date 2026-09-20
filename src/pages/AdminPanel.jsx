@@ -5,6 +5,8 @@ import Icon from '../components/atoms/Icon';
 import SuccessModal from '../components/molecules/SuccessModal';
 import AdminApprovalModal from '../components/organisms/admin/AdminApprovalModal';
 import AdminEditProfileModal from '../components/organisms/admin/AdminEditProfileModal';
+import AdminDashboardTab from '../components/organisms/admin/AdminDashboardTab';
+import AdminCreationTab from '../components/organisms/admin/AdminCreationTab';
 import { db, auth } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -118,15 +120,7 @@ const AdminPanel = () => {
 
   
 
-  const addStudentField = () => {
-    setStudents([...students, { nombre: '', dni: '', fechaNacimiento: '', nivel: 'inicial', genero: 'Masculino' }]);
-  };
 
-  const removeStudentField = (index) => {
-    if (students.length === 1) return;
-    const updated = students.filter((_, i) => i !== index);
-    setStudents(updated);
-  };
 
   // Restablecer contraseña al DNI
   const handleResetPassword = async (userId, userType, userDni) => {
@@ -385,10 +379,10 @@ const AdminPanel = () => {
           solicitudesPendientes={solicitudesPendientes}
           parentsList={parentsList}
           setAprobandoSolicitud={setAprobandoSolicitud}
+          setAprobacionError={setAprobacionError}
           handleRechazarSolicitud={handleRechazarSolicitud}
           setEditingUser={setEditingUser}
           handleResetPassword={handleResetPassword}
-          handleDeleteUser={handleDeleteUser}
         />
 
         {/* Creation Tab Content */}
