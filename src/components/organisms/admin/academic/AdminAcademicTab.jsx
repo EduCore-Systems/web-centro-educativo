@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Icon from '../../../atoms/Icon';
+import CoursesManager from './CoursesManager';
 
 const AdminAcademicTab = () => {
   const [academicSubTab, setAcademicSubTab] = useState('courses');
@@ -55,11 +56,7 @@ const AdminAcademicTab = () => {
       {/* Content Area */}
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xl min-h-[500px]">
         {academicSubTab === 'courses' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="class" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Cursos</h3>
-            <p>Aquí construiremos la tabla y formulario de Cursos.</p>
-          </div>
+          <CoursesManager />
         )}
         
         {academicSubTab === 'subjects' && (
