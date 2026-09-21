@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Icon from '../../../atoms/Icon';
 import TransportManager from './TransportManager';
+import DiningManager from './DiningManager';
 
 const AdminServicesTab = () => {
   const [servicesSubTab, setServicesSubTab] = useState('transport');
@@ -42,11 +43,7 @@ const AdminServicesTab = () => {
         )}
         
         {servicesSubTab === 'dining' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="restaurant" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Comedor</h3>
-            <p>Aquí gestionaremos la habilitación de alumnos al comedor.</p>
-          </div>
+          <DiningManager />
         )}
       </div>
     </div>
