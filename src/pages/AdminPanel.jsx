@@ -9,6 +9,7 @@ import AdminDashboardTab from '../components/organisms/admin/AdminDashboardTab';
 import AdminCreationTab from '../components/organisms/admin/AdminCreationTab';
 import AdminAcademicTab from '../components/organisms/admin/academic/AdminAcademicTab';
 import AdminServicesTab from '../components/organisms/admin/services/AdminServicesTab';
+import AdminReportsTab from '../components/organisms/admin/reports/AdminReportsTab';
 import { db, auth, firebaseConfig } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -382,6 +383,20 @@ const AdminPanel = () => {
                 </div>
               </button>
             )}
+            {user?.role === 'user_admin' && (
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'reports'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="analytics" className="text-lg" />
+                  <span>Reportes</span>
+                </div>
+              </button>
+            )}
           </div>
         </div>
 
@@ -420,6 +435,11 @@ const AdminPanel = () => {
         {/* Services Tab Content */}
         {activeTab === 'services' && user?.role === 'user_admin' && (
           <AdminServicesTab />
+        )}
+
+        {/* Reports Tab Content */}
+        {activeTab === 'reports' && user?.role === 'user_admin' && (
+          <AdminReportsTab />
         )}
 
   </main>
