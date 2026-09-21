@@ -3,6 +3,7 @@ import Icon from '../../../atoms/Icon';
 import CoursesManager from './CoursesManager';
 import SubjectsManager from './SubjectsManager';
 import SportsManager from './SportsManager';
+import SchedulesManager from './SchedulesManager';
 
 const AdminAcademicTab = () => {
   const [academicSubTab, setAcademicSubTab] = useState('courses');
@@ -70,11 +71,7 @@ const AdminAcademicTab = () => {
         )}
 
         {academicSubTab === 'schedules' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="schedule" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Horarios</h3>
-            <p>Aquí construiremos la grilla de Horarios.</p>
-          </div>
+          <SchedulesManager />
         )}
       </div>
     </div>
