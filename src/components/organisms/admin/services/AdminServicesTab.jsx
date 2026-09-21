@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Icon from '../../../atoms/Icon';
+import TransportManager from './TransportManager';
 
 const AdminServicesTab = () => {
   const [servicesSubTab, setServicesSubTab] = useState('transport');
@@ -37,11 +38,7 @@ const AdminServicesTab = () => {
       {/* Content Area */}
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xl min-h-[500px]">
         {servicesSubTab === 'transport' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="directions_bus" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Transporte</h3>
-            <p>Aquí construiremos los recorridos y la asignación de alumnos.</p>
-          </div>
+          <TransportManager />
         )}
         
         {servicesSubTab === 'dining' && (
