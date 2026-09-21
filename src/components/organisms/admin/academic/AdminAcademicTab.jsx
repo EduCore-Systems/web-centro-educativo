@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Icon from '../../../atoms/Icon';
 import CoursesManager from './CoursesManager';
+import SubjectsManager from './SubjectsManager';
+import SportsManager from './SportsManager';
 
 const AdminAcademicTab = () => {
   const [academicSubTab, setAcademicSubTab] = useState('courses');
@@ -60,19 +62,11 @@ const AdminAcademicTab = () => {
         )}
         
         {academicSubTab === 'subjects' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="menu_book" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Materias</h3>
-            <p>Aquí construiremos la tabla y formulario de Materias.</p>
-          </div>
+          <SubjectsManager />
         )}
 
         {academicSubTab === 'sports' && (
-          <div className="text-center p-12 text-slate-500">
-            <Icon name="sports_soccer" className="text-4xl mb-4 opacity-50" />
-            <h3 className="font-bold text-lg mb-2">Gestión de Deportes</h3>
-            <p>Aquí construiremos la tabla y formulario de Deportes.</p>
-          </div>
+          <SportsManager />
         )}
 
         {academicSubTab === 'schedules' && (
