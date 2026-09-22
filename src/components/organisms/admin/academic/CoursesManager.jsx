@@ -9,8 +9,9 @@ const CoursesManager = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   
   // Form state
-  const [name, setName] = useState('');
   const [level, setLevel] = useState('secundaria');
+  const [grade, setGrade] = useState('1° Año');
+  const [division, setDivision] = useState('A');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,16 +31,26 @@ const CoursesManager = () => {
     fetchCourses();
   }, []);
 
+  // Ajustar el grado por defecto si cambia el nivel
+  useEffect(() => {
+    if (level === 'inicial' && !grade.startsWith('Sala')) setGrade('Sala de 4');
+    if (level === 'primaria' && !grade.includes('Grado')) setGrade('1° Grado');
+    if (level === 'secundaria' && !grade.includes('Año')) setGrade('1° Año');
+  }, [level, grade]);
+
   const handleOpenModal = (course = null) => {
     setError('');
     if (course) {
       setEditingCourse(course);
-      setName(course.name);
       setLevel(course.level);
+      const parts = course.name.split(' ');
+      setDivision(parts.pop() || 'A');
+      setGrade(parts.join(' ') || '1° Año');
     } else {
       setEditingCourse(null);
-      setName('');
       setLevel('secundaria');
+      setGrade('1° Año');
+      setDivision('A');
     }
     setIsModalOpen(true);
   };
@@ -52,10 +63,7 @@ const CoursesManager = () => {
     e.preventDefault();
     setError('');
     
-    if (!name.trim()) {
-      setError('El nombre del curso es obligatorio.');
-      return;
-    }
+    const name = `${grade} ${division}`;
 
     setIsSubmitting(true);
     try {
@@ -121,7 +129,15 @@ const CoursesManager = () => {
                     </td>
                   </tr>
                 ) : (
-                  courses.map((course) => (
+                  [...courses]
+                    .sort((a, b) => {
+                      const levelOrder = { inicial: 1, primaria: 2, secundaria: 3 };
+                      if (levelOrder[a.level] !== levelOrder[b.level]) {
+                        return levelOrder[a.level] - levelOrder[b.level];
+                      }
+                      return a.name.localeCompare(b.name);
+                    })
+                    .map((course) => (
                     <tr key={course.id} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 font-bold text-slate-800">{course.name}</td>
                       <td className="p-4">
@@ -132,14 +148,14 @@ const CoursesManager = () => {
                       <td className="p-4 flex justify-end gap-2">
                         <button
                           onClick={() => handleOpenModal(course)}
-                          className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer border-none"
                           title="Editar"
                         >
                           <Icon name="edit" />
                         </button>
                         <button
                           onClick={() => handleDelete(course.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer border-none"
                           title="Eliminar"
                         >
                           <Icon name="delete" />
@@ -173,18 +189,6 @@ const CoursesManager = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nombre del Curso</label>
-                <input
-                  type="text"
-                  placeholder="Ej: 1° Año A"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm"
-                  required
-                />
-              </div>
-
-              <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Nivel Educativo</label>
                 <select
                   value={level}
@@ -198,28 +202,76 @@ const CoursesManager = () => {
                 </select>
               </div>
 
+              <div className="flex gap-4">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Año / Grado</label>
+                  <select
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
+                    required
+                  >
+                    {level === 'inicial' && (
+                      <>
+                        <option value="Sala de 3">Sala de 3</option>
+                        <option value="Sala de 4">Sala de 4</option>
+                        <option value="Sala de 5">Sala de 5</option>
+                      </>
+                    )}
+                    {level === 'primaria' && (
+                      <>
+                        <option value="1° Grado">1° Grado</option>
+                        <option value="2° Grado">2° Grado</option>
+                        <option value="3° Grado">3° Grado</option>
+                        <option value="4° Grado">4° Grado</option>
+                        <option value="5° Grado">5° Grado</option>
+                        <option value="6° Grado">6° Grado</option>
+                        <option value="7° Grado">7° Grado</option>
+                      </>
+                    )}
+                    {level === 'secundaria' && (
+                      <>
+                        <option value="1° Año">1° Año</option>
+                        <option value="2° Año">2° Año</option>
+                        <option value="3° Año">3° Año</option>
+                        <option value="4° Año">4° Año</option>
+                        <option value="5° Año">5° Año</option>
+                        <option value="6° Año">6° Año</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+                
+                <div className="flex flex-col gap-1.5 w-1/3">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">División</label>
+                  <select
+                    value={division}
+                    onChange={(e) => setDivision(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 focus:bg-white focus:outline-none transition-all text-sm appearance-none"
+                    required
+                  >
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                  </select>
+                </div>
+              </div>
+
               {error && (
-                <p className="text-xs text-red-500 font-bold bg-red-50 p-3 rounded-lg text-center border border-red-100">
+                <div className="bg-red-50 text-red-600 text-sm p-3 rounded-lg border border-red-100 flex items-center gap-2">
+                  <Icon name="error" />
                   {error}
-                </p>
+                </div>
               )}
 
-              <div className="flex gap-3 mt-8">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm transition-colors cursor-pointer border-none disabled:opacity-50"
-                >
-                  {isSubmitting ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 rounded-xl transition-all disabled:opacity-50 mt-4 border-none cursor-pointer"
+              >
+                {isSubmitting ? 'Guardando...' : 'Guardar Curso'}
+              </button>
             </form>
           </div>
         </div>

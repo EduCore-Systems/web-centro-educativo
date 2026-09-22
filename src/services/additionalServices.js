@@ -10,23 +10,23 @@ import { db } from './firebase';
 // =======================
 
 export const getTransportRoutes = async () => {
-  const snapshot = await getDocs(collection(db, 'transportRoutes'));
+  const snapshot = await getDocs(collection(db, 'transport_routes'));
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 };
 
 export const createTransportRoute = async (routeData) => {
   // routeData: { name: 'Recorrido Norte', cost: 5000 }
-  const docRef = await addDoc(collection(db, 'transportRoutes'), routeData);
+  const docRef = await addDoc(collection(db, 'transport_routes'), routeData);
   return { id: docRef.id, ...routeData };
 };
 
 export const updateTransportRoute = async (id, routeData) => {
-  const docRef = doc(db, 'transportRoutes', id);
+  const docRef = doc(db, 'transport_routes', id);
   await updateDoc(docRef, routeData);
 };
 
 export const deleteTransportRoute = async (id) => {
-  await deleteDoc(doc(db, 'transportRoutes', id));
+  await deleteDoc(doc(db, 'transport_routes', id));
 };
 
 // =======================

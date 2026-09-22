@@ -2,34 +2,44 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Colección users (Perfiles de padres, administradores, etc.)
+    // Colección users (Admin, Personal, Padres)
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (
         request.auth.token.role == 'user_admin' || 
-        request.auth.uid == userId
+        request.auth.uid == userId ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'user_admin'
       );
     }
-    
-    // Colección students (Datos y login de alumnos)
+
+    // Colección students (Alumnos y Preinscripciones)
     match /students/{studentId} {
-      // Permitir creación y lectura para inscripción pública
       allow read, create: if true;
-      // Permitir edición y borrado para administradores autenticados
       allow update, delete: if request.auth != null;
     }
 
-    // Colección news (Noticias del portal)
+    // Colección news (Noticias)
     match /news/{newsId} {
-      // Las noticias son públicas para que cualquier visitante del sitio pueda leerlas
       allow read: if true;
-      
-      // Solo administradores autenticados (con claim de admin o perfil en la bd con rol user_admin) pueden escribir
-      allow write: if request.auth != null && (
-        request.auth.token.role == 'user_admin' || 
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'user_admin')
-      );
+      allow write: if request.auth != null;
     }
+
+    // Colecciones Académicas y Servicios
+    match /courses/{document} {
+      allow read, write: if request.auth != null;
+    }
+    match /subjects/{document} {
+      allow read, write: if request.auth != null;
+    }
+    match /sports/{document} {
+      allow read, write: if request.auth != null;
+    }
+    match /schedules/{document} {
+      allow read, write: if request.auth != null;
+    }
+    match /transport_routes/{document} {
+      allow read, write: if request.auth != null;
+    }
+    
   }
 }

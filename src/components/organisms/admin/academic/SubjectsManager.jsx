@@ -153,37 +153,55 @@ const SubjectsManager = () => {
                     </td>
                   </tr>
                 ) : (
-                  subjects.map((sub) => (
-                    <tr key={sub.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 font-bold text-slate-800">{sub.name}</td>
-                      <td className="p-4">
-                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
-                          {getCourseName(sub.courseId)}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${sub.teacherId ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}>
-                          {getTeacherName(sub.teacherId)}
-                        </span>
-                      </td>
-                      <td className="p-4 flex justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenModal(sub)}
-                          className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-                          title="Editar"
-                        >
-                          <Icon name="edit" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(sub.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar"
-                        >
-                          <Icon name="delete" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  Object.entries(
+                    subjects.reduce((acc, sub) => {
+                      if (!acc[sub.name]) acc[sub.name] = [];
+                      acc[sub.name].push(sub);
+                      return acc;
+                    }, {})
+                  )
+                  .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+                  .flatMap(([name, subs]) => {
+                    const sortedSubs = subs.sort((a, b) => getCourseName(a.courseId).localeCompare(getCourseName(b.courseId)));
+                    return sortedSubs.map((sub, index) => (
+                      <tr key={sub.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50">
+                        {index === 0 && (
+                          <td 
+                            rowSpan={sortedSubs.length} 
+                            className="p-4 font-bold text-slate-800 align-middle border-r border-slate-100 bg-white"
+                          >
+                            {name}
+                          </td>
+                        )}
+                        <td className="p-4">
+                          <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">
+                            {getCourseName(sub.courseId)}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${sub.teacherId ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}>
+                            {getTeacherName(sub.teacherId)}
+                          </span>
+                        </td>
+                        <td className="p-4 flex justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenModal(sub)}
+                            className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                            title="Editar"
+                          >
+                            <Icon name="edit" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(sub.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar"
+                          >
+                            <Icon name="delete" />
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })
                 )}
               </tbody>
             </table>

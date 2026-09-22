@@ -139,32 +139,49 @@ const SportsManager = () => {
                     </td>
                   </tr>
                 ) : (
-                  sports.map((sport) => (
-                    <tr key={sport.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 font-bold text-slate-800">{sport.name}</td>
-                      <td className="p-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${sport.teacherId ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}>
-                          {getTeacherName(sport.teacherId)}
-                        </span>
-                      </td>
-                      <td className="p-4 flex justify-end gap-2">
-                        <button
-                          onClick={() => handleOpenModal(sport)}
-                          className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-                          title="Editar"
-                        >
-                          <Icon name="edit" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(sport.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
-                          title="Eliminar"
-                        >
-                          <Icon name="delete" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  Object.entries(
+                    sports.reduce((acc, sport) => {
+                      if (!acc[sport.name]) acc[sport.name] = [];
+                      acc[sport.name].push(sport);
+                      return acc;
+                    }, {})
+                  )
+                  .sort(([nameA], [nameB]) => nameA.localeCompare(nameB))
+                  .flatMap(([name, groups]) => {
+                    return groups.map((sport, index) => (
+                      <tr key={sport.id} className="hover:bg-slate-50 transition-colors border-b border-slate-50">
+                        {index === 0 && (
+                          <td 
+                            rowSpan={groups.length} 
+                            className="p-4 font-bold text-slate-800 align-middle border-r border-slate-100 bg-white"
+                          >
+                            {name}
+                          </td>
+                        )}
+                        <td className="p-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${sport.teacherId ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-500'}`}>
+                            {getTeacherName(sport.teacherId)}
+                          </span>
+                        </td>
+                        <td className="p-4 flex justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenModal(sport)}
+                            className="p-2 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                            title="Editar"
+                          >
+                            <Icon name="edit" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(sport.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar"
+                          >
+                            <Icon name="delete" />
+                          </button>
+                        </td>
+                      </tr>
+                    ));
+                  })
                 )}
               </tbody>
             </table>
