@@ -7,7 +7,10 @@ import AdminApprovalModal from '../components/organisms/admin/AdminApprovalModal
 import AdminEditProfileModal from '../components/organisms/admin/AdminEditProfileModal';
 import AdminDashboardTab from '../components/organisms/admin/AdminDashboardTab';
 import AdminCreationTab from '../components/organisms/admin/AdminCreationTab';
-import { db, auth } from '../services/firebase';
+import AdminAcademicTab from '../components/organisms/admin/academic/AdminAcademicTab';
+import AdminServicesTab from '../components/organisms/admin/services/AdminServicesTab';
+import AdminReportsTab from '../components/organisms/admin/reports/AdminReportsTab';
+import { db, auth, firebaseConfig } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
@@ -246,14 +249,6 @@ const AdminPanel = () => {
 
     try {
       const existingSecondaryApp = getApps().find(app => app.name === 'secondary');
-      const firebaseConfig = {
-        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: import.meta.env.VITE_FIREBASE_APP_ID,
-      };
       const secondaryApp = existingSecondaryApp || initializeApp(firebaseConfig, 'secondary');
       const secondaryAuth = getAuth(secondaryApp);
 
@@ -360,6 +355,48 @@ const AdminPanel = () => {
                 </div>
               </button>
             )}
+            {user?.role === 'user_admin' && (
+              <button
+                onClick={() => setActiveTab('academic')}
+                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'academic'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="school" className="text-lg" />
+                  <span>Gestión Académica</span>
+                </div>
+              </button>
+            )}
+            {user?.role === 'user_admin' && (
+              <button
+                onClick={() => setActiveTab('services')}
+                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'services'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="restaurant" className="text-lg" />
+                  <span>Servicios</span>
+                </div>
+              </button>
+            )}
+            {user?.role === 'user_admin' && (
+              <button
+                onClick={() => setActiveTab('reports')}
+                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'reports'
+                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Icon name="analytics" className="text-lg" />
+                  <span>Reportes</span>
+                </div>
+              </button>
+            )}
           </div>
         </div>
 
@@ -388,6 +425,21 @@ const AdminPanel = () => {
         {/* Creation Tab Content */}
         {activeTab === 'create' && user?.role === 'user_admin' && (
           <AdminCreationTab onSwitchToDashboard={() => setActiveTab('dashboard')} />
+        )}
+
+        {/* Academic Tab Content */}
+        {activeTab === 'academic' && user?.role === 'user_admin' && (
+          <AdminAcademicTab />
+        )}
+
+        {/* Services Tab Content */}
+        {activeTab === 'services' && user?.role === 'user_admin' && (
+          <AdminServicesTab />
+        )}
+
+        {/* Reports Tab Content */}
+        {activeTab === 'reports' && user?.role === 'user_admin' && (
+          <AdminReportsTab />
         )}
 
   </main>
