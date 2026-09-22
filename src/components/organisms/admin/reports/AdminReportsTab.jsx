@@ -65,8 +65,6 @@ const AdminReportsTab = () => {
 
   // --- Helpers ---
   const getCourseName = (id) => courses.find(c => c.id === id)?.name || 'N/A';
-  const getSubjectName = (id) => subjects.find(s => s.id === id)?.name || 'N/A';
-  const getSportName = (id) => sports.find(s => s.id === id)?.name || 'N/A';
   const getTeacherName = (id) => teachers.find(t => t.id === id)?.nombre || 'N/A';
   const getRouteName = (id) => routes.find(r => r.id === id)?.name || 'Sin Asignar';
 
@@ -246,10 +244,10 @@ const AdminReportsTab = () => {
   const getListCourse = () => {
     // Alumnos por Curso (usamos Nivel como proxy por ahora)
     const rows = validStudents.map(s => [
-      <span className="font-bold">{s.nombre}</span>,
+      <span key="nombre" className="font-bold">{s.nombre}</span>,
       s.dni,
       s.studentID_login,
-      <span className="uppercase text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{s.nivel}</span>
+      <span key="nivel" className="uppercase text-xs font-bold bg-slate-100 px-2 py-1 rounded text-slate-600">{s.nivel}</span>
     ]).sort((a, b) => a[3].props.children.localeCompare(b[3].props.children));
     return renderListReport('Alumnos por Curso/Nivel', ['Alumno', 'DNI', 'Legajo', 'Nivel'], rows);
   };

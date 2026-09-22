@@ -168,7 +168,7 @@ const SchedulesManager = () => {
                   </tr>
                 ) : (
                   // Sort schedules logically (by day and then time, for simplicity we just map here)
-                  schedules
+                  [...schedules]
                     .sort((a, b) => daysOfWeek.indexOf(a.dayOfWeek) - daysOfWeek.indexOf(b.dayOfWeek) || a.startTime.localeCompare(b.startTime))
                     .map((sched) => (
                     <tr key={sched.id} className="hover:bg-slate-50 transition-colors">
