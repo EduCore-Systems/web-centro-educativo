@@ -105,7 +105,7 @@ const AdminReportsTab = () => {
                 <ul className="space-y-2">
                   {subjects.filter(sub => {
                     const c = courses.find(c => c.id === sub.courseId);
-                    return c && c.level === student.nivel;
+                    return c && c.name === student.curso;
                   }).map(sub => (
                     <li key={sub.id} className="text-sm text-slate-600 flex justify-between">
                       <span className="font-bold">{sub.name}</span>
@@ -258,7 +258,7 @@ const AdminReportsTab = () => {
     validStudents.forEach(s => {
       subjects.forEach(sub => {
         const c = courses.find(c => c.id === sub.courseId);
-        if (c && c.level === s.nivel) {
+        if (c && c.name === s.curso) {
           rows.push([
             <span className="font-bold">{s.nombre}</span>,
             s.nivel.toUpperCase(),
