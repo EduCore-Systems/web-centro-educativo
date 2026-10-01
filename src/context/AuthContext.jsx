@@ -21,33 +21,37 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          // Obtener los claims personalizados para el rol
           const idTokenResult = await firebaseUser.getIdTokenResult(true);
-          const role = idTokenResult.claims.role || 'Estudiante'; // Por defecto alumno si no posee claims
           const studentId = idTokenResult.claims.studentId || null;
 
-          // Buscar datos de perfil extendidos en Firestore
+          // Buscar primero en la colección "users" (Admins, Staff, Padres)
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+
+          let resolvedRole = idTokenResult.claims.role || null;
           let profileData = {};
-          if (role === 'Estudiante') {
-            const docRef = doc(db, 'students', firebaseUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              profileData = docSnap.data();
-            }
+
+          if (userDocSnap.exists()) {
+            profileData = userDocSnap.data();
+            resolvedRole = profileData.role || resolvedRole || 'Padre';
           } else {
-            const docRef = doc(db, 'users', firebaseUser.uid);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              profileData = docSnap.data();
+            // Si no está en users, buscar en la colección "students" (Alumnos)
+            const studentDocRef = doc(db, 'students', firebaseUser.uid);
+            const studentDocSnap = await getDoc(studentDocRef);
+            if (studentDocSnap.exists()) {
+              profileData = studentDocSnap.data();
+              resolvedRole = 'Estudiante';
+            } else {
+              resolvedRole = resolvedRole || 'Estudiante';
             }
           }
 
           const loggedUser = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
-            role,
             studentId,
-            ...profileData
+            ...profileData,
+            role: resolvedRole
           };
 
           setUser(loggedUser);

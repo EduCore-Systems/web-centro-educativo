@@ -66,6 +66,8 @@ const Login = () => {
     if (isLoggedIn && user) {
       if (user.role === 'user_admin') {
         navigate('/admin');
+      } else if (user.role === 'Padre' || user.role === 'Padre/Tutor') {
+        navigate('/family');
       }
     }
   }, [isLoggedIn, user, navigate]);
@@ -162,12 +164,35 @@ const Login = () => {
               </ul>
             </div>
 
-            <button
-              onClick={handleLogout}
-              className="mt-4 px-8 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-label rounded-full transition-all duration-200 border border-slate-200 hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer"
-            >
-              Cerrar Sesión
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+              {(user.role === 'Padre' || user.role === 'Padre/Tutor') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/family')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold font-label rounded-full transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">family_restroom</span>
+                  Ir al Portal Familiar
+                </button>
+              )}
+              {user.role === 'user_admin' && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold font-label rounded-full transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                  Ir al Panel Admin
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-8 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-label rounded-full transition-all duration-200 border border-slate-200 hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
           </div>
         </main>
       </div>
