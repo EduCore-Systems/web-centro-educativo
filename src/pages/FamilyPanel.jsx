@@ -6,6 +6,7 @@ import { db } from '../services/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import StudentProfile from '../components/organisms/family/StudentProfile';
 import StudentSubjects from '../components/organisms/family/StudentSubjects';
+import StudentServices from '../components/organisms/family/StudentServices';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUBCOMPONENTE: Tarjeta de un alumno en el selector
@@ -97,6 +98,19 @@ const FamilyPanel = () => {
   // Bandera para mostrar un spinner de carga mientras se consulta Firebase
   const [loading, setLoading] = useState(true);
 
+  // Estados para el Modal de Vinculación de Estudiante
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkDni, setLinkDni] = useState('');
+  const [linkFeedback, setLinkFeedback] = useState('');
+
+  // Actualizar el estado del alumno localmente cuando se guardan servicios (Paso 4)
+  const handleStudentUpdated = (updatedStudent) => {
+    setSelectedStudent(updatedStudent);
+    setChildren((prev) =>
+      prev.map((c) => (c.id === updatedStudent.id ? updatedStudent : c))
+    );
+  };
+
   // ── Seguridad: Si alguien llega acá sin ser Padre, lo redirigimos al login ──
   useEffect(() => {
     if (user && user.role !== 'Padre' && user.role !== 'Padre/Tutor') {
@@ -161,7 +175,7 @@ const FamilyPanel = () => {
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* ── ENCABEZADO DE LA PÁGINA ── */}
+        {/* ── ENCABEZADO DE LA PÁGINA (ESTILO STITCH) ── */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-1">
@@ -174,14 +188,36 @@ const FamilyPanel = () => {
               </span>
             </div>
             <p className="text-slate-500 text-sm">
-              Centro Educativo EduCore · Ciclo Lectivo 2025
+              Centro Educativo EduCore · Ciclo Lectivo 2026
             </p>
           </div>
 
-          {/* Saludo personalizado con el nombre del padre logueado */}
-          <div className="text-right">
-            <p className="text-slate-500 text-sm">Bienvenido/a,</p>
-            <p className="font-semibold text-slate-900">{user?.nombre || user?.name || 'Tutor'}</p>
+          {/* Botones de Documentación Rápida */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectedStudent) return;
+                window.print();
+              }}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base text-slate-500">download</span>
+              <span>Boletín Actual</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectedStudent) return;
+                alert(`Generando Certificado de Alumno Regular para ${selectedStudent.nombre} (DNI: ${selectedStudent.dni || 'Sin DNI'}). Listo para imprimir.`);
+                window.print();
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base">verified</span>
+              <span>Certificado Regular</span>
+            </button>
           </div>
         </div>
 
@@ -230,9 +266,9 @@ const FamilyPanel = () => {
             </div>
           )}
 
-          {/* Estado: Encontró hijos → muestra las tarjetas */}
+          {/* Estado: Encontró hijos → muestra las tarjetas + Botón de Vincular */}
           {!loading && children.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {children.map((child) => (
                 <StudentCard
                   key={child.id}
@@ -241,6 +277,22 @@ const FamilyPanel = () => {
                   onClick={() => setSelectedStudent(child)}      // Al hacer click, cambiamos el alumno seleccionado
                 />
               ))}
+
+              {/* Botón "+ Vincular Estudiante" (Estilo Stitch) */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkDni('');
+                  setLinkFeedback('');
+                  setIsLinkModalOpen(true);
+                }}
+                className="w-full min-h-[76px] p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-orange-400 bg-white hover:bg-orange-50/20 text-slate-500 hover:text-orange-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold text-sm cursor-pointer group"
+              >
+                <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center text-slate-500 group-hover:text-orange-600 transition-colors">
+                  <span className="material-symbols-outlined text-lg">person_add</span>
+                </div>
+                <span>Vincular Estudiante</span>
+              </button>
             </div>
           )}
         </section>
@@ -254,21 +306,125 @@ const FamilyPanel = () => {
             {/* PASO 3: Grilla de Materias y Docentes (RF-15) */}
             <StudentSubjects student={selectedStudent} />
 
-            {/* Marcador de posición para Paso 4: Servicios y Deportes */}
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center min-h-[160px]">
-              <div className="text-center">
-                <span className="material-symbols-outlined text-3xl text-orange-400 mb-2 block">
-                  sports_soccer
-                </span>
-                <p className="text-slate-400 font-medium">
-                  Próximo Paso 4: Servicios y Actividades (Deportes, Comedor y Transporte) de{' '}
-                  <span className="text-orange-500 font-semibold">{selectedStudent.nombre}</span>
-                </p>
+            {/* PASO 4: Gestión de Servicios Extracurriculares, Transporte y Comedor (RF-16 y RF-17) */}
+            <StudentServices
+              student={selectedStudent}
+              onStudentUpdated={handleStudentUpdated}
+            />
+
+            {/* ── BANNER INFERIOR: DOCUMENTACIÓN Y CERTIFICADOS (ESTILO STITCH) ── */}
+            <section className="bg-gradient-to-r from-slate-100 via-orange-50/30 to-amber-50/20 p-6 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-orange-500 flex-shrink-0">
+                  <span className="material-symbols-outlined text-2xl">description</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-base">
+                    Documentación y Certificados Oficiales
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Descargue constancias de examen, certificados médicos y autorizaciones de salida.
+                  </p>
+                </div>
               </div>
-            </div>
+
+              <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => alert('Abriendo repositorio de formularios escolares oficiales...')}
+                  className="px-4 py-2.5 rounded-full bg-white text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Centro de Formularios
+                </button>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">print</span>
+                  <span>Comprobante Completo</span>
+                </button>
+              </div>
+            </section>
           </div>
         )}
       </main>
+
+      {/* ── MODAL: VINCULAR ESTUDIANTE A LA CUENTA ── */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-5 animate-in zoom-in-95 duration-150 text-left">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-xl">person_add</span>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Vincular Estudiante</h3>
+                  <p className="text-xs text-slate-500">Agregue otro hijo a su panel familiar</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold text-slate-700">
+                DNI o Legajo del Estudiante
+              </label>
+              <input
+                type="text"
+                value={linkDni}
+                onChange={(e) => setLinkDni(e.target.value)}
+                placeholder="Ej. 50111222 o EST-2026-101"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+              />
+              <p className="text-[11px] text-slate-400">
+                La solicitud será remitida a secretaría académica para validar el parentesco y confirmar la vinculación.
+              </p>
+
+              {linkFeedback && (
+                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-emerald-600">check_circle</span>
+                  {linkFeedback}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!linkDni.trim()) {
+                    alert('Por favor ingrese un DNI o Legajo válido.');
+                    return;
+                  }
+                  setLinkFeedback(`Solicitud de vinculación para el DNI/Legajo ${linkDni} enviada con éxito.`);
+                  setTimeout(() => {
+                    setIsLinkModalOpen(false);
+                    setLinkFeedback('');
+                  }, 2500);
+                }}
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer"
+              >
+                Enviar Solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
