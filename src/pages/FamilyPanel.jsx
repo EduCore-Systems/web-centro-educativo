@@ -7,6 +7,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import StudentProfile from '../components/organisms/family/StudentProfile';
 import StudentSubjects from '../components/organisms/family/StudentSubjects';
 import StudentServices from '../components/organisms/family/StudentServices';
+import FamilyDocumentModal from '../components/organisms/family/FamilyDocumentModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUBCOMPONENTE: Tarjeta de un alumno en el selector
@@ -103,6 +104,50 @@ const FamilyPanel = () => {
   const [linkDni, setLinkDni] = useState('');
   const [linkFeedback, setLinkFeedback] = useState('');
 
+  // Materias del alumno actual para el Boletín
+  const [currentSubjects, setCurrentSubjects] = useState([]);
+
+  useEffect(() => {
+    if (!selectedStudent?.curso) return;
+
+    const fetchCurrentSubjects = async () => {
+      try {
+        const coursesQuery = query(
+          collection(db, 'courses'),
+          where('name', '==', selectedStudent.curso.trim())
+        );
+        const courseSnap = await getDocs(coursesQuery);
+        if (!courseSnap.empty) {
+          const courseId = courseSnap.docs[0].id;
+          const subjectsQuery = query(
+            collection(db, 'subjects'),
+            where('courseId', '==', courseId)
+          );
+          const subjectsSnap = await getDocs(subjectsQuery);
+          const results = subjectsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+          setCurrentSubjects(results);
+        } else {
+          setCurrentSubjects([
+            { id: '1', name: 'Matemática', teacherName: 'Prof. Carlos Benítez', schedule: 'Lun - Mié 08:00' },
+            { id: '2', name: 'Prácticas del Lenguaje', teacherName: 'Prof. Laura Méndez', schedule: 'Mar - Jue 08:00' },
+            { id: '3', name: 'Ciencias Naturales', teacherName: 'Prof. Carlos Benítez', schedule: 'Mié - Vie 10:00' },
+            { id: '4', name: 'Ciencias Sociales', teacherName: 'Prof. Laura Méndez', schedule: 'Lun - Jue 10:00' }
+          ]);
+        }
+      } catch (err) {
+        console.error('Error cargando materias para documento:', err);
+      }
+    };
+
+    fetchCurrentSubjects();
+  }, [selectedStudent?.curso]);
+
+  // Estado para el Visor Formal de Documentos (Boletín / Certificado Regular)
+  const [documentModal, setDocumentModal] = useState({
+    isOpen: false,
+    type: 'boletin',
+  });
+
   // Actualizar el estado del alumno localmente cuando se guardan servicios (Paso 4)
   const handleStudentUpdated = (updatedStudent) => {
     setSelectedStudent(updatedStudent);
@@ -198,7 +243,7 @@ const FamilyPanel = () => {
               type="button"
               onClick={() => {
                 if (!selectedStudent) return;
-                window.print();
+                setDocumentModal({ isOpen: true, type: 'boletin' });
               }}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs hover:bg-slate-50 transition-all cursor-pointer"
             >
@@ -210,8 +255,7 @@ const FamilyPanel = () => {
               type="button"
               onClick={() => {
                 if (!selectedStudent) return;
-                alert(`Generando Certificado de Alumno Regular para ${selectedStudent.nombre} (DNI: ${selectedStudent.dni || 'Sin DNI'}). Listo para imprimir.`);
-                window.print();
+                setDocumentModal({ isOpen: true, type: 'certificado' });
               }}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer"
             >
@@ -338,7 +382,10 @@ const FamilyPanel = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    if (!selectedStudent) return;
+                    setDocumentModal({ isOpen: true, type: 'certificado' });
+                  }}
                   className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-1.5 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-sm">print</span>
@@ -349,6 +396,15 @@ const FamilyPanel = () => {
           </div>
         )}
       </main>
+
+      {/* ── MODAL VISOR FORMAL DE DOCUMENTOS (BOLETÍN / CERTIFICADO REGULAR) ── */}
+      <FamilyDocumentModal
+        isOpen={documentModal.isOpen}
+        onClose={() => setDocumentModal((prev) => ({ ...prev, isOpen: false }))}
+        type={documentModal.type}
+        student={selectedStudent}
+        subjects={currentSubjects}
+      />
 
       {/* ── MODAL: VINCULAR ESTUDIANTE A LA CUENTA ── */}
       {isLinkModalOpen && (
