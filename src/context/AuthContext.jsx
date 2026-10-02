@@ -72,16 +72,19 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   /**
-   * Método de Login integrado con Firebase
+   * Método de Login integrado con Firebase con detección automática de tipo de cuenta
    */
-  const loginReal = useCallback(async (identifier, password, role) => {
-    if (role === 'Estudiante') {
+  const loginReal = useCallback(async (identifier, password, role = null) => {
+    const cleanId = (identifier || '').trim();
+    const isStudentFormat = role === 'Estudiante' || /^EST-\d+/i.test(cleanId) || (!cleanId.includes('@') && cleanId.length >= 6);
+
+    if (isStudentFormat && role !== 'Administrador' && role !== 'Staff' && role !== 'Padre/Tutor') {
       // Iniciar sesión de alumno usando la Cloud Function cf_loginStudent (devuelve customToken)
       const FUNCTIONS_BASE_URL = import.meta.env.VITE_FUNCTIONS_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5001/educore-systems-dd8a3/us-central1' : 'https://us-central1-educore-systems-dd8a3.cloudfunctions.net');
       const response = await fetch(`${FUNCTIONS_BASE_URL}/cf_loginStudent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentID_login: identifier, password })
+        body: JSON.stringify({ studentID_login: cleanId, password })
       });
 
       if (!response.ok) {
@@ -95,7 +98,7 @@ export const AuthProvider = ({ children }) => {
       return signInWithCustomToken(auth, customToken);
     } else {
       // Logear tutores, staff o administradores con email y contraseña estándar en Firebase Auth
-      return signInWithEmailAndPassword(auth, identifier, password);
+      return signInWithEmailAndPassword(auth, cleanId, password);
     }
   }, []);
 
