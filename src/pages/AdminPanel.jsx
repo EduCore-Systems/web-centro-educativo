@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import Icon from '../components/atoms/Icon';
 import SuccessModal from '../components/molecules/SuccessModal';
 import AdminApprovalModal from '../components/organisms/admin/AdminApprovalModal';
@@ -10,6 +9,7 @@ import AdminCreationTab from '../components/organisms/admin/AdminCreationTab';
 import AdminAcademicTab from '../components/organisms/admin/academic/AdminAcademicTab';
 import AdminServicesTab from '../components/organisms/admin/services/AdminServicesTab';
 import AdminReportsTab from '../components/organisms/admin/reports/AdminReportsTab';
+import AdminSidebar from '../components/organisms/admin/AdminSidebar';
 import { db, auth, firebaseConfig } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -18,10 +18,11 @@ import { useAuth } from '../context/AuthContext';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
-  // Tab State
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'create'
+  // Tab State y Sidebar Mobile State
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   
   // Dashboard Sub-Tab ('students' or 'staff')
@@ -315,90 +316,77 @@ const AdminPanel = () => {
     }
   };
 
+  // Mapeo de títulos según el tab activo
+  const TAB_TITLES = {
+    dashboard: { title: 'Dashboard de Usuarios', subtitle: 'Gestión de tutores, estudiantes y activación de credenciales.' },
+    create: { title: 'Alta de Usuarios', subtitle: 'Registro administrativo de personal y cuentas institucionales.' },
+    academic: { title: 'Gestión Académica', subtitle: 'Administración de cursos, materias y horarios de cursado.' },
+    services: { title: 'Servicios Institucionales', subtitle: 'Configuración de rutas de transporte y actividades deportivas.' },
+    reports: { title: 'Centro de Reportes', subtitle: 'Estadísticas pedagógicas, nóminas y reportes financieros.' },
+  };
+
+  const currentTabInfo = TAB_TITLES[activeTab] || TAB_TITLES.dashboard;
+
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-800 font-body">
-      <Navbar noButtons={true} />
+    <div className="relative min-h-screen bg-slate-50 text-slate-800 font-body flex">
+      {/* ── BARRA LATERAL (SIDEBAR) ── */}
+      <AdminSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        user={user}
+        onLogout={logout}
+      />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header Block */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div>
-            <h1 className="font-headline text-4xl font-extrabold text-slate-800 tracking-tight">Panel de Administración</h1>
-            <p className="font-body text-slate-500 mt-2">Gestión de tutores, estudiantes y activación de credenciales.</p>
-          </div>
-
-          {/* Tab Selection buttons */}
-          <div className="flex bg-slate-200/60 p-1.5 rounded-full border border-slate-200">
+      {/* ── CONTENIDO PRINCIPAL (Desplazado con lg:pl-64) ── */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+        {/* Header superior de Dashboard */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {/* Botón menú hamburguesa (visible en mobile) */}
             <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'dashboard'
-                ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                : 'text-slate-600 hover:text-slate-900'
-                }`}
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label="Abrir menú"
             >
-              <div className="flex items-center gap-2">
-                <Icon name="dashboard" className="text-lg" />
-                <span>Dashboard de Usuarios</span>
-              </div>
+              <span className="material-symbols-outlined text-2xl">menu</span>
             </button>
-            {user?.role === 'user_admin' && (
-              <button
-                onClick={() => setActiveTab('create')}
-                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'create'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-600 hover:text-slate-900'
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="person_add" className="text-lg" />
-                  <span>Crear Usuarios</span>
-                </div>
-              </button>
-            )}
-            {user?.role === 'user_admin' && (
-              <button
-                onClick={() => setActiveTab('academic')}
-                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'academic'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-600 hover:text-slate-900'
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="school" className="text-lg" />
-                  <span>Gestión Académica</span>
-                </div>
-              </button>
-            )}
-            {user?.role === 'user_admin' && (
-              <button
-                onClick={() => setActiveTab('services')}
-                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'services'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-600 hover:text-slate-900'
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="restaurant" className="text-lg" />
-                  <span>Servicios</span>
-                </div>
-              </button>
-            )}
-            {user?.role === 'user_admin' && (
-              <button
-                onClick={() => setActiveTab('reports')}
-                className={`px-6 py-2.5 rounded-full font-label font-bold text-sm transition-all cursor-pointer ${activeTab === 'reports'
-                  ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20'
-                  : 'text-slate-600 hover:text-slate-900'
-                  }`}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon name="analytics" className="text-lg" />
-                  <span>Reportes</span>
-                </div>
-              </button>
-            )}
+
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-orange-500 text-xl hidden sm:block">admin_panel_settings</span>
+              <span className="font-bold text-slate-800 text-sm">Control Administrativo</span>
+            </div>
           </div>
-        </div>
+
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Nivel Administrador
+            </span>
+
+            <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+              <div className="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                {(user?.nombre || user?.email || 'A').charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:block text-xs font-bold text-slate-800">
+                {user?.nombre || user?.email?.split('@')[0] || 'Admin'}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8">
+          {/* Header del Módulo Activo */}
+          <div className="mb-8">
+            <h1 className="font-headline text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              {currentTabInfo.title}
+            </h1>
+            <p className="font-body text-slate-500 text-sm mt-1">
+              {currentTabInfo.subtitle}
+            </p>
+          </div>
 
         {/* Dashboard Tab Content */}
         <AdminDashboardTab
@@ -442,7 +430,8 @@ const AdminPanel = () => {
           <AdminReportsTab />
         )}
 
-  </main>
+      </main>
+      </div>
 
       
       {/* Modal de Edición de Datos */}
