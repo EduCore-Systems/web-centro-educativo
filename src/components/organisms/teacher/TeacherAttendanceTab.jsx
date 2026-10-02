@@ -75,12 +75,12 @@ const TeacherAttendanceTab = ({
           setAttendanceRecords(map);
           setIsAlreadySaved(true);
         } else {
-          // Marcar todos Presente por defecto
+          // Iniciar con todos los alumnos desmarcados (el docente debe marcarlos individualmente)
           const defaultMap = {};
           (activeSubject.students || []).forEach((st) => {
             const id = st.id || st.studentID_login || st.dni;
             defaultMap[id] = {
-              status: 'presente',
+              status: null,
               note: '',
             };
           });
@@ -140,19 +140,46 @@ const TeacherAttendanceTab = ({
     setAttendanceRecords(map);
   };
 
-  const handleSaveAttendance = async () => {
+  const handleResetAll = () => {
     if (!activeSubject) return;
+    const map = {};
+    (activeSubject.students || []).forEach((st) => {
+      const id = st.id || st.studentID_login || st.dni;
+      map[id] = {
+        ...(attendanceRecords[id] || {}),
+        status: null,
+      };
+    });
+    setAttendanceRecords(map);
+  };
+
+  const students = activeSubject?.students || [];
+  const totalStudents = students.length;
+  const markedStudentsCount = students.filter((st) => {
+    const id = st.id || st.studentID_login || st.dni;
+    const status = attendanceRecords[id]?.status;
+    return (
+      status === 'presente' ||
+      status === 'tarde' ||
+      status === 'ausente_justificado' ||
+      status === 'ausente_injustificado'
+    );
+  }).length;
+  const allStudentsMarked = totalStudents > 0 && markedStudentsCount === totalStudents;
+
+  const handleSaveAttendance = async () => {
+    if (!activeSubject || !allStudentsMarked) return;
     setIsSaving(true);
     try {
-      const recordsToSave = (activeSubject.students || []).map((st) => {
+      const recordsToSave = students.map((st) => {
         const id = st.id || st.studentID_login || st.dni;
-        const entry = attendanceRecords[id] || { status: 'presente', note: '' };
+        const entry = attendanceRecords[id] || { status: null, note: '' };
         return {
           studentId: id,
           studentName: st.nombre || 'Alumno',
           studentDni: st.dni || '',
           studentLegajo: st.studentID_login || st.id,
-          status: entry.status || 'presente',
+          status: entry.status,
           note: entry.note || '',
         };
       });
@@ -169,7 +196,7 @@ const TeacherAttendanceTab = ({
       });
 
       setIsAlreadySaved(true);
-      const studentIds = (activeSubject.students || []).map((st) => st.id || st.studentID_login || st.dni);
+      const studentIds = students.map((st) => st.id || st.studentID_login || st.dni);
       getStudentsAttendanceMap(studentIds).then((map) => setAccumulatedStats(map));
 
       setSaveMessage({
@@ -184,8 +211,6 @@ const TeacherAttendanceTab = ({
       setIsSaving(false);
     }
   };
-
-  const students = activeSubject?.students || [];
 
   return (
     <div className="space-y-6">
@@ -222,15 +247,25 @@ const TeacherAttendanceTab = ({
           />
         </div>
 
-        {/* Botón rápido "Marcar todos presentes" */}
-        <div className="flex items-end">
+        {/* Botones rápidos: "Todos Presentes" y "Desmarcar Todos" */}
+        <div className="flex items-end gap-2">
           <button
             type="button"
             onClick={handleMarkAllPresent}
             className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="Marcar a todos los alumnos como Presente"
           >
             <span className="material-symbols-outlined text-base">done_all</span>
-            <span>Marcar Todos Presentes</span>
+            <span>Todos Presentes</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleResetAll}
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            title="Desmarcar a todos los alumnos"
+          >
+            <span className="material-symbols-outlined text-base">restart_alt</span>
+            <span>Desmarcar Todos</span>
           </button>
         </div>
       </div>
@@ -302,8 +337,8 @@ const TeacherAttendanceTab = ({
               <tbody className="divide-y divide-slate-100 text-xs">
                 {students.map((st, index) => {
                   const studentId = st.id || st.studentID_login || st.dni;
-                  const record = attendanceRecords[studentId] || { status: 'presente', note: '' };
-                  const currentStatus = record.status || 'presente';
+                  const record = attendanceRecords[studentId] || { status: null, note: '' };
+                  const currentStatus = record.status || null;
 
                   // Iniciales del alumno
                   const initials = (st.nombre || 'Al')
@@ -470,15 +505,39 @@ const TeacherAttendanceTab = ({
         {/* Footer con Botón Guardar Asistencia */}
         {students.length > 0 && (
           <div className="p-5 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-xs text-slate-500">
-              Al guardar, los cómputos impactarán en el perfil familiar del estudiante de forma inmediata.
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs">
+              <span
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full font-bold transition-all ${
+                  allStudentsMarked
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-900'
+                }`}
+              >
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    allStudentsMarked ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
+                  }`}
+                />
+                {allStudentsMarked
+                  ? `Completado: ${markedStudentsCount} de ${totalStudents} alumnos marcados`
+                  : `Progreso: ${markedStudentsCount} de ${totalStudents} alumnos marcados (faltan ${totalStudents - markedStudentsCount})`}
+              </span>
+              <span className="text-slate-500 text-[11px]">
+                {allStudentsMarked
+                  ? 'Listo para guardar la planilla institucional.'
+                  : 'Debes marcar a todos los alumnos para habilitar el guardado.'}
+              </span>
             </div>
 
             <button
               type="button"
-              disabled={isSaving || isLoadingExisting}
+              disabled={isSaving || isLoadingExisting || !allStudentsMarked}
               onClick={handleSaveAttendance}
-              className="w-full sm:w-auto px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className={`w-full sm:w-auto px-6 py-3 font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all ${
+                allStudentsMarked && !isSaving && !isLoadingExisting
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20 cursor-pointer'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+              }`}
             >
               {isSaving ? (
                 <>
