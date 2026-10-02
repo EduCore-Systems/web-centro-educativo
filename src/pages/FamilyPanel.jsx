@@ -246,7 +246,7 @@ const FamilyPanel = () => {
 
       {/* ── ÁREA DE CONTENIDO PRINCIPAL (Desplazada en Desktop con lg:pl-64) ── */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
-        {/* Barra superior de Dashboard (Header estilo Stitch) */}
+        {/* Barra superior de Dashboard */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* Botón menú hamburguesa (visible en mobile) */}
@@ -259,14 +259,10 @@ const FamilyPanel = () => {
               <span className="material-symbols-outlined text-2xl">menu</span>
             </button>
 
-            {/* Buscador estético de notas/materias */}
-            <div className="hidden sm:flex items-center gap-2 bg-slate-100/80 px-3.5 py-1.5 rounded-full text-slate-400 text-xs w-64 md:w-80 border border-slate-200/60">
-              <span className="material-symbols-outlined text-base">search</span>
-              <input
-                type="text"
-                placeholder="Buscar materias, docentes o trámites..."
-                className="bg-transparent border-none text-slate-700 text-xs focus:outline-none w-full placeholder:text-slate-400"
-              />
+            {/* Identificador de Portal */}
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-orange-500 text-xl hidden sm:block">family_restroom</span>
+              <span className="font-bold text-slate-800 text-sm">Portal Familiar</span>
             </div>
           </div>
 
@@ -432,43 +428,6 @@ const FamilyPanel = () => {
               />
             </div>
 
-            {/* ── BANNER INFERIOR: DOCUMENTACIÓN Y CERTIFICADOS (ESTILO STITCH) ── */}
-            <section id="documentacion" className="bg-gradient-to-r from-slate-100 via-orange-50/30 to-amber-50/20 p-6 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-orange-500 flex-shrink-0">
-                  <span className="material-symbols-outlined text-2xl">description</span>
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 text-base">
-                    Documentación y Certificados Oficiales
-                  </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Descargue constancias de examen, certificados médicos y autorizaciones de salida.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-                <button
-                  type="button"
-                  onClick={() => alert('Abriendo repositorio de formularios escolares oficiales...')}
-                  className="px-4 py-2.5 rounded-full bg-white text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Centro de Formularios
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!selectedStudent) return;
-                    setDocumentModal({ isOpen: true, type: 'certificado' });
-                  }}
-                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">print</span>
-                  <span>Comprobante Completo</span>
-                </button>
-              </div>
-            </section>
           </div>
         )}
       </main>
