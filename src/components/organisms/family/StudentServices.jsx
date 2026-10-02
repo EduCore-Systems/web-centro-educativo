@@ -109,6 +109,22 @@ const StudentServices = ({ student, onStudentUpdated }) => {
     }
   };
 
+  // ── DETECCIÓN INTELIGENTE DE MODIFICACIONES ──
+  const initialSports = Array.isArray(student?.deportes) ? [...student.deportes].sort() : [];
+  const currentSports = [...selectedSports].sort();
+  const sportsChanged =
+    initialSports.length !== currentSports.length ||
+    initialSports.some((val, idx) => val !== currentSports[idx]);
+
+  const initialComedor = Boolean(student?.usa_comedor || student?.diningRoomEnabled);
+  const comedorChanged = initialComedor !== usaComedor;
+
+  const initialTransporte = student?.transporte_recorrido || 'none';
+  const transporteChanged = initialTransporte !== transporteRecorrido;
+
+  // Solo se activa si alguna de las 3 opciones cambió respecto a Firebase
+  const hasChanges = sportsChanged || comedorChanged || transporteChanged;
+
   const isLimitReached = selectedSports.length >= 2;
 
   return (
@@ -357,17 +373,35 @@ const StudentServices = ({ student, onStudentUpdated }) => {
           </div>
 
           {/* BOTÓN GENERAL PARA GUARDAR TODOS LOS CAMBIOS */}
-          <div className="flex justify-end pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <span className="text-xs text-slate-400">
+              {hasChanges
+                ? '⚠️ Tienes modificaciones sin guardar.'
+                : '✓ Todos los servicios están sincronizados con la institución.'}
+            </span>
+
             <button
               type="button"
-              disabled={isSaving}
+              disabled={!hasChanges || isSaving}
               onClick={handleSaveChanges}
-              className="w-full sm:w-auto px-7 py-3 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className={`
+                w-full sm:w-auto px-7 py-3 rounded-full font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2
+                ${hasChanges && !isSaving
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.02] active:scale-95'
+                  : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed opacity-60'
+                }
+              `}
             >
               <span className="material-symbols-outlined text-lg">
-                {isSaving ? 'sync' : 'save'}
+                {isSaving ? 'sync' : hasChanges ? 'save' : 'check'}
               </span>
-              <span>{isSaving ? 'Guardando en Firebase...' : 'Guardar Servicios'}</span>
+              <span>
+                {isSaving
+                  ? 'Guardando en Firebase...'
+                  : hasChanges
+                  ? 'Guardar Modificaciones'
+                  : 'Sin cambios pendientes'}
+              </span>
             </button>
           </div>
         </div>
