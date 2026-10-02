@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../services/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -8,6 +7,7 @@ import StudentProfile from '../components/organisms/family/StudentProfile';
 import StudentSubjects from '../components/organisms/family/StudentSubjects';
 import StudentServices from '../components/organisms/family/StudentServices';
 import FamilyDocumentModal from '../components/organisms/family/FamilyDocumentModal';
+import FamilySidebar from '../components/organisms/family/FamilySidebar';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUBCOMPONENTE: Tarjeta de un alumno en el selector
@@ -88,7 +88,7 @@ const StudentCard = ({ student, isActive, onClick }) => {
 // ─────────────────────────────────────────────────────────────────────────────
 const FamilyPanel = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();   // El usuario logueado (padre) desde el contexto global
+  const { user, logout } = useAuth();
 
   // Lista de todos los hijos que el sistema encontró para este padre en Firebase
   const [children, setChildren] = useState([]);
@@ -99,10 +99,23 @@ const FamilyPanel = () => {
   // Bandera para mostrar un spinner de carga mientras se consulta Firebase
   const [loading, setLoading] = useState(true);
 
+  // Estados para el Sidebar y Navegación
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('resumen');
+
   // Estados para el Modal de Vinculación de Estudiante
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkDni, setLinkDni] = useState('');
   const [linkFeedback, setLinkFeedback] = useState('');
+
+  // Función para scroll suave a la sección
+  const handleScrollToSection = (sectionId) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Materias del alumno actual para el Boletín
   const [currentSubjects, setCurrentSubjects] = useState([]);
@@ -215,27 +228,86 @@ const FamilyPanel = () => {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50 flex font-sans">
+      {/* ── BARRA LATERAL FAMILIAR (SIDEBAR) ── */}
+      <FamilySidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        activeSection={activeSection}
+        onSelectSection={handleScrollToSection}
+        user={user}
+        childrenCount={children.length}
+        onOpenDocument={(docType) => {
+          if (!selectedStudent) return;
+          setDocumentModal({ isOpen: true, type: docType });
+        }}
+        onLogout={logout}
+      />
 
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* ── ÁREA DE CONTENIDO PRINCIPAL (Desplazada en Desktop con lg:pl-64) ── */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+        {/* Barra superior de Dashboard (Header estilo Stitch) */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            {/* Botón menú hamburguesa (visible en mobile) */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+              aria-label="Abrir menú"
+            >
+              <span className="material-symbols-outlined text-2xl">menu</span>
+            </button>
 
-        {/* ── ENCABEZADO DE LA PÁGINA (ESTILO STITCH) ── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-                Portal de Familias
-              </h1>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Matrícula al Día
+            {/* Buscador estético de notas/materias */}
+            <div className="hidden sm:flex items-center gap-2 bg-slate-100/80 px-3.5 py-1.5 rounded-full text-slate-400 text-xs w-64 md:w-80 border border-slate-200/60">
+              <span className="material-symbols-outlined text-base">search</span>
+              <input
+                type="text"
+                placeholder="Buscar materias, docentes o trámites..."
+                className="bg-transparent border-none text-slate-700 text-xs focus:outline-none w-full placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          {/* Acciones de la barra superior */}
+          <div className="flex items-center gap-3">
+            <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Ciclo 2026 Activo
+            </span>
+
+            {/* Avatar / Nombre del tutor */}
+            <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
+              <div className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                {(user?.nombre || user?.name || 'T').charAt(0).toUpperCase()}
+              </div>
+              <span className="hidden sm:block text-xs font-bold text-slate-800">
+                {user?.nombre || user?.name || 'Tutor'}
               </span>
             </div>
-            <p className="text-slate-500 text-sm">
-              Centro Educativo EduCore · Ciclo Lectivo 2026
-            </p>
           </div>
+        </header>
+
+        {/* Contenedor central con scroll */}
+        <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+          {/* ── ENCABEZADO DE LA PÁGINA (ESTILO STITCH) ── */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                  Portal de Familias
+                </h1>
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Matrícula al Día
+                </span>
+              </div>
+              <p className="text-slate-500 text-sm">
+                Centro Educativo EduCore · Ciclo Lectivo 2026
+              </p>
+            </div>
 
           {/* Botones de Documentación Rápida */}
           <div className="flex flex-wrap items-center gap-3">
@@ -266,7 +338,7 @@ const FamilyPanel = () => {
         </div>
 
         {/* ── SELECTOR DE HIJOS (PASO 1) ── */}
-        <section className="mb-8">
+        <section id="resumen" className="mb-8 scroll-mt-20">
           <div className="flex items-center gap-2 mb-4">
             <span className="material-symbols-outlined text-orange-500">family_restroom</span>
             <h2 className="text-lg font-semibold text-slate-700">
@@ -348,16 +420,20 @@ const FamilyPanel = () => {
             <StudentProfile student={selectedStudent} />
 
             {/* PASO 3: Grilla de Materias y Docentes (RF-15) */}
-            <StudentSubjects student={selectedStudent} />
+            <div id="materias">
+              <StudentSubjects student={selectedStudent} />
+            </div>
 
             {/* PASO 4: Gestión de Servicios Extracurriculares, Transporte y Comedor (RF-16 y RF-17) */}
-            <StudentServices
-              student={selectedStudent}
-              onStudentUpdated={handleStudentUpdated}
-            />
+            <div id="servicios">
+              <StudentServices
+                student={selectedStudent}
+                onStudentUpdated={handleStudentUpdated}
+              />
+            </div>
 
             {/* ── BANNER INFERIOR: DOCUMENTACIÓN Y CERTIFICADOS (ESTILO STITCH) ── */}
-            <section className="bg-gradient-to-r from-slate-100 via-orange-50/30 to-amber-50/20 p-6 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-4">
+            <section id="documentacion" className="bg-gradient-to-r from-slate-100 via-orange-50/30 to-amber-50/20 p-6 rounded-2xl border border-slate-200/80 flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-orange-500 flex-shrink-0">
                   <span className="material-symbols-outlined text-2xl">description</span>
@@ -396,6 +472,7 @@ const FamilyPanel = () => {
           </div>
         )}
       </main>
+      </div>
 
       {/* ── MODAL VISOR FORMAL DE DOCUMENTOS (BOLETÍN / CERTIFICADO REGULAR) ── */}
       <FamilyDocumentModal
