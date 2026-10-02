@@ -4,6 +4,7 @@ import { getCourses, getSubjects, getSports, getSchedules } from '../../../../se
 import { getStudents, getTransportRoutes } from '../../../../services/additionalServices';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../../../services/firebase';
+import AdminFinancialReport from './AdminFinancialReport';
 
 const AdminReportsTab = () => {
   const [reportType, setReportType] = useState('student');
@@ -346,6 +347,9 @@ const AdminReportsTab = () => {
               <option value="sport">6. Alumnos por Deporte</option>
               <option value="transport">7. Alumnos por Transporte</option>
             </optgroup>
+            <optgroup label="Gestión Financiera (RF-08)">
+              <option value="financial">8. Estado de Cobranzas y Morosidad</option>
+            </optgroup>
           </select>
         </div>
 
@@ -363,6 +367,7 @@ const AdminReportsTab = () => {
             {reportType === 'teacher_level' && getListTeacherLevel()}
             {reportType === 'sport' && getListSport()}
             {reportType === 'transport' && getListTransport()}
+            {reportType === 'financial' && <AdminFinancialReport />}
           </div>
         )}
       </div>
