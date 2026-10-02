@@ -12,8 +12,8 @@ import News from './pages/News';
 import NotFound from './pages/NotFound';
 import Registration from './pages/Registration';
 import Wellness from './pages/Wellness';
-
 import Privacy from './pages/Privacy';
+import FamilyPanel from './pages/FamilyPanel';
 
 function App() {
   return (
@@ -30,6 +30,7 @@ function App() {
         <Route path="/levels" element={<Levels />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/family" element={<FamilyPanel />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

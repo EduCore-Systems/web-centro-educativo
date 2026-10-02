@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { images } from '../services/imagesConfig';
 import Navbar from '../components/Navbar';
@@ -50,8 +50,6 @@ const Login = () => {
   const navigate = useNavigate();
   const { user, login, logout, isLoggedIn } = useAuth();
 
-  const [selectedRole, setSelectedRole] = useState('Estudiante');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -59,44 +57,33 @@ const Login = () => {
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const dropdownRef = useRef(null);
-
-  // Redirigir únicamente a los administradores de usuarios automáticamente
+  // Redirigir según el rol del usuario autenticado
   useEffect(() => {
     if (isLoggedIn && user) {
-      if (user.role === 'user_admin') {
+      if (user.role === 'user_admin' || user.role === 'admin') {
         navigate('/admin');
+      } else if (user.role === 'Padre' || user.role === 'Padre/Tutor' || user.role === 'user_padre') {
+        navigate('/family');
       }
     }
   }, [isLoggedIn, user, navigate]);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setLoginError('');
     try {
-      await login(identifier, password, selectedRole);
+      await login(identifier, password);
     } catch (err) {
       switch (err.code) {
         case 'auth/invalid-credential':
-          setLoginError('Credenciales inválidas. Verifica tu ID o correo.');
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          setLoginError('Credenciales inválidas. Verifica tu correo y contraseña.');
           break;
         default:
           setLoginError(
-            err.code || 'Error al iniciar sesión. Revisa tus credenciales.'
+            err.message || err.code || 'Error al iniciar sesión. Revisa tus credenciales.'
           );
       }
     } finally {
@@ -162,12 +149,35 @@ const Login = () => {
               </ul>
             </div>
 
-            <button
-              onClick={handleLogout}
-              className="mt-4 px-8 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-label rounded-full transition-all duration-200 border border-slate-200 hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer"
-            >
-              Cerrar Sesión
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+              {(user.role === 'Padre' || user.role === 'Padre/Tutor') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/family')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold font-label rounded-full transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">family_restroom</span>
+                  Ir al Portal Familiar
+                </button>
+              )}
+              {user.role === 'user_admin' && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold font-label rounded-full transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+                  Ir al Panel Admin
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="px-8 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold font-label rounded-full transition-all duration-200 border border-slate-200 hover:scale-[1.02] active:scale-95 shadow-sm cursor-pointer"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -269,93 +279,6 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Role Selection Premium Custom Dropdown with Badges */}
-            <div className="mb-8" ref={dropdownRef}>
-              <label className="block font-label text-sm font-medium text-slate-500 mb-3 uppercase tracking-wider">
-                Selecciona tu Rol
-              </label>
-              <div className="relative">
-                {/* Dropdown Trigger Button (Styled as a Badge) */}
-                <button
-                  type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 text-slate-800 border-2 border-slate-200 rounded-xl hover:bg-slate-100/50 focus:border-orange-500 focus:bg-white focus:outline-none transition-all duration-200 cursor-pointer"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="material-symbols-outlined text-orange-600 bg-orange-100 rounded-lg p-1.5 text-xl flex items-center justify-center"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      {ROLES_INFO[selectedRole]?.icon}
-                    </span>
-                    <span className="font-label text-sm font-bold text-slate-700">
-                      {ROLES_INFO[selectedRole]?.label}
-                    </span>
-                  </div>
-                  <span
-                    className="material-symbols-outlined text-slate-400 transition-transform duration-200"
-                    style={{
-                      transform: isDropdownOpen
-                        ? 'rotate(180deg)'
-                        : 'rotate(0deg)',
-                    }}
-                  >
-                    expand_more
-                  </span>
-                </button>
-
-                {/* Dropdown Menu featuring Badge-like Options */}
-                {isDropdownOpen && (
-                  <div className="absolute z-20 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-[0px_10px_25px_rgba(0,0,0,0.08)] p-2 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                    {Object.keys(ROLES_INFO).map((roleKey) => {
-                      const role = ROLES_INFO[roleKey];
-                      const isSelected = selectedRole === roleKey;
-                      return (
-                        <button
-                          key={roleKey}
-                          type="button"
-                          onClick={() => {
-                            setSelectedRole(roleKey);
-                            setIsDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg border-2 transition-all duration-150 cursor-pointer text-left ${
-                            isSelected
-                              ? 'border-orange-500 bg-orange-50 text-orange-600 font-bold'
-                              : 'border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span
-                              className={`material-symbols-outlined rounded-lg p-1 text-lg flex items-center justify-center transition-colors ${
-                                isSelected
-                                  ? 'text-orange-600 bg-orange-100'
-                                  : 'text-slate-400 bg-slate-100'
-                              }`}
-                              style={{
-                                fontVariationSettings: isSelected
-                                  ? "'FILL' 1"
-                                  : "'FILL' 0",
-                              }}
-                            >
-                              {role.icon}
-                            </span>
-                            <span className="font-label text-sm font-semibold">
-                              {role.label}
-                            </span>
-                          </div>
-                          {isSelected && (
-                            <span className="material-symbols-outlined text-orange-600 text-lg font-bold">
-                              check
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Login Form */}
             <form onSubmit={handleLoginSubmit} className="space-y-6">
               {/* ID / Email Field */}
@@ -364,19 +287,19 @@ const Login = () => {
                   className="block font-label text-sm font-medium text-slate-600 mb-2"
                   htmlFor="identifier"
                 >
-                  ID Institucional o Correo
+                  Correo Electrónico
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <span className="material-symbols-outlined text-slate-400">
-                      badge
+                      mail
                     </span>
                   </div>
                   <input
-                    className="w-full pl-12 pr-4 py-3 bg-slate-50 text-slate-800 placeholder-slate-400 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-0 transition-colors font-body text-base"
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 text-slate-800 placeholder-slate-400 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-0 transition-colors font-body text-base"
                     id="identifier"
                     name="identifier"
-                    placeholder="ej. 2023-EST-001"
+                    placeholder="ej. usuario@email.com"
                     type="text"
                     required
                     value={identifier}
