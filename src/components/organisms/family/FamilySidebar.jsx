@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router-dom';
 const FamilySidebar = ({
   isOpen,
   onClose,
+  isCollapsed,
+  onToggleCollapse,
   activeSection,
   onSelectSection,
   user,
@@ -50,33 +52,45 @@ const FamilySidebar = ({
       <aside
         className={`
           fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 shadow-sm
-          flex flex-col justify-between transition-transform duration-300 ease-in-out
-          ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          flex flex-col justify-between transition-all duration-300 ease-in-out
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          ${isCollapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
         `}
       >
         {/* Cabecera del Sidebar */}
         <div className="flex flex-col">
           {/* Logo y Nombre Institucional */}
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20 flex-shrink-0">
                 <span className="material-symbols-outlined text-2xl">school</span>
               </div>
-              <div>
-                <span className="font-extrabold text-base text-slate-900 tracking-tight block">
+              <div className="min-w-0">
+                <span className="font-extrabold text-base text-slate-900 tracking-tight block truncate">
                   EduCore
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block truncate">
                   Portal de Familias
                 </span>
               </div>
             </div>
 
+            {/* Botón para esconder/colapsar en Desktop */}
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Ocultar menú lateral"
+            >
+              <span className="material-symbols-outlined text-lg">chevron_left</span>
+            </button>
+
             {/* Botón cerrar solo visible en mobile */}
             <button
               type="button"
               onClick={onClose}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+              aria-label="Cerrar menú"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
