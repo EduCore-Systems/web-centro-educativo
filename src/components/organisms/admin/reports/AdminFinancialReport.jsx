@@ -209,7 +209,7 @@ const AdminFinancialReport = () => {
               Nómina de Cobranzas y Estado de Alumnos
             </h4>
             <p className="text-xs text-slate-500">
-              Listado detallado con acceso a recordatorios de pago por correo (RF-06/07).
+              Listado detallado con acceso a recordatorios de pago por correo a los tutores.
             </p>
           </div>
 

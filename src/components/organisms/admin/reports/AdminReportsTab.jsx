@@ -347,7 +347,7 @@ const AdminReportsTab = () => {
               <option value="sport">6. Alumnos por Deporte</option>
               <option value="transport">7. Alumnos por Transporte</option>
             </optgroup>
-            <optgroup label="Gestión Financiera (RF-08)">
+            <optgroup label="Gestión Financiera">
               <option value="financial">8. Estado de Cobranzas y Morosidad</option>
             </optgroup>
           </select>

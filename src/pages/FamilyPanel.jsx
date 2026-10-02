@@ -103,6 +103,16 @@ const FamilyPanel = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('resumen');
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      console.error('Error al cerrar sesión:', err);
+      navigate('/login', { replace: true });
+    }
+  };
+
   // Estados para el Modal de Vinculación de Estudiante
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [linkDni, setLinkDni] = useState('');
@@ -241,7 +251,7 @@ const FamilyPanel = () => {
           if (!selectedStudent) return;
           setDocumentModal({ isOpen: true, type: docType });
         }}
-        onLogout={logout}
+        onLogout={handleLogout}
       />
 
       {/* ── ÁREA DE CONTENIDO PRINCIPAL (Desplazada en Desktop con lg:pl-64) ── */}
