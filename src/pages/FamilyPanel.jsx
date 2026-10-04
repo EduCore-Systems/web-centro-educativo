@@ -8,6 +8,7 @@ import StudentSubjects from '../components/organisms/family/StudentSubjects';
 import StudentServices from '../components/organisms/family/StudentServices';
 import FamilyDocumentModal from '../components/organisms/family/FamilyDocumentModal';
 import FamilySidebar from '../components/organisms/family/FamilySidebar';
+import FamilyChatTab from '../components/organisms/family/FamilyChatTab';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SUBCOMPONENTE: Tarjeta de un alumno en el selector
@@ -126,6 +127,20 @@ const FamilyPanel = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  // Estado para consulta directa a docente desde la tarjeta de materia
+  const [preselectedChatSubject, setPreselectedChatSubject] = useState(null);
+
+  const handleOpenChatWithTeacher = (subject) => {
+    setPreselectedChatSubject(subject);
+    setActiveSection('chat');
+    setTimeout(() => {
+      const el = document.getElementById('chat');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
   };
 
   // Materias del alumno actual para el Boletín
@@ -447,7 +462,10 @@ const FamilyPanel = () => {
 
             {/* PASO 3: Grilla de Materias y Docentes (RF-15) */}
             <div id="materias">
-              <StudentSubjects student={selectedStudent} />
+              <StudentSubjects
+                student={selectedStudent}
+                onOpenChatWithTeacher={handleOpenChatWithTeacher}
+              />
             </div>
 
             {/* PASO 4: Gestión de Servicios Extracurriculares, Transporte y Comedor (RF-16 y RF-17) */}
@@ -455,6 +473,17 @@ const FamilyPanel = () => {
               <StudentServices
                 student={selectedStudent}
                 onStudentUpdated={handleStudentUpdated}
+              />
+            </div>
+
+            {/* PASO 5: Canal de Mensajes y Consultas con Docentes */}
+            <div id="chat">
+              <FamilyChatTab
+                student={selectedStudent}
+                user={user}
+                preselectedSubject={preselectedChatSubject}
+                availableSubjects={currentSubjects}
+                onBackToDashboard={() => handleScrollToSection('resumen')}
               />
             </div>
 

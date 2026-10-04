@@ -35,7 +35,7 @@ const getSubjectStyle = (name = '') => {
  * StudentSubjects (Paso 3)
  * Muestra la grilla de asignaturas en curso del alumno seleccionado (RF-15).
  */
-const StudentSubjects = ({ student }) => {
+const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -185,11 +185,17 @@ const StudentSubjects = ({ student }) => {
                   </span>
                   <button
                     type="button"
-                    onClick={() => alert(`Consulta enviada a secretaría sobre ${sub.name}.`)}
+                    onClick={() => {
+                      if (onOpenChatWithTeacher) {
+                        onOpenChatWithTeacher(sub);
+                      } else {
+                        alert(`Consulta enviada sobre ${sub.name}.`);
+                      }
+                    }}
                     className="text-orange-600 hover:text-orange-700 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-sm">mail</span>
-                    Consulta
+                    <span className="material-symbols-outlined text-sm">chat</span>
+                    Consultar docente
                   </button>
                 </div>
               </div>

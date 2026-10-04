@@ -25,6 +25,7 @@ const FamilySidebar = ({
     { id: 'materias', label: 'Materias y Horarios', icon: 'menu_book', desc: 'Docentes y asignaturas' },
     { id: 'servicios', label: 'Servicios Escolares', icon: 'sports_soccer', desc: 'Deportes, comedor y transporte' },
     { id: 'documentacion', label: 'Documentación Oficial', icon: 'description', desc: 'Boletín y certificados' },
+    { id: 'chat', label: 'Mensajes y Consultas', icon: 'chat', desc: 'Canal con docentes' },
   ];
 
   const handleNavClick = (itemId) => {
