@@ -10,6 +10,7 @@ import AdminAcademicTab from '../components/organisms/admin/academic/AdminAcadem
 import AdminServicesTab from '../components/organisms/admin/services/AdminServicesTab';
 import AdminReportsTab from '../components/organisms/admin/reports/AdminReportsTab';
 import AdminSidebar from '../components/organisms/admin/AdminSidebar';
+import ThemeToggle from '../components/atoms/ThemeToggle';
 import { db, auth, firebaseConfig } from '../services/firebase';
 import { collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { initializeApp, getApps } from 'firebase/app';
@@ -339,7 +340,7 @@ const AdminPanel = () => {
   const currentTabInfo = TAB_TITLES[activeTab] || TAB_TITLES.dashboard;
 
   return (
-    <div className="relative min-h-screen bg-slate-50 text-slate-800 font-body flex">
+    <div className="relative min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-body flex transition-colors">
       {/* ── BARRA LATERAL (SIDEBAR) ── */}
       <AdminSidebar
         isOpen={isSidebarOpen}
@@ -360,7 +361,7 @@ const AdminPanel = () => {
         `}
       >
         {/* Header superior de Dashboard */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4 transition-colors">
           <div className="flex items-center gap-3">
             {/* Botón para abrir en mobile */}
             <button
@@ -395,6 +396,9 @@ const AdminPanel = () => {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Nivel Administrador
             </span>
+
+            {/* Alternador de Modo Claro/Oscuro */}
+            <ThemeToggle />
 
             <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
               <div className="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shadow-xs">

@@ -10,6 +10,7 @@ import TeacherAttendanceTab from '../components/organisms/teacher/TeacherAttenda
 import TeacherScheduleTab from '../components/organisms/teacher/TeacherScheduleTab';
 import TeacherSportsTab from '../components/organisms/teacher/TeacherSportsTab';
 import TeacherMessagesTab from '../components/organisms/teacher/TeacherMessagesTab';
+import TeacherNavTabs from '../components/molecules/teacher/TeacherNavTabs';
 
 /**
  * TeacherPanel (Fase 2 & 3 Completa)
@@ -87,7 +88,7 @@ const TeacherPanel = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-body text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-body text-slate-800 dark:text-slate-100 transition-colors">
       {/* ── BARRA LATERAL (SIDEBAR) ── */}
       <TeacherSidebar
         isOpen={isSidebarOpen}
@@ -119,6 +120,14 @@ const TeacherPanel = () => {
             }
           }}
           user={user}
+          onNavigateToMessages={() => {
+            setActiveTab('messages');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onNavigateToAttendance={() => {
+            setActiveTab('attendance');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
         />
 
         {/* Cuerpo del Dashboard */}
@@ -126,22 +135,33 @@ const TeacherPanel = () => {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-400">
               <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="text-sm font-semibold text-slate-600">
+              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
                 Sincronizando información académica del docente...
               </p>
             </div>
           ) : (
             <>
-              {/* Tarjetas de Métricas (Hero KPIs) */}
-              <TeacherHeroKPIs
-                totalStudentsCount={academicData.totalStudentsCount}
-                subjectsCount={academicData.subjects.length}
-                sportsCount={academicData.sports.length}
-                onGoToAttendance={() => {
-                  setActiveTab('attendance');
+              {/* Barra de Navegación Modular (Molécula: TeacherNavTabs) */}
+              <TeacherNavTabs
+                activeTab={activeTab}
+                onSelectTab={(tabId) => {
+                  setActiveTab(tabId);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
               />
+
+              {/* Tarjetas de Métricas (Hero KPIs) - Vista de Cursos */}
+              {activeTab === 'courses' && (
+                <TeacherHeroKPIs
+                  totalStudentsCount={academicData.totalStudentsCount}
+                  subjectsCount={academicData.subjects.length}
+                  sportsCount={academicData.sports.length}
+                  onGoToAttendance={() => {
+                    setActiveTab('attendance');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                />
+              )}
 
               {/* Contenido según la pestaña activa */}
               {activeTab === 'courses' && (

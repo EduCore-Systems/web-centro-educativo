@@ -11,6 +11,7 @@ import FamilySidebar from '../components/organisms/family/FamilySidebar';
 import FamilyChatTab from '../components/organisms/family/FamilyChatTab';
 import StudentCard from '../components/molecules/family/StudentCard';
 import FamilyNavTabs from '../components/molecules/family/FamilyNavTabs';
+import ThemeToggle from '../components/atoms/ThemeToggle';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL: FamilyPanel
@@ -175,7 +176,7 @@ const FamilyPanel = () => {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50 flex font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex font-sans text-slate-800 dark:text-slate-100 transition-colors">
       {/* ── BARRA LATERAL FAMILIAR (SIDEBAR) ── */}
       <FamilySidebar
         isOpen={isSidebarOpen}
@@ -201,7 +202,7 @@ const FamilyPanel = () => {
         `}
       >
         {/* Barra superior de Dashboard */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+        <header className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4 transition-colors">
           <div className="flex items-center gap-3">
             {/* Botón menú hamburguesa (visible en mobile) */}
             <button
@@ -233,11 +234,14 @@ const FamilyPanel = () => {
           </div>
 
           {/* Acciones de la barra superior */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Ciclo 2026 Activo
             </span>
+
+            {/* Alternador de Modo Claro/Oscuro */}
+            <ThemeToggle />
 
             {/* Avatar / Nombre del tutor */}
             <div className="flex items-center gap-2.5 pl-2 border-l border-slate-200">
