@@ -9,83 +9,12 @@ import StudentServices from '../components/organisms/family/StudentServices';
 import FamilyDocumentModal from '../components/organisms/family/FamilyDocumentModal';
 import FamilySidebar from '../components/organisms/family/FamilySidebar';
 import FamilyChatTab from '../components/organisms/family/FamilyChatTab';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SUBCOMPONENTE: Tarjeta de un alumno en el selector
-// Props:
-//   student      → objeto del alumno con nombre, nivel, curso, etc.
-//   isActive     → boolean que indica si es el hijo seleccionado actualmente
-//   onClick      → función que se ejecuta al hacer click en la tarjeta
-// ─────────────────────────────────────────────────────────────────────────────
-const StudentCard = ({ student, isActive, onClick }) => {
-  // Generamos las iniciales del nombre para mostrar en el avatar (ej: "Mateo Rossi" → "MR")
-  const initials = (student.nombre || '')
-    .split(' ')
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase();
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`
-        w-full text-left p-4 rounded-2xl shadow-sm flex items-center justify-between
-        transition-all duration-200 cursor-pointer
-        ${isActive
-          ? 'bg-orange-50/30 ring-2 ring-orange-500'       // Estilo cuando está seleccionado
-          : 'bg-white hover:shadow-md hover:bg-slate-50'   // Estilo cuando NO está seleccionado
-        }
-      `}
-    >
-      <div className="flex items-center gap-3 min-w-0">
-        {/* Avatar con las iniciales del alumno */}
-        <div className={`
-          relative w-12 h-12 rounded-full flex items-center justify-center
-          text-white font-bold text-lg shadow-sm flex-shrink-0
-          ${isActive
-            ? 'bg-gradient-to-br from-orange-500 to-amber-500'
-            : 'bg-slate-200 text-slate-500'
-          }
-        `}>
-          {initials}
-          {/* Punto verde de "activo" que aparece solo en la tarjeta seleccionada */}
-          {isActive && (
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
-          )}
-        </div>
-
-        {/* Nombre, nivel y curso del alumno */}
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-slate-900 truncate">{student.nombre}</span>
-            {isActive && (
-              <span className="px-2 py-0.5 rounded-full bg-orange-500 text-white text-xs font-bold uppercase tracking-wider">
-                Activo
-              </span>
-            )}
-          </div>
-          {/* Nivel formateado + Curso, ej: "Secundaria · 3° Año B" */}
-          <p className="text-sm text-slate-500 truncate capitalize">
-            {student.nivel} · {student.curso || 'Sin curso asignado'}
-          </p>
-        </div>
-      </div>
-
-      {/* Ícono de check (solo en el activo) o flecha (en los inactivos al pasar el mouse) */}
-      {isActive
-        ? <span className="material-symbols-outlined text-orange-500">check_circle</span>
-        : <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500">arrow_forward</span>
-      }
-    </button>
-  );
-};
+import StudentCard from '../components/molecules/family/StudentCard';
+import FamilyNavTabs from '../components/molecules/family/FamilyNavTabs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENTE PRINCIPAL: FamilyPanel
-// Es la página completa del Portal de Padres. Por ahora solo muestra
-// el encabezado y el selector de hijos (Paso 1).
+// Página modular del Portal de Familias estructurada bajo Atomic Design.
 // ─────────────────────────────────────────────────────────────────────────────
 const FamilyPanel = () => {
   const navigate = useNavigate();
@@ -120,13 +49,10 @@ const FamilyPanel = () => {
   const [linkDni, setLinkDni] = useState('');
   const [linkFeedback, setLinkFeedback] = useState('');
 
-  // Función para scroll suave a la sección
+  // Función para seleccionar la sección modular activa
   const handleScrollToSection = (sectionId) => {
     setActiveSection(sectionId);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Estado para consulta directa a docente desde la tarjeta de materia
@@ -135,12 +61,7 @@ const FamilyPanel = () => {
   const handleOpenChatWithTeacher = (subject) => {
     setPreselectedChatSubject(subject);
     setActiveSection('chat');
-    setTimeout(() => {
-      const el = document.getElementById('chat');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 60);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Materias del alumno actual para el Boletín
@@ -454,30 +375,38 @@ const FamilyPanel = () => {
           )}
         </section>
 
-        {/* ── ZONA DE CONTENIDO DEL HIJO SELECCIONADO ── */}
+        {/* ── ZONA DE CONTENIDO MODULAR DEL HIJO SELECCIONADO ── */}
         {selectedStudent && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* PASO 2: Ficha y Perfil Académico del Estudiante */}
-            <StudentProfile student={selectedStudent} />
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Barra de navegación modular (Molécula) */}
+            <FamilyNavTabs
+              activeSection={activeSection}
+              onSelectSection={handleScrollToSection}
+            />
 
-            {/* PASO 3: Grilla de Materias y Docentes (RF-15) */}
-            <div id="materias">
+            {/* 1. Ficha y Perfil Académico del Estudiante */}
+            {activeSection === 'resumen' && (
+              <StudentProfile student={selectedStudent} />
+            )}
+
+            {/* 2. Grilla de Materias y Docentes (RF-15) */}
+            {activeSection === 'materias' && (
               <StudentSubjects
                 student={selectedStudent}
                 onOpenChatWithTeacher={handleOpenChatWithTeacher}
               />
-            </div>
+            )}
 
-            {/* PASO 4: Gestión de Servicios Extracurriculares, Transporte y Comedor (RF-16 y RF-17) */}
-            <div id="servicios">
+            {/* 3. Gestión de Servicios Extracurriculares, Transporte y Comedor (RF-16 y RF-17) */}
+            {activeSection === 'servicios' && (
               <StudentServices
                 student={selectedStudent}
                 onStudentUpdated={handleStudentUpdated}
               />
-            </div>
+            )}
 
-            {/* PASO 5: Canal de Mensajes y Consultas con Docentes */}
-            <div id="chat">
+            {/* 4. Canal de Mensajes y Consultas con Docentes */}
+            {activeSection === 'chat' && (
               <FamilyChatTab
                 student={selectedStudent}
                 user={user}
@@ -485,8 +414,7 @@ const FamilyPanel = () => {
                 availableSubjects={currentSubjects}
                 onBackToDashboard={() => handleScrollToSection('resumen')}
               />
-            </div>
-
+            )}
           </div>
         )}
       </main>
