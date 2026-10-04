@@ -9,6 +9,7 @@ import TeacherCoursesTab from '../components/organisms/teacher/TeacherCoursesTab
 import TeacherAttendanceTab from '../components/organisms/teacher/TeacherAttendanceTab';
 import TeacherScheduleTab from '../components/organisms/teacher/TeacherScheduleTab';
 import TeacherSportsTab from '../components/organisms/teacher/TeacherSportsTab';
+import TeacherMessagesTab from '../components/organisms/teacher/TeacherMessagesTab';
 
 /**
  * TeacherPanel (Fase 2 & 3 Completa)
@@ -155,6 +156,13 @@ const TeacherPanel = () => {
                   subjects={academicData.subjects}
                   preselectedSubject={attendanceSubject}
                   user={user}
+                />
+              )}
+
+              {activeTab === 'messages' && (
+                <TeacherMessagesTab
+                  user={user}
+                  subjects={academicData.subjects}
                 />
               )}
 

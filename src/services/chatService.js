@@ -256,7 +256,8 @@ export const markConversationAsRead = async (conversationId, readerRole) => {
 
   try {
     const convDocRef = doc(db, 'conversations', conversationId);
-    if (readerRole === 'Staff' || readerRole === 'Docente') {
+    const roleNormalized = String(readerRole).toLowerCase();
+    if (['staff', 'docente', 'teacher', 'admin'].includes(roleNormalized)) {
       await updateDoc(convDocRef, { unreadByTeacher: 0 });
     } else {
       await updateDoc(convDocRef, { unreadByParent: 0 });

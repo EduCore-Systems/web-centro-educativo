@@ -29,6 +29,7 @@ const TeacherSidebar = ({
   const menuItems = [
     { id: 'courses', label: 'Mis Cursos y Materias', icon: 'auto_stories' },
     { id: 'attendance', label: 'Tomar Asistencia', icon: 'how_to_reg' },
+    { id: 'messages', label: 'Mensajes con Familias', icon: 'forum' },
     { id: 'schedule', label: 'Mi Cronograma Semanal', icon: 'calendar_today' },
     { id: 'sports', label: 'Deportes y Talleres', icon: 'sports_soccer' },
   ];
