@@ -8,27 +8,27 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 const getSubjectStyle = (name = '') => {
   const n = name.toLowerCase();
   if (n.includes('matemática') || n.includes('física')) {
-    return { icon: 'calculate', bg: 'bg-orange-50', text: 'text-orange-600', ring: 'ring-orange-200' };
+    return { icon: 'calculate', bg: 'bg-orange-50 dark:bg-orange-950/40', text: 'text-orange-600 dark:text-orange-400', ring: 'ring-orange-200 dark:ring-orange-800' };
   }
   if (n.includes('lengua') || n.includes('literatura') || n.includes('lectura')) {
-    return { icon: 'auto_stories', bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-200' };
+    return { icon: 'auto_stories', bg: 'bg-amber-50 dark:bg-amber-950/40', text: 'text-amber-600 dark:text-amber-400', ring: 'ring-amber-200 dark:ring-amber-800' };
   }
   if (n.includes('química') || n.includes('naturales') || n.includes('biología') || n.includes('ciencia')) {
-    return { icon: 'science', bg: 'bg-emerald-50', text: 'text-emerald-600', ring: 'ring-emerald-200' };
+    return { icon: 'science', bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', ring: 'ring-emerald-200 dark:ring-emerald-800' };
   }
   if (n.includes('sociales') || n.includes('historia') || n.includes('geografía')) {
-    return { icon: 'public', bg: 'bg-indigo-50', text: 'text-indigo-600', ring: 'ring-indigo-200' };
+    return { icon: 'public', bg: 'bg-indigo-50 dark:bg-indigo-950/40', text: 'text-indigo-600 dark:text-indigo-400', ring: 'ring-indigo-200 dark:ring-indigo-800' };
   }
   if (n.includes('inglés') || n.includes('portugués') || n.includes('francés') || n.includes('idioma')) {
-    return { icon: 'translate', bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-200' };
+    return { icon: 'translate', bg: 'bg-sky-50 dark:bg-sky-950/40', text: 'text-sky-600 dark:text-sky-400', ring: 'ring-sky-200 dark:ring-sky-800' };
   }
   if (n.includes('física') || n.includes('deporte') || n.includes('corporal')) {
-    return { icon: 'fitness_center', bg: 'bg-rose-50', text: 'text-rose-600', ring: 'ring-rose-200' };
+    return { icon: 'fitness_center', bg: 'bg-rose-50 dark:bg-rose-950/40', text: 'text-rose-600 dark:text-rose-400', ring: 'ring-rose-200 dark:ring-rose-800' };
   }
   if (n.includes('informática') || n.includes('robótica') || n.includes('tecnología')) {
-    return { icon: 'computer', bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'ring-cyan-200' };
+    return { icon: 'computer', bg: 'bg-cyan-50 dark:bg-cyan-950/40', text: 'text-cyan-600 dark:text-cyan-400', ring: 'ring-cyan-200 dark:ring-cyan-800' };
   }
-  return { icon: 'school', bg: 'bg-purple-50', text: 'text-purple-600', ring: 'ring-purple-200' };
+  return { icon: 'school', bg: 'bg-purple-50 dark:bg-purple-950/40', text: 'text-purple-600 dark:text-purple-400', ring: 'ring-purple-200 dark:ring-purple-800' };
 };
 
 /**
@@ -113,16 +113,16 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
           <span className="material-symbols-outlined text-orange-500 text-2xl">menu_book</span>
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
             Materias en Curso
           </h3>
           {!loading && (
-            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+            <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold">
               {subjects.length} Asignaturas
             </span>
           )}
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Plan Académico Oficial · Ciclo Lectivo 2026
         </p>
       </div>
@@ -131,15 +131,15 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 animate-pulse space-y-3">
+            <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-pulse space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-200" />
+                <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800" />
                 <div className="flex-1 space-y-1.5">
-                  <div className="h-4 bg-slate-200 rounded w-2/3" />
-                  <div className="h-3 bg-slate-200 rounded w-1/2" />
+                  <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-2/3" />
+                  <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
                 </div>
               </div>
-              <div className="h-3 bg-slate-100 rounded w-full" />
+              <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-full" />
             </div>
           ))}
         </div>
@@ -153,34 +153,34 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
             return (
               <div
                 key={sub.id || index}
-                className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4 group"
+                className="bg-white dark:bg-slate-900 p-5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-4 group"
               >
                 {/* Cabecera de la materia */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-11 h-11 rounded-xl ${style.bg} ${style.text} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                    <div className={`w-11 h-11 rounded-xl ${style.bg} ${style.text} flex items-center justify-center shrink-0 shadow-sm`}>
                       <span className="material-symbols-outlined text-2xl">{style.icon}</span>
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-slate-900 text-base truncate group-hover:text-orange-600 transition-colors">
+                      <h4 className="font-bold text-slate-900 dark:text-white text-base truncate group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                         {sub.name}
                       </h4>
-                      <p className="text-xs text-slate-500 truncate flex items-center gap-1 mt-0.5">
-                        <span className="material-symbols-outlined text-xs text-slate-400">person</span>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                        <span className="material-symbols-outlined text-xs text-slate-400 dark:text-slate-500">person</span>
                         {sub.teacherName || sub.profesor || 'Docente a cargo'}
                       </p>
                     </div>
                   </div>
                   {/* Badge de regularidad */}
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold whitespace-nowrap">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-xs font-bold whitespace-nowrap">
                     En curso
                   </span>
                 </div>
 
                 {/* Pie con Horario y Botón de Tutoría */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                   <span className="flex items-center gap-1 truncate">
-                    <span className="material-symbols-outlined text-sm text-slate-400">schedule</span>
+                    <span className="material-symbols-outlined text-sm text-slate-400 dark:text-slate-500">schedule</span>
                     {sub.schedule || 'Turno Regular'}
                   </span>
                   <button
@@ -192,7 +192,7 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
                         alert(`Consulta enviada sobre ${sub.name}.`);
                       }
                     }}
-                    className="text-orange-600 hover:text-orange-700 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-sm">chat</span>
                     Consultar docente

@@ -52,7 +52,7 @@ const TeacherSidebar = ({
       {/* Aside barra lateral */}
       <aside
         className={`
-          fixed top-0 bottom-0 left-0 z-50 w-72 bg-white border-r border-slate-200/80 shadow-[0_1px_8px_rgba(0,0,0,0.04)]
+          fixed top-0 bottom-0 left-0 z-50 w-72 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 shadow-[0_1px_8px_rgba(0,0,0,0.04)]
           flex flex-col justify-between pt-6 pb-6 transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isCollapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
@@ -66,10 +66,10 @@ const TeacherSidebar = ({
                 <span className="material-symbols-outlined text-2xl">school</span>
               </div>
               <div>
-                <span className="font-extrabold text-slate-900 text-lg block leading-tight tracking-tight">
+                <span className="font-extrabold text-slate-900 dark:text-white text-lg block leading-tight tracking-tight">
                   EduCore
                 </span>
-                <span className="text-[11px] text-orange-600 font-bold tracking-wider uppercase block">
+                <span className="text-[11px] text-orange-600 dark:text-orange-400 font-bold tracking-wider uppercase block">
                   Portal Staff
                 </span>
               </div>
@@ -79,7 +79,7 @@ const TeacherSidebar = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Ocultar menú lateral"
             >
               <span className="material-symbols-outlined text-lg">chevron_left</span>
@@ -89,22 +89,22 @@ const TeacherSidebar = ({
             <button
               type="button"
               onClick={onClose}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
           </div>
 
           {/* Tarjeta de perfil del docente autenticado */}
-          <div className="mx-4 p-3 rounded-2xl bg-orange-50/60 border border-orange-100/80 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-200 text-orange-900 font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
+          <div className="mx-4 p-3 rounded-2xl bg-orange-50/60 dark:bg-orange-950/20 border border-orange-100/80 dark:border-orange-900/40 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-orange-200 dark:bg-orange-900/60 text-orange-900 dark:text-orange-200 font-bold text-sm flex items-center justify-center shrink-0 shadow-xs">
               {teacherInitials}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-bold text-slate-900 truncate">
+              <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
                 {teacherName}
               </span>
-              <span className="text-xs text-slate-500 truncate">
+              <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
                 {teacherRole}
               </span>
             </div>
@@ -112,7 +112,7 @@ const TeacherSidebar = ({
 
           {/* Subtítulo de navegación */}
           <div className="px-6">
-            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold">
               Menú Principal
             </span>
           </div>
@@ -131,13 +131,13 @@ const TeacherSidebar = ({
                     ${
                       isActive
                         ? 'bg-orange-500 text-white font-bold shadow-md shadow-orange-500/25'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                     }
                   `}
                 >
                   <span
                     className={`material-symbols-outlined text-xl ${
-                      isActive ? 'text-white' : 'text-slate-400'
+                      isActive ? 'text-white' : 'text-slate-400 dark:text-slate-500'
                     }`}
                   >
                     {item.icon}
@@ -150,10 +150,10 @@ const TeacherSidebar = ({
         </div>
 
         {/* Sección inferior con Ciclo Lectivo y Botón Salir */}
-        <div className="flex flex-col gap-3 px-4 pt-4 border-t border-slate-100">
-          <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 flex items-center justify-between text-slate-600">
+        <div className="flex flex-col gap-3 px-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between text-slate-600 dark:text-slate-300">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-lg text-orange-600">calendar_month</span>
+              <span className="material-symbols-outlined text-lg text-orange-600 dark:text-orange-400">calendar_month</span>
               <span className="text-xs font-semibold">Ciclo Lectivo 2026</span>
             </div>
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -162,7 +162,7 @@ const TeacherSidebar = ({
           <button
             type="button"
             onClick={onLogout}
-            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer w-full text-left"
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer w-full text-left"
           >
             <span className="material-symbols-outlined text-xl">logout</span>
             <span>Cerrar Sesión</span>

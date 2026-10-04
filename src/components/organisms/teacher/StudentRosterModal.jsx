@@ -11,7 +11,7 @@ const StudentRosterModal = ({ isOpen, onClose, subject, onTakeAttendance }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Cabecera del Modal */}
         <div className="p-6 bg-gradient-to-r from-orange-500 to-amber-500 text-white flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -37,25 +37,25 @@ const StudentRosterModal = ({ isOpen, onClose, subject, onTakeAttendance }) => {
         </div>
 
         {/* Resumen de la materia */}
-        <div className="px-6 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+        <div className="px-6 py-3 bg-slate-50 dark:bg-slate-950/60 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 dark:text-slate-300">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-base text-orange-600">schedule</span>
+            <span className="material-symbols-outlined text-base text-orange-600 dark:text-orange-400">schedule</span>
             <span>
               {subject.schedules && subject.schedules.length > 0
                 ? subject.schedules.map(s => `${s.dayOfWeek} ${s.startTime}-${s.endTime}`).join(' · ')
                 : 'Horario institucional coordinado'}
             </span>
           </div>
-          <div className="font-bold text-slate-800">
+          <div className="font-bold text-slate-800 dark:text-white">
             {students.length} alumnos matriculados
           </div>
         </div>
 
         {/* Lista de Alumnos */}
-        <div className="p-6 overflow-y-auto flex-1 divide-y divide-slate-100">
+        <div className="p-6 overflow-y-auto flex-1 divide-y divide-slate-100 dark:divide-slate-800">
           {students.length === 0 ? (
-            <div className="text-center py-10 text-slate-400">
-              <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300">
+            <div className="text-center py-10 text-slate-400 dark:text-slate-500">
+              <span className="material-symbols-outlined text-4xl block mb-2 text-slate-300 dark:text-slate-600">
                 person_off
               </span>
               <p className="text-sm font-semibold">No hay alumnos asignados a este curso todavía.</p>
@@ -71,22 +71,22 @@ const StudentRosterModal = ({ isOpen, onClose, subject, onTakeAttendance }) => {
               return (
                 <div key={st.id || idx} className="py-3 flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center shrink-0">
                       {initials}
                     </div>
                     <div className="min-w-0">
-                      <span className="font-bold text-slate-900 text-sm block truncate">
+                      <span className="font-bold text-slate-900 dark:text-white text-sm block truncate">
                         {st.nombre}
                       </span>
-                      <div className="flex items-center gap-3 text-xs text-slate-400">
-                        <span>DNI: <strong className="text-slate-600">{st.dni || 'Sin DNI'}</strong></span>
+                      <div className="flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
+                        <span>DNI: <strong className="text-slate-600 dark:text-slate-300">{st.dni || 'Sin DNI'}</strong></span>
                         <span>·</span>
-                        <span>Legajo: <strong className="text-slate-600">{st.studentID_login || st.id}</strong></span>
+                        <span>Legajo: <strong className="text-slate-600 dark:text-slate-300">{st.studentID_login || st.id}</strong></span>
                       </div>
                     </div>
                   </div>
 
-                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-bold shrink-0">
+                  <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold shrink-0">
                     {st.status || 'Activo'}
                   </span>
                 </div>
@@ -96,11 +96,11 @@ const StudentRosterModal = ({ isOpen, onClose, subject, onTakeAttendance }) => {
         </div>
 
         {/* Footer del Modal con Acciones */}
-        <div className="p-4 sm:p-6 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+        <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             Cerrar Nómina
           </button>

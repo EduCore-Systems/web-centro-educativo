@@ -215,16 +215,16 @@ const TeacherAttendanceTab = ({
   return (
     <div className="space-y-6">
       {/* Controles de Selección de Materia y Fecha */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Selector de Materia */}
         <div className="flex-1 min-w-[260px]">
-          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
             Seleccionar Materia / Curso
           </label>
           <select
             value={selectedSubjectId}
             onChange={(e) => setSelectedSubjectId(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
           >
             {subjects.map((sub) => (
               <option key={sub.id} value={sub.id}>
@@ -236,14 +236,14 @@ const TeacherAttendanceTab = ({
 
         {/* Selector de Fecha */}
         <div className="w-full md:w-auto">
-          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">
+          <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
             Fecha de la Clase
           </label>
           <input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full md:w-auto bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
+            className="w-full md:w-auto bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white text-xs font-bold rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
           />
         </div>
 
@@ -252,7 +252,7 @@ const TeacherAttendanceTab = ({
           <button
             type="button"
             onClick={handleMarkAllPresent}
-            className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             title="Marcar a todos los alumnos como Presente"
           >
             <span className="material-symbols-outlined text-base">done_all</span>
@@ -261,7 +261,7 @@ const TeacherAttendanceTab = ({
           <button
             type="button"
             onClick={handleResetAll}
-            className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            className="w-full md:w-auto px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             title="Desmarcar a todos los alumnos"
           >
             <span className="material-symbols-outlined text-base">restart_alt</span>
@@ -272,50 +272,50 @@ const TeacherAttendanceTab = ({
 
       {/* Cartel informativo si ya fue guardada */}
       {isAlreadySaved && (
-        <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-center justify-between gap-3 text-emerald-900 text-xs">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-850 dark:border-emerald-800 rounded-2xl p-4 flex items-center justify-between gap-3 text-emerald-900 dark:text-emerald-200 text-xs">
           <div className="flex items-center gap-2.5">
-            <span className="material-symbols-outlined text-emerald-600 text-xl">
+            <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">
               check_circle
             </span>
             <span>
               <strong>Planilla registrada para esta fecha.</strong> Puedes modificar el estado de los alumnos y volver a guardar para actualizar el cómputo.
             </span>
           </div>
-          <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold shrink-0">
+          <span className="px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 text-[11px] font-bold shrink-0">
             Sincronizado
           </span>
         </div>
       )}
 
       {/* Contenedor de la Tabla Estilo Stitch */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
         {/* Cabecera descriptiva */}
-        <div className="p-5 sm:p-6 bg-slate-50/70 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-5 sm:p-6 bg-slate-50/70 dark:bg-slate-950/60 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <span className="text-xs uppercase tracking-wider font-bold text-orange-600 block">
+            <span className="text-xs uppercase tracking-wider font-bold text-orange-600 dark:text-orange-400 block">
               {activeSubject?.courseLevel?.toUpperCase()} · {activeSubject?.courseName}
             </span>
-            <h3 className="text-xl font-black text-slate-900 tracking-tight">
+            <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
               {activeSubject?.name || 'Materia'}
             </h3>
           </div>
-          <div className="text-xs text-slate-500 font-semibold">
+          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
             {students.length} alumnos en nómina
           </div>
         </div>
 
         {/* Tabla responsive idéntica a Stitch */}
         {isLoadingExisting ? (
-          <div className="p-12 text-center text-slate-400">
+          <div className="p-12 text-center text-slate-400 dark:text-slate-500">
             <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
             <p className="text-xs font-semibold">Cargando nómina y asistencias...</p>
           </div>
         ) : students.length === 0 ? (
-          <div className="p-12 text-center text-slate-400 space-y-2">
-            <span className="material-symbols-outlined text-4xl text-slate-300">
+          <div className="p-12 text-center text-slate-400 dark:text-slate-500 space-y-2">
+            <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">
               person_off
             </span>
-            <p className="text-sm font-semibold text-slate-700">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               No hay alumnos matriculados en este curso.
             </p>
           </div>
@@ -324,7 +324,7 @@ const TeacherAttendanceTab = ({
             <table className="w-full text-left border-collapse">
               {/* Encabezados de la Tabla */}
               <thead>
-                <tr className="border-b border-slate-100 bg-[#f8faff] text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr className="border-b border-slate-100 dark:border-slate-800 bg-[#f8faff] dark:bg-slate-800/60 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                   <th className="py-4 px-6 min-w-[220px]">ALUMNO</th>
                   <th className="py-4 px-4 min-w-[120px]">LEGAJO</th>
                   <th className="py-4 px-4 min-w-[140px]">ASISTENCIA ACUM.</th>
@@ -334,7 +334,7 @@ const TeacherAttendanceTab = ({
               </thead>
 
               {/* Cuerpo de Filas de Alumnos */}
-              <tbody className="divide-y divide-slate-100 text-xs">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
                 {students.map((st, index) => {
                   const studentId = st.id || st.studentID_login || st.dni;
                   const record = attendanceRecords[studentId] || { status: null, note: '' };
@@ -362,7 +362,7 @@ const TeacherAttendanceTab = ({
                   const percentage = studentStats.percentage || Math.round((attended / totalClasses) * 100);
 
                   return (
-                    <tr key={studentId} className="hover:bg-slate-50/60 transition-colors">
+                    <tr key={studentId} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                       {/* Columna ALUMNO */}
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
@@ -372,10 +372,10 @@ const TeacherAttendanceTab = ({
                             {initials}
                           </div>
                           <div className="min-w-0">
-                            <span className="font-extrabold text-slate-900 text-sm block leading-tight truncate">
+                            <span className="font-extrabold text-slate-900 dark:text-white text-sm block leading-tight truncate">
                               {st.nombre}
                             </span>
-                            <span className="text-[11px] text-slate-400 block truncate mt-0.5">
+                            <span className="text-[11px] text-slate-400 dark:text-slate-500 block truncate mt-0.5">
                               {tutorDisplay} {tutorPhone}
                             </span>
                           </div>
@@ -383,7 +383,7 @@ const TeacherAttendanceTab = ({
                       </td>
 
                       {/* Columna LEGAJO */}
-                      <td className="py-4 px-4 font-bold text-slate-700 whitespace-nowrap">
+                      <td className="py-4 px-4 font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
                         {st.studentID_login || st.id || `EST-2026-${100 + index}`}
                       </td>
 
@@ -391,12 +391,12 @@ const TeacherAttendanceTab = ({
                       <td className="py-4 px-4">
                         <div className="w-28 space-y-1">
                           <div className="flex items-center justify-between text-[11px] font-bold">
-                            <span className="text-slate-800">{percentage}%</span>
-                            <span className="text-slate-400 font-semibold">{attended}/{totalClasses}</span>
+                            <span className="text-slate-800 dark:text-slate-200">{percentage}%</span>
+                            <span className="text-slate-400 dark:text-slate-500 font-semibold">{attended}/{totalClasses}</span>
                           </div>
-                          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-[#653e00] rounded-full transition-all duration-300"
+                              className="h-full bg-orange-600 dark:bg-orange-500 rounded-full transition-all duration-300"
                               style={{ width: `${percentage}%` }}
                             ></div>
                           </div>
@@ -412,8 +412,8 @@ const TeacherAttendanceTab = ({
                             onClick={() => handleStatusChange(studentId, 'presente')}
                             className={`h-9 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentStatus === 'presente'
-                                ? 'bg-[#ffddb8] text-[#582200] font-black shadow-xs ring-1 ring-orange-300'
-                                : 'bg-[#eff4ff] text-[#006398] hover:bg-slate-200'
+                                ? 'bg-[#ffddb8] dark:bg-orange-950/70 text-[#582200] dark:text-orange-200 font-black shadow-xs ring-1 ring-orange-300 dark:ring-orange-600'
+                                : 'bg-[#eff4ff] dark:bg-slate-800 text-[#006398] dark:text-sky-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                             title="Presente"
                           >
@@ -431,8 +431,8 @@ const TeacherAttendanceTab = ({
                             onClick={() => handleStatusChange(studentId, 'tarde')}
                             className={`h-9 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentStatus === 'tarde'
-                                ? 'bg-[#653e00] text-white font-black shadow-xs'
-                                : 'bg-[#eff4ff] text-[#006398] hover:bg-slate-200'
+                                ? 'bg-[#653e00] dark:bg-amber-900 text-white font-black shadow-xs'
+                                : 'bg-[#eff4ff] dark:bg-slate-800 text-[#006398] dark:text-sky-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                             title="Llegada tarde"
                           >
@@ -450,8 +450,8 @@ const TeacherAttendanceTab = ({
                             onClick={() => handleStatusChange(studentId, 'ausente_justificado')}
                             className={`h-9 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentStatus === 'ausente_justificado'
-                                ? 'bg-[#005a8b] text-white font-black shadow-xs'
-                                : 'bg-[#eff4ff] text-[#006398] hover:bg-slate-200'
+                                ? 'bg-[#005a8b] dark:bg-sky-900 text-white font-black shadow-xs'
+                                : 'bg-[#eff4ff] dark:bg-slate-800 text-[#006398] dark:text-sky-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                             title="Ausente Justificado"
                           >
@@ -469,8 +469,8 @@ const TeacherAttendanceTab = ({
                             onClick={() => handleStatusChange(studentId, 'ausente_injustificado')}
                             className={`h-9 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                               currentStatus === 'ausente_injustificado'
-                                ? 'bg-[#ba1a1a] text-white font-black shadow-xs'
-                                : 'bg-[#eff4ff] text-[#006398] hover:bg-slate-200'
+                                ? 'bg-[#ba1a1a] dark:bg-rose-900 text-white font-black shadow-xs'
+                                : 'bg-[#eff4ff] dark:bg-slate-800 text-[#006398] dark:text-sky-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                             }`}
                             title="Ausente Injustificado"
                           >
@@ -491,7 +491,7 @@ const TeacherAttendanceTab = ({
                           placeholder="Añadir nota del día..."
                           value={record.note || ''}
                           onChange={(e) => handleNoteChange(studentId, e.target.value)}
-                          className="w-full max-w-[240px] text-xs bg-[#eff4ff] border border-transparent focus:border-orange-400 focus:bg-white rounded-full px-4 py-2 text-slate-700 placeholder-slate-400 transition-all focus:outline-hidden"
+                          className="w-full max-w-[240px] text-xs bg-[#eff4ff] dark:bg-slate-800 border border-transparent dark:border-slate-700 focus:border-orange-400 dark:focus:border-orange-500 focus:bg-white dark:focus:bg-slate-800 rounded-full px-4 py-2 text-slate-700 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 transition-all focus:outline-hidden"
                         />
                       </td>
                     </tr>
@@ -504,13 +504,13 @@ const TeacherAttendanceTab = ({
 
         {/* Footer con Botón Guardar Asistencia */}
         {students.length > 0 && (
-          <div className="p-5 sm:p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-5 sm:p-6 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-4 text-xs">
               <span
                 className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full font-bold transition-all ${
                   allStudentsMarked
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-amber-100 text-amber-900'
+                    ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300'
                 }`}
               >
                 <span
@@ -522,7 +522,7 @@ const TeacherAttendanceTab = ({
                   ? `Completado: ${markedStudentsCount} de ${totalStudents} alumnos marcados`
                   : `Progreso: ${markedStudentsCount} de ${totalStudents} alumnos marcados (faltan ${totalStudents - markedStudentsCount})`}
               </span>
-              <span className="text-slate-500 text-[11px]">
+              <span className="text-slate-500 dark:text-slate-400 text-[11px]">
                 {allStudentsMarked
                   ? 'Listo para guardar la planilla institucional.'
                   : 'Debes marcar a todos los alumnos para habilitar el guardado.'}
@@ -536,7 +536,7 @@ const TeacherAttendanceTab = ({
               className={`w-full sm:w-auto px-6 py-3 font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all ${
                 allStudentsMarked && !isSaving && !isLoadingExisting
                   ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20 cursor-pointer'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                  : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed shadow-none'
               }`}
             >
               {isSaving ? (

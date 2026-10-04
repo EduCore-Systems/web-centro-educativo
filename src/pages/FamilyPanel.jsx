@@ -262,122 +262,121 @@ const FamilyPanel = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
                   Portal de Familias
                 </h1>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 text-xs font-bold">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Matrícula al Día
                 </span>
               </div>
-              <p className="text-slate-500 text-sm">
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Centro Educativo EduCore · Ciclo Lectivo 2026
               </p>
             </div>
 
-          {/* Botones de Documentación Rápida */}
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                if (!selectedStudent) return;
-                setDocumentModal({ isOpen: true, type: 'boletin' });
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-slate-700 font-semibold text-xs border border-slate-200 shadow-xs hover:bg-slate-50 transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-base text-slate-500">download</span>
-              <span>Boletín Actual</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                if (!selectedStudent) return;
-                setDocumentModal({ isOpen: true, type: 'certificado' });
-              }}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-base">verified</span>
-              <span>Certificado Regular</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── SELECTOR DE HIJOS (PASO 1) ── */}
-        <section id="resumen" className="mb-8 scroll-mt-20">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-orange-500">family_restroom</span>
-            <h2 className="text-lg font-semibold text-slate-700">
-              Mis Hijos
-            </h2>
-            {!loading && children.length > 0 && (
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
-                {children.length} {children.length === 1 ? 'alumno' : 'alumnos'} vinculados
-              </span>
-            )}
-          </div>
-
-          {/* Estado: Cargando desde Firebase */}
-          {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Skeleton loader: muestra 3 tarjetas grises mientras carga */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white p-4 rounded-2xl shadow-sm animate-pulse flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-200" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-slate-200 rounded w-3/4" />
-                    <div className="h-3 bg-slate-200 rounded w-1/2" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Estado: Cargó pero no encontró hijos vinculados a este padre */}
-          {!loading && children.length === 0 && (
-            <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center">
-              <span className="material-symbols-outlined text-4xl text-slate-300 mb-3 block">
-                family_restroom
-              </span>
-              <p className="text-slate-500 font-medium">
-                No se encontraron estudiantes vinculados a su cuenta.
-              </p>
-              <p className="text-slate-400 text-sm mt-1">
-                Contacte a la administración para vincular a sus hijos.
-              </p>
-            </div>
-          )}
-
-          {/* Estado: Encontró hijos → muestra las tarjetas + Botón de Vincular */}
-          {!loading && children.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {children.map((child) => (
-                <StudentCard
-                  key={child.id}
-                  student={child}
-                  isActive={selectedStudent?.id === child.id}   // Comparamos IDs para saber cuál está activo
-                  onClick={() => setSelectedStudent(child)}      // Al hacer click, cambiamos el alumno seleccionado
-                />
-              ))}
-
-              {/* Botón "+ Vincular Estudiante" (Estilo Stitch) */}
+            {/* Botones de Documentación Rápida */}
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={() => {
-                  setLinkDni('');
-                  setLinkFeedback('');
-                  setIsLinkModalOpen(true);
+                  if (!selectedStudent) return;
+                  setDocumentModal({ isOpen: true, type: 'boletin' });
                 }}
-                className="w-full min-h-[76px] p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-orange-400 bg-white hover:bg-orange-50/20 text-slate-500 hover:text-orange-600 transition-all duration-200 flex items-center justify-center gap-2 font-semibold text-sm cursor-pointer group"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-semibold text-xs border border-slate-200 dark:border-slate-800 shadow-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-orange-100 flex items-center justify-center text-slate-500 group-hover:text-orange-600 transition-colors">
-                  <span className="material-symbols-outlined text-lg">person_add</span>
-                </div>
-                <span>Vincular Estudiante</span>
+                <span className="material-symbols-outlined text-base text-slate-500 dark:text-slate-400">download</span>
+                <span>Boletín Actual</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!selectedStudent) return;
+                  setDocumentModal({ isOpen: true, type: 'certificado' });
+                }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-xs shadow-md hover:from-orange-600 hover:to-amber-600 transition-all cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-base">verified</span>
+                <span>Certificado Regular</span>
               </button>
             </div>
-          )}
-        </section>
+          </div>
+
+          {/* ── SELECTOR DE HIJOS (PASO 1) ── */}
+          <section id="resumen" className="mb-8 scroll-mt-20">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="material-symbols-outlined text-orange-500">family_restroom</span>
+              <h2 className="text-lg font-semibold text-slate-700 dark:text-slate-200">
+                Mis Hijos
+              </h2>
+              {!loading && children.length > 0 && (
+                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
+                  {children.length} {children.length === 1 ? 'alumno' : 'alumnos'} vinculados
+                </span>
+              )}
+            </div>
+
+            {/* Estado: Cargando desde Firebase */}
+            {loading && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 animate-pulse flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-800" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                      <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Estado: Cargó pero no encontró hijos vinculados a este padre */}
+            {!loading && children.length === 0 && (
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 text-center">
+                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-3 block">
+                  family_restroom
+                </span>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">
+                  No se encontraron estudiantes vinculados a su cuenta.
+                </p>
+                <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
+                  Contacte a la administración para vincular a sus hijos.
+                </p>
+              </div>
+            )}
+
+            {/* Estado: Encontró hijos → muestra las tarjetas + Botón de Vincular */}
+            {!loading && children.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {children.map((child) => (
+                  <StudentCard
+                    key={child.id}
+                    student={child}
+                    isActive={selectedStudent?.id === child.id}
+                    onClick={() => setSelectedStudent(child)}
+                  />
+                ))}
+
+                {/* Botón "+ Vincular Estudiante" */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLinkDni('');
+                    setLinkFeedback('');
+                    setIsLinkModalOpen(true);
+                  }}
+                  className="w-full min-h-[76px] p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-500 bg-white dark:bg-slate-900 hover:bg-orange-50/20 dark:hover:bg-orange-950/20 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-200 flex items-center justify-center gap-2 font-semibold text-sm cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 group-hover:bg-orange-100 dark:group-hover:bg-orange-900/40 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                    <span className="material-symbols-outlined text-lg">person_add</span>
+                  </div>
+                  <span>Vincular Estudiante</span>
+                </button>
+              </div>
+            )}
+          </section>
 
         {/* ── ZONA DE CONTENIDO MODULAR DEL HIJO SELECCIONADO ── */}
         {selectedStudent && (
@@ -435,29 +434,29 @@ const FamilyPanel = () => {
 
       {/* ── MODAL: VINCULAR ESTUDIANTE A LA CUENTA ── */}
       {isLinkModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-5 animate-in zoom-in-95 duration-150 text-left">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-5 animate-in zoom-in-95 duration-150 text-left">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center">
                   <span className="material-symbols-outlined text-xl">person_add</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Vincular Estudiante</h3>
-                  <p className="text-xs text-slate-500">Agregue otro hijo a su panel familiar</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-lg">Vincular Estudiante</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Agregue otro hijo a su panel familiar</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsLinkModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
 
             <div className="space-y-3">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
                 DNI o Legajo del Estudiante
               </label>
               <input
@@ -465,15 +464,15 @@ const FamilyPanel = () => {
                 value={linkDni}
                 onChange={(e) => setLinkDni(e.target.value)}
                 placeholder="Ej. 50111222 o EST-2026-101"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               />
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
                 La solicitud será remitida a secretaría académica para validar el parentesco y confirmar la vinculación.
               </p>
 
               {linkFeedback && (
-                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-medium flex items-center gap-2">
-                  <span className="material-symbols-outlined text-sm text-emerald-600">check_circle</span>
+                <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium flex items-center gap-2">
+                  <span className="material-symbols-outlined text-sm text-emerald-600 dark:text-emerald-400">check_circle</span>
                   {linkFeedback}
                 </div>
               )}
@@ -483,7 +482,7 @@ const FamilyPanel = () => {
               <button
                 type="button"
                 onClick={() => setIsLinkModalOpen(false)}
-                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>

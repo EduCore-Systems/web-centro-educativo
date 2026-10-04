@@ -24,8 +24,8 @@ const StudentCard = ({ student, isActive, onClick }) => {
         transition-all duration-200 cursor-pointer group
         ${
           isActive
-            ? 'bg-orange-50/40 ring-2 ring-orange-500 shadow-sm'
-            : 'bg-white hover:shadow-md hover:bg-slate-50 border border-slate-200/80'
+            ? 'bg-orange-50/50 dark:bg-orange-950/40 ring-2 ring-orange-500 shadow-sm'
+            : 'bg-white dark:bg-slate-900 hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-800'
         }
       `}
     >
@@ -38,21 +38,21 @@ const StudentCard = ({ student, isActive, onClick }) => {
             ${
               isActive
                 ? 'bg-gradient-to-br from-orange-500 to-amber-500'
-                : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300 group-hover:bg-slate-200 dark:group-hover:bg-slate-700'
             }
           `}
         >
           {initials}
           {/* Punto verde de "activo" que aparece solo en la tarjeta seleccionada */}
           {isActive && (
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
           )}
         </div>
 
         {/* Nombre, nivel y curso del alumno */}
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-sm text-slate-900 truncate">
+            <span className="font-bold text-sm text-slate-900 dark:text-white truncate">
               {student.nombre}
             </span>
             {isActive && (
@@ -62,7 +62,7 @@ const StudentCard = ({ student, isActive, onClick }) => {
             )}
           </div>
           {/* Nivel formateado + Curso, ej: "Secundaria · 1° Año A" */}
-          <p className="text-xs text-slate-500 truncate capitalize mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize mt-0.5">
             {student.nivel} · {student.curso || 'Sin curso asignado'}
           </p>
         </div>
@@ -74,7 +74,7 @@ const StudentCard = ({ student, isActive, onClick }) => {
           check_circle
         </span>
       ) : (
-        <span className="material-symbols-outlined text-slate-300 group-hover:text-slate-500 text-xl transition-colors">
+        <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 text-xl transition-colors">
           chevron_right
         </span>
       )}

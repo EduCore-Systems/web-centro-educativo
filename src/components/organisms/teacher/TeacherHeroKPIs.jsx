@@ -14,63 +14,63 @@ const TeacherHeroKPIs = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {/* KPI 1: Alumnos a Cargo */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
-        <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
           <span className="material-symbols-outlined text-2xl">groups</span>
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Alumnos a Cargo
           </p>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900 tracking-tight">
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {totalStudentsCount}
             </span>
-            <span className="text-xs text-slate-400 font-medium">alumnos</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">alumnos</span>
           </div>
-          <p className="text-[11px] text-emerald-600 font-medium truncate mt-0.5">
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium truncate mt-0.5">
             Matriculados en tus cursos
           </p>
         </div>
       </div>
 
       {/* KPI 2: Materias Asignadas */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
-        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
           <span className="material-symbols-outlined text-2xl">menu_book</span>
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Materias Activas
           </p>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900 tracking-tight">
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {subjectsCount}
             </span>
-            <span className="text-xs text-slate-400 font-medium">materias</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">materias</span>
           </div>
-          <p className="text-[11px] text-blue-600 font-medium truncate mt-0.5">
+          <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium truncate mt-0.5">
             Ciclo Lectivo 2026
           </p>
         </div>
       </div>
 
       {/* KPI 3: Deportes y Talleres */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
-        <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-4 transition-all hover:shadow-md">
+        <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
           <span className="material-symbols-outlined text-2xl">sports_soccer</span>
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
             Deportes y Talleres
           </p>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-black text-slate-900 tracking-tight">
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               {sportsCount}
             </span>
-            <span className="text-xs text-slate-400 font-medium">actividades</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">actividades</span>
           </div>
-          <p className="text-[11px] text-emerald-600 font-medium truncate mt-0.5">
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium truncate mt-0.5">
             Extracurriculares
           </p>
         </div>

@@ -258,15 +258,15 @@ const FamilyDocumentModal = ({ isOpen, onClose, type, student, subjects = [] }) 
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-100 flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-150">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col max-h-[92vh] overflow-hidden animate-in zoom-in-95 duration-150">
         
         {/* Barra superior de control del Modal */}
-        <div className="p-4 sm:px-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div className="p-4 sm:px-6 bg-slate-50 dark:bg-slate-850 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-orange-600">
+            <span className="material-symbols-outlined text-orange-600 dark:text-orange-400">
               {isBoletin ? 'menu_book' : 'verified'}
             </span>
-            <span className="font-bold text-slate-800 text-sm sm:text-base">
+            <span className="font-bold text-slate-800 dark:text-white text-sm sm:text-base">
               {isBoletin ? 'Boletín Oficial de Calificaciones' : 'Constancia de Alumno Regular'}
             </span>
           </div>
@@ -284,7 +284,7 @@ const FamilyDocumentModal = ({ isOpen, onClose, type, student, subjects = [] }) 
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-200 transition-colors cursor-pointer"
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
@@ -292,7 +292,7 @@ const FamilyDocumentModal = ({ isOpen, onClose, type, student, subjects = [] }) 
         </div>
 
         {/* ── CONTENEDOR VISIBLE DE LA HOJA A4 (Previsualización) ── */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-10 bg-slate-100 flex justify-center">
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 bg-slate-100 dark:bg-slate-950 flex justify-center">
           <div
             id="printable-official-doc"
             className="bg-white w-full max-w-[210mm] p-8 sm:p-12 shadow-md border border-slate-200 text-slate-900 text-left flex flex-col justify-between"

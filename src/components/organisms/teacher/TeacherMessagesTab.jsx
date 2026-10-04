@@ -164,14 +164,14 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* ── CABECERA PRINCIPAL ── */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 flex items-center justify-center shrink-0">
             <span className="material-symbols-outlined text-2xl">forum</span>
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
                 Mensajes y Consultas de Familias
               </h2>
               {totalUnread > 0 && (
@@ -180,31 +180,31 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Canal oficial de tutoría y diálogo pedagógico con constancia institucional en tiempo real.
             </p>
           </div>
         </div>
 
         {/* Indicador de trazabilidad */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold self-start md:self-auto">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs font-semibold self-start md:self-auto">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span>Registro Oficial Habilitado</span>
         </div>
       </div>
 
       {/* ── CONTENEDOR SPLIT: BANDEJA Y CHAT ── */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px] max-h-[780px]">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[640px] max-h-[780px]">
         {/* ── COLUMNA IZQUIERDA: BANDEJA DE ENTRADA (Lg: 5 cols) ── */}
         <div
-          className={`lg:col-span-5 border-r border-slate-200/80 flex flex-col bg-slate-50/50 ${
+          className={`lg:col-span-5 border-r border-slate-200/80 dark:border-slate-800 flex flex-col bg-slate-50/50 dark:bg-slate-900/50 ${
             showMobileChat ? 'hidden lg:flex' : 'flex'
           }`}
         >
           {/* Barra de Búsqueda y Filtros */}
-          <div className="p-4 border-b border-slate-200/80 bg-white space-y-3">
+          <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3">
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+              <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-lg">
                 search
               </span>
               <input
@@ -212,13 +212,13 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                 placeholder="Buscar por alumno, tutor o materia..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
               {searchTerm && (
                 <button
                   type="button"
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                 >
                   <span className="material-symbols-outlined text-sm">close</span>
                 </button>
@@ -232,8 +232,8 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                 onClick={() => setFilterMode('all')}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   filterMode === 'all'
-                    ? 'bg-slate-800 text-white'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-slate-800 dark:bg-slate-700 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
                 Todas ({conversations.length})
@@ -244,7 +244,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1 ${
                   filterMode === 'unread'
                     ? 'bg-orange-600 text-white'
-                    : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                    : 'bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/40'
                 }`}
               >
                 <span>Sin responder</span>
@@ -264,7 +264,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                 <select
                   value={selectedSubjectFilter}
                   onChange={(e) => setSelectedSubjectFilter(e.target.value)}
-                  className="ml-auto text-xs bg-slate-100 border-none text-slate-600 font-semibold rounded-full px-2.5 py-1 focus:ring-1 focus:ring-orange-500 cursor-pointer"
+                  className="ml-auto text-xs bg-slate-100 dark:bg-slate-800 border-none text-slate-600 dark:text-slate-300 font-semibold rounded-full px-2.5 py-1 focus:ring-1 focus:ring-orange-500 cursor-pointer"
                 >
                   <option value="all">Todas las materias</option>
                   {subjects.map((s) => (
@@ -278,14 +278,14 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
           </div>
 
           {/* Lista scrolleable de conversaciones */}
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80">
             {filteredConversations.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
-                <span className="material-symbols-outlined text-4xl text-slate-300 mb-2 block">
+                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2 block">
                   mark_chat_read
                 </span>
-                <p className="text-xs font-semibold text-slate-600">No hay consultas en esta sección</p>
-                <p className="text-[11px] text-slate-400 mt-1">
+                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">No hay consultas en esta sección</p>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                   Cuando los tutores envíen consultas sobre sus asignaturas, aparecerán listadas aquí.
                 </p>
               </div>
@@ -309,10 +309,10 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                     }}
                     className={`w-full text-left p-4 transition-all duration-150 flex items-start gap-3 cursor-pointer ${
                       isActive
-                        ? 'bg-orange-50/60 border-l-4 border-l-orange-500'
+                        ? 'bg-orange-50/60 dark:bg-orange-950/30 border-l-4 border-l-orange-500'
                         : hasUnread
-                        ? 'bg-white hover:bg-slate-50 font-medium'
-                        : 'bg-white/60 hover:bg-slate-50 text-slate-600'
+                        ? 'bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
+                        : 'bg-white/60 dark:bg-slate-900/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-600 dark:text-slate-300'
                     }`}
                   >
                     {/* Avatar del alumno */}
@@ -321,13 +321,13 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                         className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shadow-xs ${
                           isActive
                             ? 'bg-orange-500 text-white'
-                            : 'bg-slate-200 text-slate-600'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                         }`}
                       >
                         {initials}
                       </div>
                       {hasUnread && (
-                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-600 rounded-full ring-2 ring-white"></span>
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-600 rounded-full ring-2 ring-white dark:ring-slate-900"></span>
                       )}
                     </div>
 
@@ -336,7 +336,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <h4
                           className={`text-xs truncate ${
-                            hasUnread ? 'font-bold text-slate-900' : 'font-semibold text-slate-800'
+                            hasUnread ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-slate-200'
                           }`}
                         >
                           {conv.studentName || 'Estudiante'}
@@ -348,7 +348,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
 
                       {/* Asignatura y Curso */}
                       <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        <span className="px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">
+                        <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
                           {conv.subjectName}
                         </span>
                         {conv.studentCourse && (
@@ -359,11 +359,11 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                       </div>
 
                       {/* Tutor y último mensaje */}
-                      <p className="text-[11px] text-slate-500 truncate flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px] text-slate-400">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[13px] text-slate-400 dark:text-slate-500">
                           person
                         </span>
-                        <span className="font-medium text-slate-700">{conv.parentName || 'Tutor'}:</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{conv.parentName || 'Tutor'}:</span>
                         <span>{conv.lastMessage || 'Consulta iniciada'}</span>
                       </p>
                     </div>
@@ -383,25 +383,25 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
 
         {/* ── COLUMNA DERECHA: HILO DEL CHAT ACTIVO (Lg: 7 cols) ── */}
         <div
-          className={`lg:col-span-7 flex flex-col bg-white ${
+          className={`lg:col-span-7 flex flex-col bg-white dark:bg-slate-900 ${
             !showMobileChat ? 'hidden lg:flex' : 'flex'
           }`}
         >
           {activeConversation ? (
             <>
               {/* Header de la conversación activa */}
-              <div className="p-4 border-b border-slate-200/80 bg-white flex items-center justify-between gap-3 shadow-xs">
+              <div className="p-4 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-3 min-w-0">
                   {/* Botón Volver (solo visible en Mobile) */}
                   <button
                     type="button"
                     onClick={() => setShowMobileChat(false)}
-                    className="lg:hidden p-1.5 rounded-xl hover:bg-slate-100 text-slate-600"
+                    className="lg:hidden p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400"
                   >
                     <span className="material-symbols-outlined text-xl">arrow_back</span>
                   </button>
 
-                  <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-sm shrink-0">
+                  <div className="w-10 h-10 rounded-2xl bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 flex items-center justify-center font-bold text-sm shrink-0">
                     {(activeConversation.studentName || 'AL')
                       .split(' ')
                       .slice(0, 2)
@@ -411,34 +411,34 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-slate-900 truncate">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
                         {activeConversation.studentName}
                       </h3>
-                      <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/50 text-orange-800 dark:text-orange-300 text-[10px] font-bold">
                         {activeConversation.subjectName}
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 truncate flex items-center gap-1 mt-0.5">
-                      <span className="material-symbols-outlined text-xs text-slate-400">group</span>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mt-0.5">
+                      <span className="material-symbols-outlined text-xs text-slate-400 dark:text-slate-500">group</span>
                       <span>Tutor: {activeConversation.parentName || 'Familia'}</span>
                       {activeConversation.parentEmail && (
-                        <span className="text-slate-400">({activeConversation.parentEmail})</span>
+                        <span className="text-slate-400 dark:text-slate-500">({activeConversation.parentEmail})</span>
                       )}
                     </p>
                   </div>
                 </div>
 
                 {/* Sello institucional */}
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-semibold">
-                  <span className="material-symbols-outlined text-sm text-slate-500">verified</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-semibold">
+                  <span className="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">verified</span>
                   <span>Canal Institucional</span>
                 </div>
               </div>
 
               {/* Mensajes del Hilo */}
-              <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 bg-slate-50/40">
+              <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4 bg-slate-50/40 dark:bg-slate-950/40">
                 {/* Banner institucional de trazabilidad */}
-                <div className="p-3 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5">
+                <div className="p-3 rounded-2xl bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2.5">
                   <span className="material-symbols-outlined text-amber-600 text-base shrink-0 mt-0.5">
                     lock
                   </span>
@@ -451,11 +451,11 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
 
                 {messages.length === 0 ? (
                   <div className="text-center py-12 text-slate-400">
-                    <span className="material-symbols-outlined text-4xl text-slate-300 mb-2 block">
+                    <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2 block">
                       chat_bubble_outline
                     </span>
-                    <p className="text-xs font-semibold text-slate-600">No hay mensajes previos</p>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">No hay mensajes previos</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
                       Escriba un mensaje debajo para responder a la familia.
                     </p>
                   </div>
@@ -473,8 +473,8 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                         className={`flex flex-col ${isDocente ? 'items-end' : 'items-start'}`}
                       >
                         {/* Cabecera del mensaje: Autor y hora */}
-                        <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400">
-                          <span className="font-semibold text-slate-600">
+                        <div className="flex items-center gap-1.5 mb-1 px-1 text-[11px] text-slate-400 dark:text-slate-500">
+                          <span className="font-semibold text-slate-600 dark:text-slate-300">
                             {isDocente ? `Usted (${user.nombre || 'Docente'})` : msg.senderName || 'Tutor'}
                           </span>
                           <span>·</span>
@@ -486,7 +486,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                           className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 text-xs sm:text-sm leading-relaxed shadow-xs whitespace-pre-wrap break-words ${
                             isDocente
                               ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-br-xs font-medium'
-                              : 'bg-white border border-slate-200/80 text-slate-800 rounded-bl-xs'
+                              : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-xs'
                           }`}
                         >
                           {msg.text}
@@ -499,8 +499,8 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
               </div>
 
               {/* Respuestas rápidas institucionales */}
-              <div className="px-4 pt-2 pb-1 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">
+              <div className="px-4 pt-2 pb-1 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase shrink-0">
                   Sugerencias:
                 </span>
                 {quickResponses.map((qr, idx) => (
@@ -508,7 +508,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                     key={idx}
                     type="button"
                     onClick={() => handleUseQuickResponse(qr)}
-                    className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 hover:bg-orange-50 hover:text-orange-700 text-slate-600 text-[11px] font-medium transition-colors cursor-pointer border border-transparent hover:border-orange-200"
+                    className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-orange-50 dark:hover:bg-orange-950/40 hover:text-orange-700 dark:hover:text-orange-300 text-slate-600 dark:text-slate-300 text-[11px] font-medium transition-colors cursor-pointer border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
                   >
                     {qr}
                   </button>
@@ -516,7 +516,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
               </div>
 
               {/* Formulario de Respuesta */}
-              <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-slate-200/80">
+              <form onSubmit={handleSendMessage} className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200/80 dark:border-slate-800">
                 <div className="flex items-end gap-2">
                   <textarea
                     rows={2}
@@ -529,7 +529,7 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
                       }
                     }}
                     placeholder="Escriba su respuesta a la familia (Enter para enviar, Shift+Enter para salto de línea)..."
-                    className="flex-1 p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none"
+                    className="flex-1 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all resize-none"
                   />
 
                   <button
@@ -551,11 +551,11 @@ const TeacherMessagesTab = ({ user, subjects = [] }) => {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
-              <div className="w-16 h-16 rounded-3xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+              <div className="w-16 h-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-3">
                 <span className="material-symbols-outlined text-3xl">chat</span>
               </div>
-              <h3 className="text-sm font-bold text-slate-700">Seleccione una consulta</h3>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
+              <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">Seleccione una consulta</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-1">
                 Elija una conversación de la bandeja de entrada para ver el historial y responder directamente al tutor.
               </p>
             </div>

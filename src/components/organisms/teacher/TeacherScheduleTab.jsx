@@ -62,12 +62,12 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
   return (
     <div className="space-y-6">
       {/* Encabezado y Selector para Mobile */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-lg font-black text-slate-900 tracking-tight">
+          <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
             Cronograma de Clases y Actividades
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Horarios lectivos coordinados para el ciclo lectivo en curso.
           </p>
         </div>
@@ -82,7 +82,7 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
               className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
                 selectedDayMobile === day
                   ? 'bg-orange-500 text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               {day}
@@ -98,23 +98,23 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
           return (
             <div
               key={day}
-              className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col"
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden flex flex-col"
             >
               {/* Encabezado de la columna del día */}
-              <div className="p-4 bg-slate-50 border-b border-slate-100 text-center">
-                <span className="font-black text-slate-900 text-sm block">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-100 dark:border-slate-800 text-center">
+                <span className="font-black text-slate-900 dark:text-white text-sm block">
                   {day}
                 </span>
-                <span className="text-[11px] text-slate-500 font-medium">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                   {dayItems.length} {dayItems.length === 1 ? 'bloque' : 'bloques'}
                 </span>
               </div>
 
               {/* Clases asignadas a este día */}
-              <div className="p-3 flex-1 flex flex-col gap-2.5 min-h-[300px]">
+              <div className="p-3 flex-1 flex flex-col gap-2.5 min-h-[300px] bg-white dark:bg-slate-900">
                 {dayItems.length === 0 ? (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-8 text-center">
-                    <span className="material-symbols-outlined text-2xl text-slate-300 mb-1">
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 py-8 text-center">
+                    <span className="material-symbols-outlined text-2xl text-slate-300 dark:text-slate-600 mb-1">
                       free_cancellation
                     </span>
                     <span className="text-[11px]">Sin clases fijadas</span>
@@ -125,19 +125,19 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
                       key={item.id}
                       className={`p-3 rounded-2xl border transition-all hover:shadow-xs ${
                         item.type === 'sport'
-                          ? 'bg-emerald-50/70 border-emerald-200/80 text-emerald-950'
-                          : 'bg-orange-50/70 border-orange-200/80 text-orange-950'
+                          ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200/80 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-100'
+                          : 'bg-orange-50/70 dark:bg-orange-950/30 border-orange-200/80 dark:border-orange-800/60 text-orange-950 dark:text-orange-100'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                           {item.startTime} - {item.endTime}
                         </span>
                         <span
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                             item.type === 'sport'
-                              ? 'bg-emerald-200/70 text-emerald-800'
-                              : 'bg-orange-200/70 text-orange-800'
+                              ? 'bg-emerald-200/70 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300'
+                              : 'bg-orange-200/70 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300'
                           }`}
                         >
                           {item.type === 'sport' ? 'Taller' : 'Materia'}
@@ -146,7 +146,7 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
                       <h4 className="font-bold text-xs leading-snug line-clamp-2">
                         {item.title}
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-1 font-medium">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
                         {item.subtitle}
                       </p>
                     </div>
@@ -159,16 +159,16 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
       </div>
 
       {/* Vista de lista para Mobile (muestra el día seleccionado) */}
-      <div className="lg:hidden bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-3">
-        <h3 className="font-bold text-slate-900 text-sm pb-2 border-b border-slate-100 flex items-center justify-between">
+      <div className="lg:hidden bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+        <h3 className="font-bold text-slate-900 dark:text-white text-sm pb-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <span>Clases para el {selectedDayMobile}</span>
-          <span className="text-xs font-semibold text-orange-600">
+          <span className="text-xs font-semibold text-orange-600 dark:text-orange-400">
             {(itemsByDay[selectedDayMobile] || []).length} bloques
           </span>
         </h3>
 
         {(itemsByDay[selectedDayMobile] || []).length === 0 ? (
-          <p className="text-center py-8 text-xs text-slate-400">
+          <p className="text-center py-8 text-xs text-slate-400 dark:text-slate-500">
             No tienes asignaciones fijas para este día.
           </p>
         ) : (
@@ -177,22 +177,22 @@ const TeacherScheduleTab = ({ subjects = [], sports = [] }) => {
               key={item.id}
               className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${
                 item.type === 'sport'
-                  ? 'bg-emerald-50/60 border-emerald-200 text-emerald-950'
-                  : 'bg-orange-50/60 border-orange-200 text-orange-950'
+                  ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-100'
+                  : 'bg-orange-50/60 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800/60 text-orange-950 dark:text-orange-100'
               }`}
             >
               <div>
-                <span className="text-xs font-bold text-slate-600 block">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400 block">
                   {item.startTime} - {item.endTime}
                 </span>
-                <h4 className="font-bold text-sm text-slate-900">{item.title}</h4>
-                <span className="text-xs text-slate-500">{item.subtitle}</span>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white">{item.title}</h4>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{item.subtitle}</span>
               </div>
               <span
                 className={`text-[10px] font-bold px-2 py-1 rounded-full ${
                   item.type === 'sport'
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-orange-100 text-orange-800'
+                    ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-orange-100 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300'
                 }`}
               >
                 {item.type === 'sport' ? 'Deporte' : 'Materia'}

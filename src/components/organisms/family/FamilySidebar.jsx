@@ -52,7 +52,7 @@ const FamilySidebar = ({
       {/* ── BARRA LATERAL (SIDEBAR) ── */}
       <aside
         className={`
-          fixed top-0 bottom-0 left-0 z-50 w-64 bg-white border-r border-slate-200/80 shadow-sm
+          fixed top-0 bottom-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800 shadow-sm
           flex flex-col justify-between transition-all duration-300 ease-in-out
           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           ${isCollapsed ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
@@ -61,16 +61,16 @@ const FamilySidebar = ({
         {/* Cabecera del Sidebar */}
         <div className="flex flex-col">
           {/* Logo y Nombre Institucional */}
-          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20 flex-shrink-0">
                 <span className="material-symbols-outlined text-2xl">school</span>
               </div>
               <div className="min-w-0">
-                <span className="font-extrabold text-base text-slate-900 tracking-tight block truncate">
+                <span className="font-extrabold text-base text-slate-900 dark:text-white tracking-tight block truncate">
                   EduCore
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block truncate">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 block truncate">
                   Portal de Familias
                 </span>
               </div>
@@ -80,7 +80,7 @@ const FamilySidebar = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Ocultar menú lateral"
             >
               <span className="material-symbols-outlined text-lg">chevron_left</span>
@@ -90,7 +90,7 @@ const FamilySidebar = ({
             <button
               type="button"
               onClick={onClose}
-              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 cursor-pointer"
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               aria-label="Cerrar menú"
             >
               <span className="material-symbols-outlined text-xl">close</span>
@@ -98,16 +98,16 @@ const FamilySidebar = ({
           </div>
 
           {/* Tarjeta de Familia Activa */}
-          <div className="p-4 border-b border-slate-100 bg-slate-50/60">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-500 to-amber-400 text-white font-bold text-sm flex items-center justify-center shadow-xs flex-shrink-0">
                 {displayName.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <span className="font-bold text-xs text-slate-900 truncate block">
+                <span className="font-bold text-xs text-slate-900 dark:text-white truncate block">
                   {displayName}
                 </span>
-                <span className="text-[11px] text-slate-500 block truncate">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
                   {childrenCount} {childrenCount === 1 ? 'estudiante a cargo' : 'estudiantes a cargo'}
                 </span>
               </div>
@@ -116,7 +116,7 @@ const FamilySidebar = ({
 
           {/* Menú de Navegación Contextual Familiar */}
           <nav className="p-3 space-y-1">
-            <span className="px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+            <span className="px-3 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
               Gestión Familiar
             </span>
 
@@ -130,14 +130,14 @@ const FamilySidebar = ({
                   className={`
                     w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 cursor-pointer
                     ${isActive
-                      ? 'bg-orange-50 text-orange-600 font-bold shadow-xs'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                      ? 'bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white font-medium'
                     }
                   `}
                 >
                   <span
                     className={`material-symbols-outlined text-xl ${
-                      isActive ? 'text-orange-600' : 'text-slate-400'
+                      isActive ? 'text-orange-600 dark:text-orange-400' : 'text-slate-400 dark:text-slate-500'
                     }`}
                   >
                     {item.icon}
@@ -157,14 +157,14 @@ const FamilySidebar = ({
         </div>
 
         {/* ── PIE DEL SIDEBAR (ACCIONES DE CUENTA) ── */}
-        <div className="p-4 border-t border-slate-100 bg-white space-y-2">
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2 transition-colors">
           {/* Volver a la Web Institucional Pública */}
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-slate-900 text-xs font-semibold transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white text-xs font-semibold transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-lg text-slate-400">home</span>
+            <span className="material-symbols-outlined text-lg text-slate-400 dark:text-slate-500">home</span>
             <span>Sitio Institucional</span>
           </button>
 
@@ -172,14 +172,14 @@ const FamilySidebar = ({
           <button
             type="button"
             onClick={onLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 text-xs font-bold transition-colors cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-bold transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined text-lg text-red-500">logout</span>
+            <span className="material-symbols-outlined text-lg text-red-500 dark:text-red-400">logout</span>
             <span>Cerrar Sesión</span>
           </button>
 
           {/* Versión del sistema */}
-          <div className="pt-2 text-center text-[10px] text-slate-400">
+          <div className="pt-2 text-center text-[10px] text-slate-400 dark:text-slate-600">
             EduCore v2.4 · Ciclo 2026
           </div>
         </div>
