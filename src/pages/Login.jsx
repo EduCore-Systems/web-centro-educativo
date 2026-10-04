@@ -64,6 +64,8 @@ const Login = () => {
         navigate('/admin');
       } else if (user.role === 'Padre' || user.role === 'Padre/Tutor' || user.role === 'user_padre') {
         navigate('/family');
+      } else if (user.role === 'Staff' || user.role === 'Docente') {
+        navigate('/teacher');
       }
     }
   }, [isLoggedIn, user, navigate]);

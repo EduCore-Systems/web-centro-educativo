@@ -14,6 +14,14 @@ service cloud.firestore {
       );
     }
 
+    function isStaff() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'Staff' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Staff' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Docente'
+      );
+    }
+
     // 1. Colección USERS (Admins, Personal, Padres)
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -25,8 +33,8 @@ service cloud.firestore {
     match /students/{studentId} {
       // Público solo para crear (Formulario de Preinscripción en la web pública)
       allow create: if true;
-      // Lectura: Administradores o el Padre vinculado del alumno
-      allow read: if isAdmin() || (isAuthenticated() && (
+      // Lectura: Administradores, Docentes/Staff o el Padre vinculado del alumno
+      allow read: if isAdmin() || isStaff() || (isAuthenticated() && (
         resource.data.parentId == request.auth.uid ||
         resource.data.studentID_login == request.auth.token.studentId
       ));
@@ -70,6 +78,46 @@ service cloud.firestore {
       allow read: if isAdmin() || (isAuthenticated() && resource.data.parentEmail == request.auth.token.email);
       // Solo el Administrador puede registrar o alterar pagos
       allow write: if isAdmin();
+    }
+
+    // 6. Colección ATTENDANCE (Asistencias Diarias)
+    match /attendance/{document} {
+      // Lectura: Administradores, Docentes/Staff y Padres autenticados
+      allow read: if isAuthenticated();
+      // Escritura: Administradores o Docentes (Staff)
+      allow write: if isAdmin() || isStaff();
+    }
+
+    // 7. Colección CONVERSATIONS y MESSAGES (Chat y Consultas Institucionales)
+    match /conversations/{conversationId} {
+      // Lectura: Administradores, Docentes/Staff o el Padre vinculado a la consulta
+      allow read: if isAdmin() || isStaff() || (isAuthenticated() && resource.data.parentId == request.auth.uid);
+      
+      // Creación: El padre que inicia la consulta, el docente o el admin
+      allow create: if isAuthenticated() && (
+        request.resource.data.parentId == request.auth.uid || isStaff() || isAdmin()
+      );
+      
+      // Actualización (para registrar lastMessage, timestamps y contadores de no leídos)
+      allow update: if isAdmin() || isStaff() || (isAuthenticated() && resource.data.parentId == request.auth.uid);
+      
+      // Eliminación: Exclusiva de Administradores para preservar el registro y trazabilidad
+      allow delete: if isAdmin();
+
+      // Subcolección de mensajes individuales
+      match /messages/{messageId} {
+        allow read: if isAdmin() || isStaff() || (
+          isAuthenticated() && 
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.parentId == request.auth.uid
+        );
+        allow create: if isAuthenticated() && (
+          request.resource.data.senderId == request.auth.uid && (
+            isAdmin() || isStaff() || 
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.parentId == request.auth.uid
+          )
+        );
+        allow update, delete: if isAdmin();
+      }
     }
   }
 }
