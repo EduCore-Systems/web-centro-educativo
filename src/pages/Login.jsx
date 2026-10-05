@@ -66,6 +66,8 @@ const Login = () => {
         navigate('/family');
       } else if (user.role === 'Staff' || user.role === 'Docente') {
         navigate('/teacher');
+      } else if (user.role === 'Estudiante' || user.role === 'student' || user.role === 'user_student') {
+        navigate('/student');
       }
     }
   }, [isLoggedIn, user, navigate]);
@@ -170,6 +172,16 @@ const Login = () => {
                 >
                   <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                   Ir al Panel Admin
+                </button>
+              )}
+              {(user.role === 'Estudiante' || user.role === 'student') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/student')}
+                  className="px-8 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold font-label rounded-full transition-all duration-200 shadow-md hover:scale-[1.02] active:scale-95 cursor-pointer flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">school</span>
+                  Ir al Portal del Alumno
                 </button>
               )}
               <button

@@ -15,6 +15,7 @@ import Wellness from './pages/Wellness';
 import Privacy from './pages/Privacy';
 import FamilyPanel from './pages/FamilyPanel';
 import TeacherPanel from './pages/TeacherPanel';
+import StudentPanel from './pages/StudentPanel';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/family" element={<FamilyPanel />} />
         <Route path="/teacher" element={<TeacherPanel />} />
+        <Route path="/student" element={<StudentPanel />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

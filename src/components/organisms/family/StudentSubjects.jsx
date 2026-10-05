@@ -34,8 +34,9 @@ const getSubjectStyle = (name = '') => {
 /**
  * StudentSubjects (Paso 3)
  * Muestra la grilla de asignaturas en curso del alumno seleccionado (RF-15).
+ * Soporta modo readOnly para el Portal del Alumno.
  */
-const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
+const StudentSubjects = ({ student, onOpenChatWithTeacher, readOnly = false }) => {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -183,20 +184,27 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher }) => {
                     <span className="material-symbols-outlined text-sm text-slate-400 dark:text-slate-500">schedule</span>
                     {sub.schedule || 'Turno Regular'}
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onOpenChatWithTeacher) {
-                        onOpenChatWithTeacher(sub);
-                      } else {
-                        alert(`Consulta enviada sobre ${sub.name}.`);
-                      }
-                    }}
-                    className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
-                  >
-                    <span className="material-symbols-outlined text-sm">chat</span>
-                    Consultar docente
-                  </button>
+                  {readOnly ? (
+                    <span className="text-slate-400 dark:text-slate-500 font-medium inline-flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-emerald-500">verified</span>
+                      <span>Cursada Regular</span>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onOpenChatWithTeacher) {
+                          onOpenChatWithTeacher(sub);
+                        } else {
+                          alert(`Consulta enviada sobre ${sub.name}.`);
+                        }
+                      }}
+                      className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                    >
+                      <span className="material-symbols-outlined text-sm">chat</span>
+                      Consultar docente
+                    </button>
+                  )}
                 </div>
               </div>
             );
