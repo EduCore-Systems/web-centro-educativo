@@ -125,6 +125,9 @@ export const AuthProvider = ({ children }) => {
             conducta: 'Muy Buena',
             role: 'Estudiante',
             email: 'mateo.rossi@educore.edu.ar',
+            deportes: ['XjMjzVd0XVwv0jJSa24c', '5lW9VLF6xaD7dMILDixr'],
+            usa_comedor: true,
+            transporte_recorrido: 'Recorrido Norte (Av. Alvear - Sarmiento)',
           };
           setUser(demoUser);
           localStorage.setItem('school_user', JSON.stringify(demoUser));

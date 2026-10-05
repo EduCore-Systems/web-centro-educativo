@@ -15,6 +15,186 @@ const DEPORTES_CATALOGO = {
 };
 
 /**
+ * Catálogo académico de contingencia para asegurar visualización ininterrumpida
+ */
+const getDefaultSubjectsForStudent = (student) => {
+  const nivelNorm = (student?.nivel || '').toLowerCase();
+  if (nivelNorm.includes('inicial')) {
+    return [
+      {
+        id: 'sub-ini-1',
+        name: 'Iniciación al Lenguaje',
+        teacherName: 'Prof. Mariana Rossi',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '08:30', endTime: '10:00' },
+          { dayOfWeek: 'Miércoles', startTime: '08:30', endTime: '10:00' },
+        ],
+      },
+      {
+        id: 'sub-ini-2',
+        name: 'Juegos y Matemática',
+        teacherName: 'Prof. Mariana Rossi',
+        schedules: [
+          { dayOfWeek: 'Martes', startTime: '08:30', endTime: '10:00' },
+          { dayOfWeek: 'Jueves', startTime: '08:30', endTime: '10:00' },
+        ],
+      },
+      {
+        id: 'sub-ini-3',
+        name: 'Expresión Corporal y Música',
+        teacherName: 'Prof. Diego Torres',
+        schedules: [
+          { dayOfWeek: 'Viernes', startTime: '09:00', endTime: '11:00' },
+        ],
+      },
+    ];
+  }
+
+  if (nivelNorm.includes('primaria')) {
+    return [
+      {
+        id: 'sub-prim-1',
+        name: 'Matemática',
+        teacherName: 'Prof. Carlos Benítez',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '08:00', endTime: '09:30' },
+          { dayOfWeek: 'Miércoles', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-2',
+        name: 'Prácticas del Lenguaje',
+        teacherName: 'Prof. Laura Méndez',
+        schedules: [
+          { dayOfWeek: 'Martes', startTime: '08:00', endTime: '09:30' },
+          { dayOfWeek: 'Jueves', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-3',
+        name: 'Ciencias Naturales',
+        teacherName: 'Prof. Carlos Benítez',
+        schedules: [
+          { dayOfWeek: 'Miércoles', startTime: '09:45', endTime: '11:15' },
+          { dayOfWeek: 'Viernes', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-4',
+        name: 'Ciencias Sociales',
+        teacherName: 'Prof. Laura Méndez',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '09:45', endTime: '11:15' },
+          { dayOfWeek: 'Jueves', startTime: '09:45', endTime: '11:15' },
+        ],
+      },
+      {
+        id: 'sub-prim-5',
+        name: 'Educación Física',
+        teacherName: 'Prof. Diego Torres',
+        schedules: [
+          { dayOfWeek: 'Viernes', startTime: '09:45', endTime: '11:15' },
+        ],
+      },
+    ];
+  }
+
+  // Nivel Secundario
+  return [
+    {
+      id: 'sub-sec-1',
+      name: 'Matemática I',
+      teacherName: 'Prof. Alejandro Varela',
+      schedules: [
+        { dayOfWeek: 'Lunes', startTime: '08:00', endTime: '09:30' },
+        { dayOfWeek: 'Miércoles', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-2',
+      name: 'Lengua y Literatura',
+      teacherName: 'Prof. Carmen Delgado',
+      schedules: [
+        { dayOfWeek: 'Martes', startTime: '08:00', endTime: '09:30' },
+        { dayOfWeek: 'Jueves', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-3',
+      name: 'Química General',
+      teacherName: 'Prof. Alejandro Varela',
+      schedules: [
+        { dayOfWeek: 'Miércoles', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Viernes', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-4',
+      name: 'Historia',
+      teacherName: 'Prof. Carmen Delgado',
+      schedules: [
+        { dayOfWeek: 'Lunes', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Jueves', startTime: '09:45', endTime: '11:15' },
+      ],
+    },
+    {
+      id: 'sub-sec-5',
+      name: 'Inglés Técnico',
+      teacherName: 'Prof. Andrea Varela',
+      schedules: [
+        { dayOfWeek: 'Martes', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Viernes', startTime: '09:45', endTime: '11:15' },
+      ],
+    },
+  ];
+};
+
+const parseDaysFromScheduleStr = (scheduleStr = '', idx = 0) => {
+  const s = scheduleStr.toLowerCase();
+  const days = [];
+  if (s.includes('lun')) days.push('Lunes');
+  if (s.includes('mar')) days.push('Martes');
+  if (s.includes('mié') || s.includes('mie')) days.push('Miércoles');
+  if (s.includes('jue')) days.push('Jueves');
+  if (s.includes('vie')) days.push('Viernes');
+  if (s.includes('sáb') || s.includes('sab')) days.push('Sábados');
+
+  if (days.length > 0) return days;
+
+  const defaultPairs = [
+    ['Lunes', 'Miércoles'],
+    ['Martes', 'Jueves'],
+    ['Miércoles', 'Viernes'],
+    ['Lunes', 'Jueves'],
+    ['Martes', 'Viernes'],
+  ];
+  return defaultPairs[idx % defaultPairs.length];
+};
+
+const parseTimesFromScheduleStr = (scheduleStr = '', idx = 0) => {
+  const rangeMatch = scheduleStr.match(/(\d{1,2}:\d{2})\s*(?:a|-|·)\s*(\d{1,2}:\d{2})/);
+  if (rangeMatch) {
+    return { startTime: rangeMatch[1], endTime: rangeMatch[2] };
+  }
+  const singleMatch = scheduleStr.match(/(\d{1,2}:\d{2})/);
+  if (singleMatch) {
+    const start = singleMatch[1];
+    const [h, m] = start.split(':').map(Number);
+    const endH = String(h + 1).padStart(2, '0');
+    const endM = String((m + 30) % 60).padStart(2, '0');
+    return { startTime: start, endTime: `${endH}:${endM}` };
+  }
+  const defaultSlots = [
+    { startTime: '08:00', endTime: '09:30' },
+    { startTime: '08:00', endTime: '09:30' },
+    { startTime: '09:45', endTime: '11:15' },
+    { startTime: '09:45', endTime: '11:15' },
+    { startTime: '09:45', endTime: '11:15' },
+  ];
+  return defaultSlots[idx % defaultSlots.length];
+};
+
+/**
  * StudentScheduleView (Organismo)
  * Visualizador semanal del cronograma de clases y actividades del alumno.
  * Cruza asignaturas curriculares con deportes y talleres extracurriculares inscriptos.
@@ -22,12 +202,20 @@ const DEPORTES_CATALOGO = {
 const StudentScheduleView = ({ student, subjects = [] }) => {
   const [selectedDayMobile, setSelectedDayMobile] = useState('Lunes');
 
+  // Consolidar materias efectivas con fallback instantáneo
+  const effectiveSubjects = useMemo(() => {
+    if (Array.isArray(subjects) && subjects.length > 0) {
+      return subjects;
+    }
+    return getDefaultSubjectsForStudent(student);
+  }, [subjects, student]);
+
   // Consolidar todos los bloques horarios de la semana
   const weeklySchedule = useMemo(() => {
     const items = [];
 
     // 1. Agregar materias curriculares
-    subjects.forEach((sub, idx) => {
+    effectiveSubjects.forEach((sub, idx) => {
       // Si la materia tiene schedules estructurados
       if (Array.isArray(sub.schedules) && sub.schedules.length > 0) {
         sub.schedules.forEach((sch) => {
@@ -39,21 +227,13 @@ const StudentScheduleView = ({ student, subjects = [] }) => {
             startTime: sch.startTime || '08:00',
             endTime: sch.endTime || '09:30',
             type: 'subject',
-            room: 'Aula ' + (student?.curso || '1° A'),
+            room: sch.classroom || sch.room || ('Aula ' + (student?.curso || '1° Año A')),
           });
         });
       } else {
-        // Fallback inteligente para materias estándar según índice
-        const standardDays = [
-          ['Lunes', 'Miércoles'],
-          ['Martes', 'Jueves'],
-          ['Miércoles', 'Viernes'],
-          ['Lunes', 'Jueves'],
-          ['Martes', 'Viernes'],
-        ];
-        const assignedDays = standardDays[idx % standardDays.length];
-        const startTime = idx % 2 === 0 ? '08:00' : '10:00';
-        const endTime = idx % 2 === 0 ? '09:30' : '11:30';
+        // Parsear días y horarios a partir de sub.schedule o usar distribución balanceada
+        const assignedDays = parseDaysFromScheduleStr(sub.schedule || '', idx);
+        const { startTime, endTime } = parseTimesFromScheduleStr(sub.schedule || '', idx);
 
         assignedDays.forEach((day) => {
           items.push({
@@ -64,7 +244,7 @@ const StudentScheduleView = ({ student, subjects = [] }) => {
             startTime,
             endTime,
             type: 'subject',
-            room: 'Aula ' + (student?.curso || '1° A'),
+            room: sub.classroom || sub.room || ('Aula ' + (student?.curso || '1° Año A')),
           });
         });
       }
@@ -93,7 +273,7 @@ const StudentScheduleView = ({ student, subjects = [] }) => {
 
     // Ordenar cronológicamente por hora de inicio
     return items.sort((a, b) => (a.startTime > b.startTime ? 1 : -1));
-  }, [student, subjects]);
+  }, [student, effectiveSubjects]);
 
   // Agrupar por día de la semana
   const itemsByDay = useMemo(() => {
@@ -196,6 +376,12 @@ const StudentScheduleView = ({ student, subjects = [] }) => {
                       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 font-medium truncate">
                         {item.subtitle}
                       </p>
+                      {item.room && (
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[13px]">location_on</span>
+                          <span className="truncate">{item.room}</span>
+                        </p>
+                      )}
                     </div>
                   ))
                 )}
@@ -233,7 +419,15 @@ const StudentScheduleView = ({ student, subjects = [] }) => {
                   {item.startTime} - {item.endTime}
                 </span>
                 <h4 className="font-bold text-sm text-slate-900 dark:text-white">{item.title}</h4>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{item.subtitle}</span>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  <span>{item.subtitle}</span>
+                  {item.room && (
+                    <>
+                      <span>•</span>
+                      <span className="text-slate-400 dark:text-slate-500">{item.room}</span>
+                    </>
+                  )}
+                </div>
               </div>
               <span
                 className={`text-[10px] font-bold px-2 py-1 rounded-full ${

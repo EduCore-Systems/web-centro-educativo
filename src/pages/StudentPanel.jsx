@@ -15,6 +15,154 @@ import FamilyDocumentModal from '../components/organisms/family/FamilyDocumentMo
 import ThemeToggle from '../components/atoms/ThemeToggle';
 
 /**
+ * Materias y horarios por defecto organizados según el nivel escolar
+ */
+const getDefaultStudentSubjects = (nivel = 'Secundaria') => {
+  const nivelNorm = (nivel || '').toLowerCase();
+  if (nivelNorm.includes('inicial')) {
+    return [
+      {
+        id: 'sub-ini-1',
+        name: 'Iniciación al Lenguaje',
+        teacherName: 'Prof. Mariana Rossi',
+        schedule: 'Lun · Mié 08:30 a 10:00',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '08:30', endTime: '10:00' },
+          { dayOfWeek: 'Miércoles', startTime: '08:30', endTime: '10:00' },
+        ],
+      },
+      {
+        id: 'sub-ini-2',
+        name: 'Juegos y Matemática',
+        teacherName: 'Prof. Mariana Rossi',
+        schedule: 'Mar · Jue 08:30 a 10:00',
+        schedules: [
+          { dayOfWeek: 'Martes', startTime: '08:30', endTime: '10:00' },
+          { dayOfWeek: 'Jueves', startTime: '08:30', endTime: '10:00' },
+        ],
+      },
+      {
+        id: 'sub-ini-3',
+        name: 'Expresión Corporal y Música',
+        teacherName: 'Prof. Diego Torres',
+        schedule: 'Viernes 09:00 a 11:00',
+        schedules: [
+          { dayOfWeek: 'Viernes', startTime: '09:00', endTime: '11:00' },
+        ],
+      },
+    ];
+  }
+
+  if (nivelNorm.includes('primaria')) {
+    return [
+      {
+        id: 'sub-prim-1',
+        name: 'Matemática',
+        teacherName: 'Prof. Carlos Benítez',
+        schedule: 'Lun · Mié 08:00 a 09:30',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '08:00', endTime: '09:30' },
+          { dayOfWeek: 'Miércoles', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-2',
+        name: 'Prácticas del Lenguaje',
+        teacherName: 'Prof. Laura Méndez',
+        schedule: 'Mar · Jue 08:00 a 09:30',
+        schedules: [
+          { dayOfWeek: 'Martes', startTime: '08:00', endTime: '09:30' },
+          { dayOfWeek: 'Jueves', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-3',
+        name: 'Ciencias Naturales',
+        teacherName: 'Prof. Carlos Benítez',
+        schedule: 'Mié 09:45 a 11:15 · Vie 08:00 a 09:30',
+        schedules: [
+          { dayOfWeek: 'Miércoles', startTime: '09:45', endTime: '11:15' },
+          { dayOfWeek: 'Viernes', startTime: '08:00', endTime: '09:30' },
+        ],
+      },
+      {
+        id: 'sub-prim-4',
+        name: 'Ciencias Sociales',
+        teacherName: 'Prof. Laura Méndez',
+        schedule: 'Lun · Jue 09:45 a 11:15',
+        schedules: [
+          { dayOfWeek: 'Lunes', startTime: '09:45', endTime: '11:15' },
+          { dayOfWeek: 'Jueves', startTime: '09:45', endTime: '11:15' },
+        ],
+      },
+      {
+        id: 'sub-prim-5',
+        name: 'Educación Física',
+        teacherName: 'Prof. Diego Torres',
+        schedule: 'Vie 09:45 a 11:15',
+        schedules: [
+          { dayOfWeek: 'Viernes', startTime: '09:45', endTime: '11:15' },
+        ],
+      },
+    ];
+  }
+
+  // Nivel Secundario por defecto
+  return [
+    {
+      id: 'sub-sec-1',
+      name: 'Matemática I',
+      teacherName: 'Prof. Alejandro Varela',
+      schedule: 'Lun · Mié 08:00 a 09:30',
+      schedules: [
+        { dayOfWeek: 'Lunes', startTime: '08:00', endTime: '09:30' },
+        { dayOfWeek: 'Miércoles', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-2',
+      name: 'Lengua y Literatura',
+      teacherName: 'Prof. Carmen Delgado',
+      schedule: 'Mar · Jue 08:00 a 09:30',
+      schedules: [
+        { dayOfWeek: 'Martes', startTime: '08:00', endTime: '09:30' },
+        { dayOfWeek: 'Jueves', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-3',
+      name: 'Química General',
+      teacherName: 'Prof. Alejandro Varela',
+      schedule: 'Mié 09:45 a 11:15 · Vie 08:00 a 09:30',
+      schedules: [
+        { dayOfWeek: 'Miércoles', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Viernes', startTime: '08:00', endTime: '09:30' },
+      ],
+    },
+    {
+      id: 'sub-sec-4',
+      name: 'Historia',
+      teacherName: 'Prof. Carmen Delgado',
+      schedule: 'Lun · Jue 09:45 a 11:15',
+      schedules: [
+        { dayOfWeek: 'Lunes', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Jueves', startTime: '09:45', endTime: '11:15' },
+      ],
+    },
+    {
+      id: 'sub-sec-5',
+      name: 'Inglés Técnico',
+      teacherName: 'Prof. Andrea Varela',
+      schedule: 'Mar · Vie 09:45 a 11:15',
+      schedules: [
+        { dayOfWeek: 'Martes', startTime: '09:45', endTime: '11:15' },
+        { dayOfWeek: 'Viernes', startTime: '09:45', endTime: '11:15' },
+      ],
+    },
+  ];
+};
+
+/**
  * StudentPanel (Página)
  * Portal oficial del Alumno en EduCore.
  * Ofrece visualización en modo de solo lectura de la ficha académica,
@@ -40,8 +188,8 @@ const StudentPanel = () => {
     type: 'boletin',
   });
 
-  // Materias del alumno actual para la grilla y el boletín
-  const [currentSubjects, setCurrentSubjects] = useState([]);
+  // Materias del alumno actual para la grilla, el cronograma y el boletín (inicializadas inmediatamente)
+  const [currentSubjects, setCurrentSubjects] = useState(() => getDefaultStudentSubjects(null));
 
   // 1. Control de acceso: Verificar que el usuario tenga rol de Estudiante
   useEffect(() => {
@@ -93,7 +241,7 @@ const StudentPanel = () => {
             nivel: user.nivel || 'Secundaria',
             promedio: user.promedio || 8.75,
             conducta: user.conducta || 'Muy Buena',
-            deportes: user.deportes || ['XjMjzVd0XVwv0jJSa24c'],
+            deportes: user.deportes || ['XjMjzVd0XVwv0jJSa24c', '5lW9VLF6xaD7dMILDixr'],
             usa_comedor: user.usa_comedor !== undefined ? Boolean(user.usa_comedor) : true,
             transporte_recorrido: user.transporte_recorrido || 'Recorrido Norte (Av. Alvear - Sarmiento)',
           };
@@ -110,10 +258,13 @@ const StudentPanel = () => {
             nombre: user.nombre || 'Mateo Rossi',
             dni: user.dni || '50123456',
             legajo: user.legajo || 'EST-2026-101',
-            curso: '1° Año A',
-            nivel: 'Secundaria',
-            promedio: 8.75,
-            conducta: 'Muy Buena',
+            curso: user.curso || '1° Año A',
+            nivel: user.nivel || 'Secundaria',
+            promedio: user.promedio || 8.75,
+            conducta: user.conducta || 'Muy Buena',
+            deportes: user.deportes || ['XjMjzVd0XVwv0jJSa24c', '5lW9VLF6xaD7dMILDixr'],
+            usa_comedor: true,
+            transporte_recorrido: 'Recorrido Norte (Av. Alvear - Sarmiento)',
           });
         }
       } finally {
@@ -132,12 +283,14 @@ const StudentPanel = () => {
   useEffect(() => {
     if (!student?.curso) return;
 
+    const curso = student.curso;
+    const nivel = student.nivel;
     let isMounted = true;
     const fetchCourseSubjects = async () => {
       try {
         const coursesQuery = query(
           collection(db, 'courses'),
-          where('name', '==', student.curso.trim())
+          where('name', '==', curso.trim())
         );
         const courseSnap = await getDocs(coursesQuery);
         if (!courseSnap.empty) {
@@ -147,21 +300,42 @@ const StudentPanel = () => {
             where('courseId', '==', courseId)
           );
           const subjectsSnap = await getDocs(subjectsQuery);
-          const results = subjectsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-          if (isMounted) setCurrentSubjects(results);
+          let results = subjectsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+          // Intentar enriquecer con los horarios estructurados de la colección 'schedules'
+          try {
+            const schedulesSnap = await getDocs(collection(db, 'schedules'));
+            const allSchedules = schedulesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+            results = results.map((sub) => {
+              const matchedSchedules = allSchedules.filter(
+                (sch) => sch.referenceId === sub.id && sch.type === 'subject'
+              );
+              return {
+                ...sub,
+                schedules: matchedSchedules.length > 0 ? matchedSchedules : sub.schedules,
+              };
+            });
+          } catch {
+            // Silencioso en caso de restricciones de lectura en schedules
+          }
+
+          if (isMounted) {
+            if (results.length > 0) {
+              setCurrentSubjects(results);
+            } else {
+              setCurrentSubjects(getDefaultStudentSubjects(nivel));
+            }
+          }
         } else {
           if (isMounted) {
-            setCurrentSubjects([
-              { id: '1', name: 'Matemática', teacherName: 'Prof. Carlos Benítez', schedule: 'Lun - Mié 08:00' },
-              { id: '2', name: 'Prácticas del Lenguaje', teacherName: 'Prof. Laura Méndez', schedule: 'Mar - Jue 08:00' },
-              { id: '3', name: 'Ciencias Naturales', teacherName: 'Prof. Carlos Benítez', schedule: 'Mié - Vie 10:00' },
-              { id: '4', name: 'Ciencias Sociales', teacherName: 'Prof. Laura Méndez', schedule: 'Lun - Jue 10:00' },
-              { id: '5', name: 'Inglés Técnico', teacherName: 'Prof. Andrea Varela', schedule: 'Martes 11:30' },
-            ]);
+            setCurrentSubjects(getDefaultStudentSubjects(nivel));
           }
         }
       } catch (err) {
         console.error('Error al cargar materias del alumno:', err);
+        if (isMounted) {
+          setCurrentSubjects(getDefaultStudentSubjects(nivel));
+        }
       }
     };
 
@@ -170,7 +344,7 @@ const StudentPanel = () => {
     return () => {
       isMounted = false;
     };
-  }, [student?.curso]);
+  }, [student?.curso, student?.nivel]);
 
   const handleLogout = async () => {
     try {

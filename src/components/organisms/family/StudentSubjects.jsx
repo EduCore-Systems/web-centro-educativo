@@ -73,10 +73,11 @@ const StudentSubjects = ({ student, initialSubjects = null, onOpenChatWithTeache
           ];
         } else {
           return [
-            { id: 'sub-1', name: 'Matemática I', teacherName: 'Prof. Alejandro Varela', schedule: 'Lun · Mié 08:00' },
-            { id: 'sub-2', name: 'Lengua y Literatura', teacherName: 'Prof. Carmen Delgado', schedule: 'Mar · Jue 09:30' },
-            { id: 'sub-3', name: 'Química General', teacherName: 'Prof. Alejandro Varela', schedule: 'Vie 10:00' },
-            { id: 'sub-4', name: 'Historia', teacherName: 'Prof. Carmen Delgado', schedule: 'Lun · Vie 11:30' },
+            { id: 'sub-1', name: 'Matemática I', teacherName: 'Prof. Alejandro Varela', schedule: 'Lun · Mié 08:00 a 09:30' },
+            { id: 'sub-2', name: 'Lengua y Literatura', teacherName: 'Prof. Carmen Delgado', schedule: 'Mar · Jue 08:00 a 09:30' },
+            { id: 'sub-3', name: 'Química General', teacherName: 'Prof. Alejandro Varela', schedule: 'Mié 09:45 a 11:15 · Vie 08:00 a 09:30' },
+            { id: 'sub-4', name: 'Historia', teacherName: 'Prof. Carmen Delgado', schedule: 'Lun · Jue 09:45 a 11:15' },
+            { id: 'sub-5', name: 'Inglés Técnico', teacherName: 'Prof. Andrea Varela', schedule: 'Mar · Vie 09:45 a 11:15' },
           ];
         }
       };
