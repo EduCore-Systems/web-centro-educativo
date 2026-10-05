@@ -93,6 +93,18 @@ const StudentSidebar = ({
               )}
             </div>
 
+            {/* Botón para esconder/colapsar en Desktop */}
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="hidden lg:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Ocultar menú lateral"
+            >
+              <span className="material-symbols-outlined text-lg">
+                {isCollapsed ? 'chevron_right' : 'chevron_left'}
+              </span>
+            </button>
+
             {/* Botón para cerrar en Mobile */}
             <button
               type="button"
@@ -215,20 +227,6 @@ const StudentSidebar = ({
             <ThemeToggle />
           </div>
 
-          {/* Botón de Colapsar (Solo Desktop) */}
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className={`hidden lg:flex w-full items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer ${
-              isCollapsed ? 'justify-center px-0' : ''
-            }`}
-            title={isCollapsed ? 'Expandir barra lateral' : 'Colapsar barra lateral'}
-          >
-            <span className="material-symbols-outlined text-lg">
-              {isCollapsed ? 'chevron_right' : 'chevron_left'}
-            </span>
-            {!isCollapsed && <span>Colapsar menú</span>}
-          </button>
 
           {/* Botón Cerrar Sesión */}
           <button

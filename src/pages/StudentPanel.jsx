@@ -86,7 +86,7 @@ const StudentPanel = () => {
         if (!studentData) {
           studentData = {
             id: user.uid || 'demo-student',
-            nombre: user.nombre || user.name || 'Estudiante EduCore',
+            nombre: user.nombre || user.name || 'Mateo Rossi',
             dni: user.dni || '50123456',
             legajo: user.legajo || user.studentID_login || 'EST-2026-101',
             curso: user.curso || '1° Año A',
@@ -94,7 +94,7 @@ const StudentPanel = () => {
             promedio: user.promedio || 8.75,
             conducta: user.conducta || 'Muy Buena',
             deportes: user.deportes || ['XjMjzVd0XVwv0jJSa24c'],
-            usa_comedor: Boolean(user.usa_comedor),
+            usa_comedor: user.usa_comedor !== undefined ? Boolean(user.usa_comedor) : true,
             transporte_recorrido: user.transporte_recorrido || 'Recorrido Norte (Av. Alvear - Sarmiento)',
           };
         }
@@ -107,10 +107,12 @@ const StudentPanel = () => {
         if (isMounted) {
           setStudent({
             id: user.uid || 'fallback-student',
-            nombre: user.nombre || 'Estudiante',
+            nombre: user.nombre || 'Mateo Rossi',
+            dni: user.dni || '50123456',
+            legajo: user.legajo || 'EST-2026-101',
             curso: '1° Año A',
             nivel: 'Secundaria',
-            promedio: 8.5,
+            promedio: 8.75,
             conducta: 'Muy Buena',
           });
         }

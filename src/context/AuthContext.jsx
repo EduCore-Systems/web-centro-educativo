@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
           console.warn('Backend Cloud Function no disponible. Activando sesión de alumno en modo pruebas locales.');
           const demoUser = {
             uid: `test-${cleanId.toLowerCase()}`,
-            nombre: 'Estudiante EduCore',
+            nombre: 'Mateo Rossi',
             studentId: cleanId,
             studentID_login: cleanId,
             dni: password && /^\d+$/.test(password) ? password : '50123456',
@@ -124,7 +124,7 @@ export const AuthProvider = ({ children }) => {
             promedio: 8.75,
             conducta: 'Muy Buena',
             role: 'Estudiante',
-            email: `${cleanId.toLowerCase()}@educore.edu.ar`,
+            email: 'mateo.rossi@educore.edu.ar',
           };
           setUser(demoUser);
           localStorage.setItem('school_user', JSON.stringify(demoUser));
