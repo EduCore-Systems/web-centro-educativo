@@ -337,6 +337,7 @@ const StudentPanel = () => {
               {activeSection === 'materias' && (
                 <StudentSubjects
                   student={student}
+                  initialSubjects={currentSubjects}
                   readOnly={true}
                 />
               )}

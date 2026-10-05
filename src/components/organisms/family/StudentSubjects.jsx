@@ -36,15 +36,51 @@ const getSubjectStyle = (name = '') => {
  * Muestra la grilla de asignaturas en curso del alumno seleccionado (RF-15).
  * Soporta modo readOnly para el Portal del Alumno.
  */
-const StudentSubjects = ({ student, onOpenChatWithTeacher, readOnly = false }) => {
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+const StudentSubjects = ({ student, initialSubjects = null, onOpenChatWithTeacher, readOnly = false }) => {
+  const [subjects, setSubjects] = useState(initialSubjects || []);
+  const [loading, setLoading] = useState(!initialSubjects || initialSubjects.length === 0);
 
   useEffect(() => {
-    if (!student?.curso) return;
+    // Si ya se proporcionaron materias precargadas (ej. desde el StudentPanel), usarlas directamente
+    if (initialSubjects && initialSubjects.length > 0) {
+      setSubjects(initialSubjects);
+      setLoading(false);
+      return;
+    }
+
+    if (!student?.curso) {
+      setLoading(false);
+      return;
+    }
 
     const fetchSubjects = async () => {
       setLoading(true);
+
+      const getDefaultSubjects = () => {
+        const nivelNorm = (student?.nivel || '').toLowerCase();
+        if (nivelNorm.includes('inicial')) {
+          return [
+            { id: 'sub-1', name: 'Iniciación al Lenguaje', teacherName: 'Prof. Mariana Rossi', schedule: 'Turno Mañana' },
+            { id: 'sub-2', name: 'Juegos y Matemática', teacherName: 'Prof. Mariana Rossi', schedule: 'Turno Mañana' },
+            { id: 'sub-3', name: 'Expresión Corporal y Música', teacherName: 'Prof. Diego Torres', schedule: 'Mié - Vie' },
+          ];
+        } else if (nivelNorm.includes('primaria')) {
+          return [
+            { id: 'sub-1', name: 'Matemática', teacherName: 'Prof. Carlos Benítez', schedule: 'Lun - Mié 08:00 a 09:30' },
+            { id: 'sub-2', name: 'Prácticas del Lenguaje', teacherName: 'Prof. Laura Méndez', schedule: 'Mar - Jue 08:00 a 09:30' },
+            { id: 'sub-3', name: 'Ciencias Naturales', teacherName: 'Prof. Carlos Benítez', schedule: 'Mié - Vie 10:00 a 11:30' },
+            { id: 'sub-4', name: 'Educación Física', teacherName: 'Prof. Diego Torres', schedule: 'Vie 14:00 a 16:00' },
+          ];
+        } else {
+          return [
+            { id: 'sub-1', name: 'Matemática I', teacherName: 'Prof. Alejandro Varela', schedule: 'Lun · Mié 08:00' },
+            { id: 'sub-2', name: 'Lengua y Literatura', teacherName: 'Prof. Carmen Delgado', schedule: 'Mar · Jue 09:30' },
+            { id: 'sub-3', name: 'Química General', teacherName: 'Prof. Alejandro Varela', schedule: 'Vie 10:00' },
+            { id: 'sub-4', name: 'Historia', teacherName: 'Prof. Carmen Delgado', schedule: 'Lun · Vie 11:30' },
+          ];
+        }
+      };
+
       try {
         // 1. Encontrar el curso en la colección 'courses' por el nombre (ej. '4° Grado A')
         const coursesQuery = query(
@@ -74,39 +110,20 @@ const StudentSubjects = ({ student, onOpenChatWithTeacher, readOnly = false }) =
 
         // Si no encontró materias en Firestore para ese curso particular, asignamos materias base del nivel
         if (results.length === 0) {
-          if (student.nivel === 'inicial') {
-            results = [
-              { id: 'sub-1', name: 'Iniciación al Lenguaje', teacherName: 'Prof. Mariana Rossi', schedule: 'Turno Mañana' },
-              { id: 'sub-2', name: 'Juegos y Matemática', teacherName: 'Prof. Mariana Rossi', schedule: 'Turno Mañana' },
-              { id: 'sub-3', name: 'Expresión Corporal y Música', teacherName: 'Prof. Diego Torres', schedule: 'Mié - Vie' },
-            ];
-          } else if (student.nivel === 'primaria') {
-            results = [
-              { id: 'sub-1', name: 'Matemática', teacherName: 'Prof. Carlos Benítez', schedule: 'Lun - Mié 08:00 a 09:30' },
-              { id: 'sub-2', name: 'Prácticas del Lenguaje', teacherName: 'Prof. Laura Méndez', schedule: 'Mar - Jue 08:00 a 09:30' },
-              { id: 'sub-3', name: 'Ciencias Naturales', teacherName: 'Prof. Carlos Benítez', schedule: 'Mié - Vie 10:00 a 11:30' },
-              { id: 'sub-4', name: 'Educación Física', teacherName: 'Prof. Diego Torres', schedule: 'Vie 14:00 a 16:00' },
-            ];
-          } else {
-            results = [
-              { id: 'sub-1', name: 'Matemática I', teacherName: 'Prof. Alejandro Varela', schedule: 'Lun · Mié 08:00' },
-              { id: 'sub-2', name: 'Lengua y Literatura', teacherName: 'Prof. Carmen Delgado', schedule: 'Mar · Jue 09:30' },
-              { id: 'sub-3', name: 'Química General', teacherName: 'Prof. Alejandro Varela', schedule: 'Vie 10:00' },
-              { id: 'sub-4', name: 'Historia', teacherName: 'Prof. Carmen Delgado', schedule: 'Lun · Vie 11:30' },
-            ];
-          }
+          results = getDefaultSubjects();
         }
 
         setSubjects(results);
       } catch (error) {
-        console.error('Error cargando materias:', error);
+        console.error('Error cargando materias de Firestore, usando materias base:', error);
+        setSubjects(getDefaultSubjects());
       } finally {
         setLoading(false);
       }
     };
 
     fetchSubjects();
-  }, [student?.curso, student?.nivel]);
+  }, [student?.curso, student?.nivel, initialSubjects]);
 
   return (
     <section className="space-y-4">
