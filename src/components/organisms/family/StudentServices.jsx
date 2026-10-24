@@ -52,8 +52,8 @@ const StudentServices = ({ student, onStudentUpdated }) => {
       // Sincronizar comedor
       setUsaComedor(Boolean(student.usa_comedor || student.diningRoomEnabled));
 
-      // Sincronizar transporte
-      setTransporteRecorrido(student.transporte_recorrido || 'none');
+      // Sincronizar transporte (soporta transportRouteId y transporte_recorrido)
+      setTransporteRecorrido(student.transportRouteId || student.transporte_recorrido || 'none');
       setSaveSuccess(false);
     }
   }, [student]);
@@ -86,6 +86,7 @@ const StudentServices = ({ student, onStudentUpdated }) => {
         usa_comedor: usaComedor,
         diningRoomEnabled: usaComedor,
         transporte_recorrido: transporteRecorrido,
+        transportRouteId: transporteRecorrido === 'none' ? null : transporteRecorrido,
       };
 
       await updateDoc(studentRef, updateData);
@@ -119,7 +120,7 @@ const StudentServices = ({ student, onStudentUpdated }) => {
   const initialComedor = Boolean(student?.usa_comedor || student?.diningRoomEnabled);
   const comedorChanged = initialComedor !== usaComedor;
 
-  const initialTransporte = student?.transporte_recorrido || 'none';
+  const initialTransporte = student?.transportRouteId || student?.transporte_recorrido || 'none';
   const transporteChanged = initialTransporte !== transporteRecorrido;
 
   // Solo se activa si alguna de las 3 opciones cambió respecto a Firebase

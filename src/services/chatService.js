@@ -153,7 +153,12 @@ export const subscribeToTeacherConversations = (teacher, callback) => {
         if (teacherId && c.teacherId === teacherId) return true;
         if (userUid && c.teacherId === userUid) return true;
         if (userEmail && c.teacherEmail && c.teacherEmail.toLowerCase() === userEmail) return true;
-        if (teacherName && c.teacherName && c.teacherName.toLowerCase().includes(teacherName.split(' ')[1] || '---')) return true;
+        if (teacherName && c.teacherName) {
+          const cleanConvTeacher = c.teacherName.toLowerCase();
+          if (cleanConvTeacher.includes(teacherName) || teacherName.includes(cleanConvTeacher)) return true;
+          const parts = teacherName.split(/\s+/).filter(p => p.length > 2);
+          if (parts.some(p => cleanConvTeacher.includes(p))) return true;
+        }
         return false;
       });
 
