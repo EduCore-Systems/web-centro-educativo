@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../atoms/Icon';
-import { getTransportRoutes, createTransportRoute, updateTransportRoute, deleteTransportRoute, getStudents, updateStudentTransport } from '../../../../services/additionalServices';
+import { getTransportRoutes, createTransportRoute, updateTransportRoute, deleteTransportRoute, getStudents, updateStudentTransport, confirmStudentTransport } from '../../../../services/additionalServices';
 
 const TransportManager = () => {
   const [routes, setRoutes] = useState([]);
@@ -95,13 +95,28 @@ const TransportManager = () => {
     }
   };
 
+  const handleConfirmTransport = async (studentId) => {
+    try {
+      await confirmStudentTransport(studentId);
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, transporte_estado: 'confirmado' } : s));
+    } catch (error) {
+      console.error("Error al confirmar transporte:", error);
+      alert("Error al confirmar el transporte.");
+    }
+  };
+
   const handleAssignTransport = async (studentId, routeId) => {
     try {
       const selectedRoute = routes.find(r => r.id === routeId);
       const routeName = selectedRoute ? selectedRoute.name : 'No utiliza transporte';
-      await updateStudentTransport(studentId, routeId, routeName);
+      await updateStudentTransport(studentId, routeId || null, routeName, routeId ? 'confirmado' : 'sin_servicio');
       // Actualizar estado local para que sea instantáneo sin recargar toda la BD
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, transportRouteId: routeId, transporte_recorrido: routeName } : s));
+      setStudents(prev => prev.map(s => s.id === studentId ? { 
+        ...s, 
+        transportRouteId: routeId || null, 
+        transporte_recorrido: routeName,
+        transporte_estado: routeId ? 'confirmado' : 'sin_servicio'
+      } : s));
     } catch (error) {
       console.error("Error asignando transporte:", error);
       alert("Error al asignar transporte al alumno.");
@@ -221,37 +236,74 @@ const TransportManager = () => {
                 <tr className="border-b border-slate-200">
                   <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Alumno</th>
                   <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider">Curso / Nivel</th>
+                  <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-center">Estado de Solicitud</th>
                   <th className="p-4 font-bold text-slate-500 text-xs uppercase tracking-wider text-right">Recorrido Asignado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 font-bold text-slate-800">{student.nombre}</td>
-                    <td className="p-4">
-                      <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                        {student.nivel}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right">
-                      <select
-                        value={student.transportRouteId || routes.find(r => r.name === student.transporte_recorrido)?.id || ''}
-                        onChange={(e) => handleAssignTransport(student.id, e.target.value)}
-                        className={`pr-8 pl-3 py-1.5 border-2 rounded-xl text-sm font-bold transition-all outline-none cursor-pointer ${
-                          student.transportRouteId ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-slate-200 text-slate-500'
-                        }`}
-                      >
-                        <option value="">No utiliza transporte</option>
-                        {routes.map(r => (
-                          <option key={r.id} value={r.id}>{r.name} (${r.cost})</option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
+                {filteredStudents.map((student) => {
+                  const hasTransport = Boolean(student.transportRouteId || (student.transporte_recorrido && student.transporte_recorrido !== 'Sin servicio' && student.transporte_recorrido !== 'No utiliza transporte'));
+                  const isPending = hasTransport && student.transporte_estado === 'pendiente_confirmacion';
+
+                  return (
+                    <tr key={student.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 font-bold text-slate-800">{student.nombre}</td>
+                      <td className="p-4">
+                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                          {student.nivel}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        {hasTransport ? (
+                          isPending ? (
+                            <div className="inline-flex items-center gap-2 justify-center">
+                              <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                Pendiente
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleConfirmTransport(student.id)}
+                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center gap-1 border-none"
+                                title="Confirmar recorrido de transporte"
+                              >
+                                <Icon name="check" className="text-sm" />
+                                <span>Confirmar</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                              <Icon name="directions_bus" className="text-sm" />
+                              Confirmado
+                            </span>
+                          )
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold">
+                            <Icon name="block" className="text-sm" />
+                            Sin Servicio
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-4 text-right">
+                        <select
+                          value={student.transportRouteId || routes.find(r => r.name === student.transporte_recorrido)?.id || ''}
+                          onChange={(e) => handleAssignTransport(student.id, e.target.value)}
+                          className={`pr-8 pl-3 py-1.5 border-2 rounded-xl text-sm font-bold transition-all outline-none cursor-pointer ${
+                            student.transportRouteId ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-slate-200 text-slate-500'
+                          }`}
+                        >
+                          <option value="">No utiliza transporte</option>
+                          {routes.map(r => (
+                            <option key={r.id} value={r.id}>{r.name} (${r.cost})</option>
+                          ))}
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {filteredStudents.length === 0 && (
                   <tr>
-                    <td colSpan="3" className="p-8 text-center text-slate-500">
+                    <td colSpan="4" className="p-8 text-center text-slate-500">
                       No se encontraron alumnos.
                     </td>
                   </tr>
