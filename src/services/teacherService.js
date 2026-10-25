@@ -45,7 +45,13 @@ export const getTeacherAcademicData = async (user) => {
     if (teacherId && sub.teacherId === teacherId) return true;
     if (userUid && sub.teacherId === userUid) return true;
     if (sub.teacherEmail && sub.teacherEmail.toLowerCase() === userEmail.toLowerCase()) return true;
-    if (sub.teacherName && userNombre && sub.teacherName.toLowerCase().includes(userNombre.toLowerCase().split(' ')[1] || '---')) return true;
+    if (sub.teacherName && userNombre) {
+      const cleanSub = sub.teacherName.toLowerCase();
+      const cleanUser = userNombre.toLowerCase();
+      if (cleanSub.includes(cleanUser) || cleanUser.includes(cleanSub)) return true;
+      const parts = cleanUser.split(/\s+/).filter(p => p.length > 2);
+      if (parts.some(p => cleanSub.includes(p))) return true;
+    }
     return false;
   }).map(sub => {
     const course = courseMap[sub.courseId] || { name: 'Curso General', level: 'primaria' };
@@ -67,7 +73,13 @@ export const getTeacherAcademicData = async (user) => {
     if (teacherId && sp.teacherId === teacherId) return true;
     if (userUid && sp.teacherId === userUid) return true;
     if (sp.teacherEmail && sp.teacherEmail.toLowerCase() === userEmail.toLowerCase()) return true;
-    if (sp.teacherName && userNombre && sp.teacherName.toLowerCase().includes(userNombre.toLowerCase().split(' ')[1] || '---')) return true;
+    if (sp.teacherName && userNombre) {
+      const cleanSp = sp.teacherName.toLowerCase();
+      const cleanUser = userNombre.toLowerCase();
+      if (cleanSp.includes(cleanUser) || cleanUser.includes(cleanSp)) return true;
+      const parts = cleanUser.split(/\s+/).filter(p => p.length > 2);
+      if (parts.some(p => cleanSp.includes(p))) return true;
+    }
     return false;
   }).map(sp => {
     const schedules = allSchedules.filter(sch => sch.referenceId === sp.id && sch.type === 'sport');
