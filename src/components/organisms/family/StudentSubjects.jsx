@@ -50,6 +50,7 @@ const StudentSubjects = ({ student, initialSubjects = null, onOpenChatWithTeache
 
     if (!student?.curso) {
       setLoading(false);
+      setSubjects([]);
       return;
     }
 
@@ -227,6 +228,21 @@ const StudentSubjects = ({ student, initialSubjects = null, onOpenChatWithTeache
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Estado: Sin materias registradas */}
+      {!loading && subjects.length === 0 && (
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 text-center">
+          <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2 block">
+            menu_book
+          </span>
+          <p className="text-slate-600 dark:text-slate-300 font-semibold text-sm">
+            No se encontraron materias asignadas para este curso.
+          </p>
+          <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">
+            Comuníquese con la secretaría académica para coordinar la matrícula.
+          </p>
         </div>
       )}
     </section>

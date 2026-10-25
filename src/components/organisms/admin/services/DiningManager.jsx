@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../../../atoms/Icon';
-import { getStudents, updateStudentDining } from '../../../../services/additionalServices';
+import { getStudents, updateStudentDining, confirmStudentDining } from '../../../../services/additionalServices';
 
 const DiningManager = () => {
   const [students, setStudents] = useState([]);
@@ -22,6 +22,16 @@ const DiningManager = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleConfirmDining = async (studentId) => {
+    try {
+      await confirmStudentDining(studentId);
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, comedor_estado: 'confirmado' } : s));
+    } catch (error) {
+      console.error("Error al confirmar comedor:", error);
+      alert("Error al confirmar comedor.");
+    }
+  };
 
   const handleToggleDining = async (studentId, currentStatus) => {
     const newStatus = !currentStatus;
@@ -100,10 +110,28 @@ const DiningManager = () => {
                         </td>
                         <td className="p-4 text-center">
                           {isEnabled ? (
-                            <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">
-                              <Icon name="restaurant" className="text-sm" />
-                              Habilitado
-                            </span>
+                            student.comedor_estado === 'pendiente_confirmacion' ? (
+                              <div className="inline-flex items-center gap-2">
+                                <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                                  Pendiente
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmDining(student.id)}
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-xs flex items-center gap-1 border-none"
+                                  title="Confirmar servicio de comedor"
+                                >
+                                  <Icon name="check" className="text-sm" />
+                                  <span>Confirmar</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                                <Icon name="restaurant" className="text-sm" />
+                                Confirmado
+                              </span>
+                            )
                           ) : (
                             <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold">
                               <Icon name="block" className="text-sm" />
