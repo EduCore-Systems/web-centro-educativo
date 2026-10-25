@@ -1,0 +1,32 @@
+name: CI - Integración Continua
+
+# Trigger: se ejecuta en cada Pull Request hacia develop o main, y en pushes a develop
+on:
+  pull_request:
+    branches: [ develop, main ]
+  push:
+    branches: [ develop ]
+
+jobs:
+  validate:
+    name: Lint & Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias limpias (Clean Install)
+        run: npm ci
+
+      - name: Ejecutar Linter (ESLint)
+        run: npm run lint
+
+      - name: Compilar aplicación (Vite Build)
+        run: npm run build
