@@ -22,6 +22,7 @@ const Navbar = ({ noButtons = false }) => {
   const isAdmin = isLoggedIn && user?.role === 'user_admin';
   const isParent = isLoggedIn && (user?.role === 'Padre' || user?.role === 'Padre/Tutor');
   const isStaff = isLoggedIn && (user?.role === 'Staff' || user?.role === 'Docente');
+  const isStudent = isLoggedIn && (user?.role === 'Estudiante' || user?.role === 'student');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Disable body scroll when mobile menu is open
@@ -61,6 +62,8 @@ const Navbar = ({ noButtons = false }) => {
               navigate={navigate}
               isAdmin={isAdmin}
               isParent={isParent}
+              isStaff={isStaff}
+              isStudent={isStudent}
             />
           ) : (
             <Button variant="primary" onClick={() => navigate('/login')}>
@@ -106,6 +109,7 @@ const Navbar = ({ noButtons = false }) => {
             isAdmin={isAdmin}
             isParent={isParent}
             isStaff={isStaff}
+            isStudent={isStudent}
           />
         )}
       </div>
@@ -182,7 +186,7 @@ const DesktopLinks = () => {
 /**
  * Subcomponent to render the user profile navigation dropdown menu on desktop.
  */
-const UserMenu = ({ logout, displayName, navigate, isAdmin, isParent, isStaff }) => {
+const UserMenu = ({ logout, displayName, navigate, isAdmin, isParent, isStaff, isStudent }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
@@ -284,6 +288,21 @@ const UserMenu = ({ logout, displayName, navigate, isAdmin, isParent, isStaff })
               Portal Docente
             </button>
           )}
+          {isStudent && (
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/student');
+                setIsUserMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-left focus:outline-none"
+            >
+              <span className="material-symbols-outlined text-slate-400 text-lg">
+                school
+              </span>
+              Portal del Alumno
+            </button>
+          )}
           <div className="border-t border-slate-100 my-1"></div>
           <button
             type="button"
@@ -317,7 +336,9 @@ const MobileDrawer = ({
   logout,
   navigate,
   isAdmin,
-  isParent
+  isParent,
+  isStaff,
+  isStudent
 }) => {
   return (
     <div className={`${styles['navbar-mobile-drawer']} ${isOpen ? styles['open'] : ''}`}>
@@ -467,6 +488,32 @@ const MobileDrawer = ({
                 >
                   <span className="material-symbols-outlined text-lg">family_restroom</span>
                   Portal Familiar
+                </button>
+              )}
+              {isStaff && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/teacher');
+                    onClose();
+                  }}
+                  className={`${styles['mobile-action-btn']} ${styles['profile-btn']}`}
+                >
+                  <span className="material-symbols-outlined text-lg">school</span>
+                  Portal Docente
+                </button>
+              )}
+              {isStudent && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/student');
+                    onClose();
+                  }}
+                  className={`${styles['mobile-action-btn']} ${styles['profile-btn']}`}
+                >
+                  <span className="material-symbols-outlined text-lg">school</span>
+                  Portal del Alumno
                 </button>
               )}
               <button
