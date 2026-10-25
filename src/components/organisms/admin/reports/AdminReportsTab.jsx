@@ -78,20 +78,20 @@ const AdminReportsTab = () => {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-end gap-4">
           <div className="flex-1 w-full">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Seleccionar Alumno</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">Seleccionar Alumno</label>
             <select
               value={selectedStudentId}
               onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-bold"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl focus:border-orange-500 outline-none text-sm font-bold transition-colors cursor-pointer"
             >
-              <option value="">-- Buscar Alumno --</option>
-              {validStudents.map(s => <option key={s.id} value={s.id}>{s.nombre} ({s.dni})</option>)}
+              <option value="" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">-- Buscar Alumno --</option>
+              {validStudents.map(s => <option key={s.id} value={s.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{s.nombre} ({s.dni})</option>)}
             </select>
           </div>
         </div>
 
         {student && (
-          <div className="bg-white border-2 border-slate-100 rounded-2xl p-6 shadow-sm space-y-6 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6 animate-fade-in transition-colors">
             <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl font-bold">{student.nombre.charAt(0)}</div>
               <div>
@@ -101,7 +101,7 @@ const AdminReportsTab = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="menu_book" className="text-blue-500" /> Materias del Nivel</h5>
                 <ul className="space-y-2">
                   {subjects.filter(sub => {
@@ -116,7 +116,7 @@ const AdminReportsTab = () => {
                 </ul>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="sports_soccer" className="text-emerald-500" /> Actividades / Deportes</h5>
                 {Array.isArray(student.deportes) && student.deportes.length > 0 ? (
                   <ul className="space-y-1">
@@ -135,7 +135,7 @@ const AdminReportsTab = () => {
                 )}
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="directions_bus" className="text-orange-500" /> Transporte</h5>
                 <p className="text-sm font-bold text-slate-800">
                   {student.transportRouteId || (student.transporte_recorrido && student.transporte_recorrido !== 'none')
@@ -144,7 +144,7 @@ const AdminReportsTab = () => {
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="restaurant" className="text-red-500" /> Comedor</h5>
                 <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   {student.diningRoomEnabled ? <><span className="w-2 h-2 rounded-full bg-green-500"></span> Habilitado</> : <><span className="w-2 h-2 rounded-full bg-slate-300"></span> No Habilitado</>}
@@ -171,20 +171,20 @@ const AdminReportsTab = () => {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row items-end gap-4">
           <div className="flex-1 w-full">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 block">Seleccionar Docente</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block">Seleccionar Docente</label>
             <select
               value={selectedTeacherId}
               onChange={(e) => setSelectedTeacherId(e.target.value)}
-              className="w-full px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-orange-500 outline-none text-sm font-bold"
+              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl focus:border-orange-500 outline-none text-sm font-bold transition-colors cursor-pointer"
             >
-              <option value="">-- Buscar Docente --</option>
-              {teachers.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+              <option value="" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">-- Buscar Docente --</option>
+              {teachers.map(t => <option key={t.id} value={t.id} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t.nombre}</option>)}
             </select>
           </div>
         </div>
 
         {teacher && (
-          <div className="bg-white border-2 border-slate-100 rounded-2xl p-6 shadow-sm space-y-6 animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-6 animate-fade-in transition-colors">
             <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
               <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xl font-bold">{teacher.nombre.charAt(0)}</div>
               <div>
@@ -194,7 +194,7 @@ const AdminReportsTab = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="assignment" className="text-blue-500" /> Cursos y Materias a cargo</h5>
                 <ul className="space-y-2">
                   {teacherSubjects.length === 0 && <li className="text-sm text-slate-500">Ninguna materia asignada.</li>}
@@ -207,7 +207,7 @@ const AdminReportsTab = () => {
                 </ul>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-transparent dark:border-slate-700/50">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="schedule" className="text-orange-500" /> Cronograma (Horarios)</h5>
                 <ul className="space-y-2">
                   {mySchedules.length === 0 && <li className="text-sm text-slate-500">Sin horarios registrados.</li>}
@@ -353,14 +353,14 @@ const AdminReportsTab = () => {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xl">
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 border-b border-slate-100 pb-6">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
               <Icon name="analytics" className="text-xl" />
             </div>
             <div>
-              <h3 className="font-headline text-xl font-bold text-slate-800">Generación de Reportes</h3>
-              <p className="text-sm text-slate-500">Seleccioná el tipo de reporte que deseás visualizar</p>
+              <h3 className="font-headline text-xl font-bold text-slate-800 dark:text-slate-100">Generación de Reportes</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Seleccioná el tipo de reporte que deseás visualizar</p>
             </div>
           </div>
 
@@ -371,7 +371,7 @@ const AdminReportsTab = () => {
               setSelectedStudentId('');
               setSelectedTeacherId('');
             }}
-            className="px-4 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-orange-500 w-full md:w-auto"
+            className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-100 rounded-xl outline-none focus:border-orange-500 w-full md:w-auto transition-colors cursor-pointer"
           >
             <optgroup label="Reportes Individuales">
               <option value="student">1. Ficha por Alumno</option>
