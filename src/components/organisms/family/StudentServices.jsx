@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../services/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { getTransportRoutes } from '../../../services/additionalServices';
 
 /**
  * Deportes institucionales con días y horarios representativos
@@ -38,12 +39,33 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
   // Estado local para la ruta de transporte
   const [transporteRecorrido, setTransporteRecorrido] = useState('none');
-
-  // Estados de carga y feedback de guardado
+  const [availableRoutes, setAvailableRoutes] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sincronizar estados locales cada vez que cambia el alumno seleccionado
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRoutes = async () => {
+      try {
+        const dbRoutes = await getTransportRoutes();
+        if (isMounted) {
+          if (dbRoutes && dbRoutes.length > 0) {
+            setAvailableRoutes(dbRoutes.map(r => ({ id: r.id, nombre: r.name || r.nombre, cost: r.cost })));
+          } else {
+            setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando rutas en familia:', err);
+        if (isMounted) {
+          setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+        }
+      }
+    };
+    fetchRoutes();
+    return () => { isMounted = false; };
+  }, []);
+
   useEffect(() => {
     if (student) {
       // Sincronizar deportes (array de IDs)
@@ -53,10 +75,16 @@ const StudentServices = ({ student, onStudentUpdated }) => {
       setUsaComedor(Boolean(student.usa_comedor || student.diningRoomEnabled));
 
       // Sincronizar transporte (soporta transportRouteId y transporte_recorrido)
-      setTransporteRecorrido(student.transportRouteId || student.transporte_recorrido || 'none');
+      const rawRoute = student.transportRouteId || student.transporte_recorrido;
+      if (!rawRoute || rawRoute === 'none' || rawRoute === 'Sin servicio') {
+        setTransporteRecorrido('none');
+      } else {
+        const matchRoute = availableRoutes.find(r => r.id === rawRoute || r.nombre === rawRoute);
+        setTransporteRecorrido(matchRoute ? matchRoute.id : rawRoute);
+      }
       setSaveSuccess(false);
     }
-  }, [student]);
+  }, [student, availableRoutes]);
 
   // Manejador del toggle de un deporte (RF-16: Regla de máx 2 deportes)
   const handleSportToggle = (sportId) => {
@@ -81,12 +109,16 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
     try {
       const studentRef = doc(db, 'students', student.id);
+      const selectedRouteObj = availableRoutes.find(r => r.id === transporteRecorrido);
+      const routeName = selectedRouteObj ? selectedRouteObj.nombre : (transporteRecorrido === 'none' ? 'Sin servicio' : transporteRecorrido);
+      const routeId = transporteRecorrido === 'none' ? null : (selectedRouteObj ? selectedRouteObj.id : transporteRecorrido);
+
       const updateData = {
         deportes: selectedSports,
         usa_comedor: usaComedor,
         diningRoomEnabled: usaComedor,
-        transporte_recorrido: transporteRecorrido,
-        transportRouteId: transporteRecorrido === 'none' ? null : transporteRecorrido,
+        transporte_recorrido: routeName,
+        transportRouteId: routeId,
       };
 
       await updateDoc(studentRef, updateData);
@@ -120,7 +152,8 @@ const StudentServices = ({ student, onStudentUpdated }) => {
   const initialComedor = Boolean(student?.usa_comedor || student?.diningRoomEnabled);
   const comedorChanged = initialComedor !== usaComedor;
 
-  const initialTransporte = student?.transportRouteId || student?.transporte_recorrido || 'none';
+  const currentRouteObj = availableRoutes.find(r => r.id === student?.transportRouteId || r.nombre === student?.transporte_recorrido);
+  const initialTransporte = currentRouteObj ? currentRouteObj.id : (student?.transportRouteId || student?.transporte_recorrido || 'none');
   const transporteChanged = initialTransporte !== transporteRecorrido;
 
   // Solo se activa si alguna de las 3 opciones cambió respecto a Firebase
@@ -298,9 +331,10 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                   onChange={(e) => setTransporteRecorrido(e.target.value)}
                   className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-sm text-slate-800 dark:text-slate-100 pr-10 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
                 >
-                  {RUTAS_TRANSPORTE.map((ruta) => (
-                    <option key={ruta.id} value={ruta.id === 'none' ? 'none' : ruta.nombre}>
-                      {ruta.nombre}
+                  <option value="none">No utiliza servicio de transporte</option>
+                  {availableRoutes.map((ruta) => (
+                    <option key={ruta.id} value={ruta.id}>
+                      {ruta.nombre} {ruta.cost ? `(${ruta.cost})` : ''}
                     </option>
                   ))}
                 </select>
@@ -313,6 +347,12 @@ const StudentServices = ({ student, onStudentUpdated }) => {
             {/* Detalle informativo de la ruta */}
             {transporteRecorrido && transporteRecorrido !== 'none' && (
               <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-800/40 text-xs space-y-1 text-slate-600 dark:text-slate-300 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Recorrido asignado:</span>
+                  <strong className="text-slate-800 dark:text-white">
+                    {availableRoutes.find(r => r.id === transporteRecorrido)?.nombre || transporteRecorrido}
+                  </strong>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-slate-400">Parada estimada:</span>
                   <strong className="text-slate-800 dark:text-white">Puerta principal · 07:15 hs</strong>

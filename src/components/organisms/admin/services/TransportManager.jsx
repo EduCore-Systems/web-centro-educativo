@@ -97,9 +97,11 @@ const TransportManager = () => {
 
   const handleAssignTransport = async (studentId, routeId) => {
     try {
-      await updateStudentTransport(studentId, routeId);
+      const selectedRoute = routes.find(r => r.id === routeId);
+      const routeName = selectedRoute ? selectedRoute.name : 'No utiliza transporte';
+      await updateStudentTransport(studentId, routeId, routeName);
       // Actualizar estado local para que sea instantáneo sin recargar toda la BD
-      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, transportRouteId: routeId } : s));
+      setStudents(prev => prev.map(s => s.id === studentId ? { ...s, transportRouteId: routeId, transporte_recorrido: routeName } : s));
     } catch (error) {
       console.error("Error asignando transporte:", error);
       alert("Error al asignar transporte al alumno.");
@@ -152,7 +154,7 @@ const TransportManager = () => {
                     </tr>
                   ) : (
                     routes.map((route) => {
-                      const pasajeros = students.filter(s => s.transportRouteId === route.id).length;
+                      const pasajeros = students.filter(s => s.transportRouteId === route.id || s.transporte_recorrido === route.name).length;
                       return (
                         <tr key={route.id} className="hover:bg-slate-50 transition-colors">
                           <td className="p-4 font-bold text-slate-800 flex items-center gap-2">
@@ -233,7 +235,7 @@ const TransportManager = () => {
                     </td>
                     <td className="p-4 text-right">
                       <select
-                        value={student.transportRouteId || ''}
+                        value={student.transportRouteId || routes.find(r => r.name === student.transporte_recorrido)?.id || ''}
                         onChange={(e) => handleAssignTransport(student.id, e.target.value)}
                         className={`pr-8 pl-3 py-1.5 border-2 rounded-xl text-sm font-bold transition-all outline-none cursor-pointer ${
                           student.transportRouteId ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-slate-200 text-slate-500'

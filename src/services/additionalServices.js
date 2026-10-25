@@ -39,13 +39,20 @@ export const getStudents = async () => {
 };
 
 // Asignar o desasignar recorrido de transporte a un alumno
-export const updateStudentTransport = async (studentId, transportRouteId) => {
+export const updateStudentTransport = async (studentId, transportRouteId, routeName = null) => {
   const docRef = doc(db, 'students', studentId);
-  await updateDoc(docRef, { transportRouteId });
+  const data = { transportRouteId: transportRouteId || null };
+  if (routeName !== null) {
+    data.transporte_recorrido = routeName;
+  }
+  await updateDoc(docRef, data);
 };
 
 // Habilitar o deshabilitar servicio de comedor
 export const updateStudentDining = async (studentId, diningRoomEnabled) => {
   const docRef = doc(db, 'students', studentId);
-  await updateDoc(docRef, { diningRoomEnabled });
+  await updateDoc(docRef, {
+    diningRoomEnabled,
+    usa_comedor: diningRoomEnabled,
+  });
 };
