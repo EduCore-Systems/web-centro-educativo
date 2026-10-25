@@ -1,0 +1,37 @@
+name: CD - Despliegue a Firebase Hosting
+
+# Trigger: despliegue automático en merges a develop y main, y preview en PRs
+on:
+  pull_request:
+    branches: [ develop, main ]
+  push:
+    branches: [ develop, main ]
+
+jobs:
+  build_and_deploy:
+    name: Build & Deploy to Firebase
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias limpias (Clean Install)
+        run: npm ci
+
+      - name: Compilar aplicación (Vite Build)
+        run: npm run build
+
+      - name: Desplegar en Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EDUCORE_SYSTEMS_DD8A3 }}'
+          channelId: live
+          projectId: educore-systems-dd8a3
