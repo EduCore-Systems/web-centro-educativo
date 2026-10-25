@@ -39,3 +39,21 @@ h2 {
 p {
   margin: 10px;
 }
+
+/* Soporte global de Modo Oscuro para campos de selección y menús desplegables nativos */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark select,
+.dark select {
+  color-scheme: dark;
+}
+
+html.dark option,
+html.dark optgroup,
+.dark option,
+.dark optgroup {
+  background-color: #1e293b;
+  color: #f1f5f9;
+}
