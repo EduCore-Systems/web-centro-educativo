@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../services/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { getTransportRoutes } from '../../../services/additionalServices';
 
 /**
  * Deportes institucionales con días y horarios representativos
@@ -38,12 +39,33 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
   // Estado local para la ruta de transporte
   const [transporteRecorrido, setTransporteRecorrido] = useState('none');
-
-  // Estados de carga y feedback de guardado
+  const [availableRoutes, setAvailableRoutes] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sincronizar estados locales cada vez que cambia el alumno seleccionado
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRoutes = async () => {
+      try {
+        const dbRoutes = await getTransportRoutes();
+        if (isMounted) {
+          if (dbRoutes && dbRoutes.length > 0) {
+            setAvailableRoutes(dbRoutes.map(r => ({ id: r.id, nombre: r.name || r.nombre, cost: r.cost })));
+          } else {
+            setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando rutas en familia:', err);
+        if (isMounted) {
+          setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+        }
+      }
+    };
+    fetchRoutes();
+    return () => { isMounted = false; };
+  }, []);
+
   useEffect(() => {
     if (student) {
       // Sincronizar deportes (array de IDs)
@@ -53,10 +75,16 @@ const StudentServices = ({ student, onStudentUpdated }) => {
       setUsaComedor(Boolean(student.usa_comedor || student.diningRoomEnabled));
 
       // Sincronizar transporte (soporta transportRouteId y transporte_recorrido)
-      setTransporteRecorrido(student.transportRouteId || student.transporte_recorrido || 'none');
+      const rawRoute = student.transportRouteId || student.transporte_recorrido;
+      if (!rawRoute || rawRoute === 'none' || rawRoute === 'Sin servicio') {
+        setTransporteRecorrido('none');
+      } else {
+        const matchRoute = availableRoutes.find(r => r.id === rawRoute || r.nombre === rawRoute);
+        setTransporteRecorrido(matchRoute ? matchRoute.id : rawRoute);
+      }
       setSaveSuccess(false);
     }
-  }, [student]);
+  }, [student, availableRoutes]);
 
   // Manejador del toggle de un deporte (RF-16: Regla de máx 2 deportes)
   const handleSportToggle = (sportId) => {
@@ -81,12 +109,33 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
     try {
       const studentRef = doc(db, 'students', student.id);
+      const selectedRouteObj = availableRoutes.find(r => r.id === transporteRecorrido);
+      const routeName = selectedRouteObj ? selectedRouteObj.nombre : (transporteRecorrido === 'none' ? 'Sin servicio' : transporteRecorrido);
+      const routeId = transporteRecorrido === 'none' ? null : (selectedRouteObj ? selectedRouteObj.id : transporteRecorrido);
+
+      const isTransportChanged = (routeId || null) !== (student?.transportRouteId || null);
+      const transporteEstado = !routeId
+        ? 'sin_servicio'
+        : isTransportChanged
+        ? 'pendiente_confirmacion'
+        : (student?.transporte_estado || 'pendiente_confirmacion');
+
+      const isDiningChanged = Boolean(usaComedor) !== Boolean(student?.diningRoomEnabled || student?.usa_comedor);
+      const comedorEstado = !usaComedor
+        ? 'sin_servicio'
+        : isDiningChanged
+        ? 'pendiente_confirmacion'
+        : (student?.comedor_estado || 'pendiente_confirmacion');
+
       const updateData = {
         deportes: selectedSports,
         usa_comedor: usaComedor,
         diningRoomEnabled: usaComedor,
-        transporte_recorrido: transporteRecorrido,
-        transportRouteId: transporteRecorrido === 'none' ? null : transporteRecorrido,
+        transporte_recorrido: routeName,
+        transportRouteId: routeId,
+        transporte_estado: transporteEstado,
+        comedor_estado: comedorEstado,
+        servicios_ultima_solicitud: new Date().toISOString(),
       };
 
       await updateDoc(studentRef, updateData);
@@ -120,7 +169,8 @@ const StudentServices = ({ student, onStudentUpdated }) => {
   const initialComedor = Boolean(student?.usa_comedor || student?.diningRoomEnabled);
   const comedorChanged = initialComedor !== usaComedor;
 
-  const initialTransporte = student?.transportRouteId || student?.transporte_recorrido || 'none';
+  const currentRouteObj = availableRoutes.find(r => r.id === student?.transportRouteId || r.nombre === student?.transporte_recorrido);
+  const initialTransporte = currentRouteObj ? currentRouteObj.id : (student?.transportRouteId || student?.transporte_recorrido || 'none');
   const transporteChanged = initialTransporte !== transporteRecorrido;
 
   // Solo se activa si alguna de las 3 opciones cambió respecto a Firebase
@@ -279,13 +329,23 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                   <p className="text-xs text-slate-400 dark:text-slate-500">(RF-17)</p>
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                transporteRecorrido && transporteRecorrido !== 'none'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-              }`}>
-                {transporteRecorrido && transporteRecorrido !== 'none' ? 'Activo' : 'Sin servicio'}
-              </span>
+              {transporteRecorrido && transporteRecorrido !== 'none' ? (
+                student?.transporte_estado === 'confirmado' ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Confirmado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Solicitud Pendiente
+                  </span>
+                )
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                  Sin servicio
+                </span>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -298,9 +358,10 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                   onChange={(e) => setTransporteRecorrido(e.target.value)}
                   className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-sm text-slate-800 dark:text-slate-100 pr-10 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
                 >
-                  {RUTAS_TRANSPORTE.map((ruta) => (
-                    <option key={ruta.id} value={ruta.id === 'none' ? 'none' : ruta.nombre}>
-                      {ruta.nombre}
+                  <option value="none">No utiliza servicio de transporte</option>
+                  {availableRoutes.map((ruta) => (
+                    <option key={ruta.id} value={ruta.id}>
+                      {ruta.nombre} {ruta.cost ? `(${ruta.cost})` : ''}
                     </option>
                   ))}
                 </select>
@@ -313,6 +374,12 @@ const StudentServices = ({ student, onStudentUpdated }) => {
             {/* Detalle informativo de la ruta */}
             {transporteRecorrido && transporteRecorrido !== 'none' && (
               <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-800/40 text-xs space-y-1 text-slate-600 dark:text-slate-300 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Recorrido asignado:</span>
+                  <strong className="text-slate-800 dark:text-white">
+                    {availableRoutes.find(r => r.id === transporteRecorrido)?.nombre || transporteRecorrido}
+                  </strong>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-slate-400">Parada estimada:</span>
                   <strong className="text-slate-800 dark:text-white">Puerta principal · 07:15 hs</strong>
@@ -338,8 +405,27 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                 </div>
               </div>
 
-              {/* Modern Switch Toggle */}
-              <label className="relative inline-flex items-center cursor-pointer select-none">
+              <div className="flex items-center gap-3">
+                {usaComedor ? (
+                  student?.comedor_estado === 'confirmado' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Confirmado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      Solicitud Pendiente
+                    </span>
+                  )
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    Inactivo
+                  </span>
+                )}
+
+                {/* Modern Switch Toggle */}
+                <label className="relative inline-flex items-center cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={usaComedor}
@@ -348,6 +434,7 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                 />
                 <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-amber-500" />
               </label>
+              </div>
             </div>
 
             <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition-all duration-200 ${
@@ -370,6 +457,12 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                   ? 'Menú supervisado por nutricionistas del colegio. Incluye plato principal, postre y colación.'
                   : 'Active el interruptor si desea que el estudiante almuerce en las instalaciones.'}
               </p>
+              {usaComedor && student?.comedor_estado === 'pendiente_confirmacion' && (
+                <div className="mt-2 pt-2 border-t border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">info</span>
+                  <span>Su solicitud de comedor ha sido enviada. La administración la confirmará a la brevedad.</span>
+                </div>
+              )}
             </div>
           </div>
 
