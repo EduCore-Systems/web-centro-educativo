@@ -235,7 +235,7 @@ const TransportManager = () => {
                       <select
                         value={student.transportRouteId || ''}
                         onChange={(e) => handleAssignTransport(student.id, e.target.value)}
-                        className={`px-3 py-1.5 border-2 rounded-xl text-sm font-bold transition-all outline-none cursor-pointer ${
+                        className={`pr-8 pl-3 py-1.5 border-2 rounded-xl text-sm font-bold transition-all outline-none cursor-pointer ${
                           student.transportRouteId ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-slate-50 border-slate-200 text-slate-500'
                         }`}
                       >

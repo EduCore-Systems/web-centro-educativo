@@ -20,6 +20,8 @@ const Navbar = ({ noButtons = false }) => {
     user?.email?.split('@')[0] ||
     'Usuario';
   const isAdmin = isLoggedIn && user?.role === 'user_admin';
+  const isParent = isLoggedIn && (user?.role === 'Padre' || user?.role === 'Padre/Tutor');
+  const isStaff = isLoggedIn && (user?.role === 'Staff' || user?.role === 'Docente');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Disable body scroll when mobile menu is open
@@ -58,6 +60,7 @@ const Navbar = ({ noButtons = false }) => {
               displayName={displayName}
               navigate={navigate}
               isAdmin={isAdmin}
+              isParent={isParent}
             />
           ) : (
             <Button variant="primary" onClick={() => navigate('/login')}>
@@ -101,6 +104,8 @@ const Navbar = ({ noButtons = false }) => {
             logout={logout}
             navigate={navigate}
             isAdmin={isAdmin}
+            isParent={isParent}
+            isStaff={isStaff}
           />
         )}
       </div>
@@ -177,7 +182,7 @@ const DesktopLinks = () => {
 /**
  * Subcomponent to render the user profile navigation dropdown menu on desktop.
  */
-const UserMenu = ({ logout, displayName, navigate, isAdmin }) => {
+const UserMenu = ({ logout, displayName, navigate, isAdmin, isParent, isStaff }) => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
 
@@ -244,9 +249,39 @@ const UserMenu = ({ logout, displayName, navigate, isAdmin }) => {
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-left focus:outline-none"
             >
               <span className="material-symbols-outlined text-slate-400 text-lg">
-                person
+                admin_panel_settings
               </span>
               Panel de usuarios
+            </button>
+          )}
+          {isParent && (
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/family');
+                setIsUserMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-left focus:outline-none"
+            >
+              <span className="material-symbols-outlined text-slate-400 text-lg">
+                family_restroom
+              </span>
+              Portal Familiar
+            </button>
+          )}
+          {isStaff && (
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/teacher');
+                setIsUserMenuOpen(false);
+              }}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors text-sm font-semibold cursor-pointer text-left focus:outline-none"
+            >
+              <span className="material-symbols-outlined text-slate-400 text-lg">
+                school
+              </span>
+              Portal Docente
             </button>
           )}
           <div className="border-t border-slate-100 my-1"></div>
@@ -281,7 +316,8 @@ const MobileDrawer = ({
   displayName,
   logout,
   navigate,
-  isAdmin
+  isAdmin,
+  isParent
 }) => {
   return (
     <div className={`${styles['navbar-mobile-drawer']} ${isOpen ? styles['open'] : ''}`}>
@@ -418,6 +454,19 @@ const MobileDrawer = ({
                 >
                   <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                   Panel de usuarios
+                </button>
+              )}
+              {isParent && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/family');
+                    onClose();
+                  }}
+                  className={`${styles['mobile-action-btn']} ${styles['profile-btn']}`}
+                >
+                  <span className="material-symbols-outlined text-lg">family_restroom</span>
+                  Portal Familiar
                 </button>
               )}
               <button

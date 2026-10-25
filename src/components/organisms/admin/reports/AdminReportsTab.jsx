@@ -4,6 +4,7 @@ import { getCourses, getSubjects, getSports, getSchedules } from '../../../../se
 import { getStudents, getTransportRoutes } from '../../../../services/additionalServices';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../../../services/firebase';
+import AdminFinancialReport from './AdminFinancialReport';
 
 const AdminReportsTab = () => {
   const [reportType, setReportType] = useState('student');
@@ -66,7 +67,7 @@ const AdminReportsTab = () => {
   // --- Helpers ---
   const getCourseName = (id) => courses.find(c => c.id === id)?.name || 'N/A';
   const getTeacherName = (id) => teachers.find(t => t.id === id)?.nombre || 'N/A';
-  const getRouteName = (id) => routes.find(r => r.id === id)?.name || 'Sin Asignar';
+  const getRouteName = (id) => routes.find(r => r.id === id || r.name === id)?.name || id || 'Sin Asignar';
 
   const validStudents = students.filter(s => s.status !== 'pendiente');
 
@@ -105,7 +106,7 @@ const AdminReportsTab = () => {
                 <ul className="space-y-2">
                   {subjects.filter(sub => {
                     const c = courses.find(c => c.id === sub.courseId);
-                    return c && c.level === student.nivel;
+                    return c && c.name === student.curso;
                   }).map(sub => (
                     <li key={sub.id} className="text-sm text-slate-600 flex justify-between">
                       <span className="font-bold">{sub.name}</span>
@@ -116,13 +117,31 @@ const AdminReportsTab = () => {
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl">
-                <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="sports_soccer" className="text-emerald-500" /> Actividades</h5>
-                <p className="text-sm text-slate-500 italic">Inscripción a deportes según tabla relacional.</p>
+                <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="sports_soccer" className="text-emerald-500" /> Actividades / Deportes</h5>
+                {Array.isArray(student.deportes) && student.deportes.length > 0 ? (
+                  <ul className="space-y-1">
+                    {student.deportes.map((dId, idx) => {
+                      const sp = sports.find(s => s.id === dId || s.name === dId || s.nombre === dId);
+                      return (
+                        <li key={idx} className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          {sp ? (sp.name || sp.nombre) : dId}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500 italic">Sin inscripción en actividades extracurriculares.</p>
+                )}
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl">
                 <h5 className="font-bold text-slate-700 mb-3 flex items-center gap-2"><Icon name="directions_bus" className="text-orange-500" /> Transporte</h5>
-                <p className="text-sm font-bold text-slate-800">{student.transportRouteId ? getRouteName(student.transportRouteId) : 'No utiliza transporte'}</p>
+                <p className="text-sm font-bold text-slate-800">
+                  {student.transportRouteId || (student.transporte_recorrido && student.transporte_recorrido !== 'none')
+                    ? getRouteName(student.transportRouteId || student.transporte_recorrido)
+                    : 'No utiliza transporte'}
+                </p>
               </div>
 
               <div className="bg-slate-50 p-4 rounded-xl">
@@ -258,7 +277,7 @@ const AdminReportsTab = () => {
     validStudents.forEach(s => {
       subjects.forEach(sub => {
         const c = courses.find(c => c.id === sub.courseId);
-        if (c && c.level === s.nivel) {
+        if (c && c.name === s.curso) {
           rows.push([
             <span className="font-bold">{s.nombre}</span>,
             s.nivel.toUpperCase(),
@@ -292,22 +311,41 @@ const AdminReportsTab = () => {
   };
 
   const getListSport = () => {
-    // Alumnos por Deporte (En este TP mockeamos asumiendo alumnos de nivel secundario en deportes, u omitimos)
-    return renderListReport('Alumnos por Deporte', ['Deporte', 'Nivel', 'Alumno'], [[<span className="italic text-slate-400">Funcionalidad pendiente de tabla relacional alumno_deporte</span>, '-', '-']]);
+    const rows = [];
+    validStudents.filter(s => Array.isArray(s.deportes) && s.deportes.length > 0).forEach(s => {
+      s.deportes.forEach(sportId => {
+        const sportObj = sports.find(sp => sp.id === sportId || sp.name === sportId || sp.nombre === sportId);
+        rows.push([
+          <span key={`${s.id}-${sportId}`} className="font-bold text-emerald-600">{sportObj ? (sportObj.name || sportObj.nombre) : sportId}</span>,
+          (s.nivel || '').toUpperCase(),
+          s.nombre
+        ]);
+      });
+    });
+    if (rows.length === 0) {
+      return renderListReport('Alumnos por Deporte', ['Deporte', 'Nivel', 'Alumno'], [[<span key="empty" className="italic text-slate-400">Sin alumnos inscriptos a deportes aún</span>, '-', '-']]);
+    }
+    rows.sort((a, b) => a[0].props.children.localeCompare(b[0].props.children));
+    return renderListReport('Alumnos por Deporte', ['Deporte', 'Nivel', 'Alumno'], rows);
   };
 
   const getListTransport = () => {
     const rows = [];
-    validStudents.filter(s => s.transportRouteId).forEach(s => {
-      const route = routes.find(r => r.id === s.transportRouteId);
-      if (route) {
-        rows.push([
-          <span className="font-bold text-orange-600">{route.name}</span>,
-          s.nombre,
-          s.nivel.toUpperCase()
-        ]);
-      }
+    validStudents.filter(s => {
+      const t = s.transportRouteId || s.transporte_recorrido;
+      return t && t !== 'none';
+    }).forEach(s => {
+      const routeVal = s.transportRouteId || s.transporte_recorrido;
+      const route = routes.find(r => r.id === routeVal || r.name === routeVal) || { name: routeVal };
+      rows.push([
+        <span key={`${s.id}-${routeVal}`} className="font-bold text-orange-600">{route.name}</span>,
+        s.nombre,
+        (s.nivel || '').toUpperCase()
+      ]);
     });
+    if (rows.length === 0) {
+      return renderListReport('Alumnos por Recorrido de Transporte', ['Recorrido', 'Alumno Pasajero', 'Nivel Educativo'], [[<span key="empty" className="italic text-slate-400">Sin alumnos inscriptos en transporte aún</span>, '-', '-']]);
+    }
     rows.sort((a, b) => a[0].props.children.localeCompare(b[0].props.children));
     return renderListReport('Alumnos por Recorrido de Transporte', ['Recorrido', 'Alumno Pasajero', 'Nivel Educativo'], rows);
   };
@@ -346,6 +384,9 @@ const AdminReportsTab = () => {
               <option value="sport">6. Alumnos por Deporte</option>
               <option value="transport">7. Alumnos por Transporte</option>
             </optgroup>
+            <optgroup label="Gestión Financiera">
+              <option value="financial">8. Estado de Cobranzas y Morosidad</option>
+            </optgroup>
           </select>
         </div>
 
@@ -363,6 +404,7 @@ const AdminReportsTab = () => {
             {reportType === 'teacher_level' && getListTeacherLevel()}
             {reportType === 'sport' && getListSport()}
             {reportType === 'transport' && getListTransport()}
+            {reportType === 'financial' && <AdminFinancialReport />}
           </div>
         )}
       </div>
