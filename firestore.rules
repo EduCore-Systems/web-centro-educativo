@@ -33,7 +33,10 @@ service cloud.firestore {
     match /students/{studentId} {
       // Público solo para crear (Formulario de Preinscripción en la web pública)
       allow create: if true;
-      // Lectura: Administradores, Docentes/Staff o el Padre vinculado del alumno
+      // Consultas públicas: necesarias para validar DNI duplicado y contar alumnos
+      // desde el formulario de preinscripción (usuario no autenticado)
+      allow list: if true;
+      // Lectura de documento individual: Administradores, Docentes/Staff o el Padre/Alumno vinculado
       allow read: if isAdmin() || isStaff() || (isAuthenticated() && (
         resource.data.parentId == request.auth.uid ||
         resource.data.studentID_login == request.auth.token.studentId
