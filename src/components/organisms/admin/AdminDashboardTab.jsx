@@ -28,9 +28,9 @@ const AdminDashboardTab = ({
           <div className="space-y-6">
 
             {/* Filters Bar */}
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
               <div className="relative w-full md:w-96">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                   <Icon name="search" />
                 </span>
                 <input
@@ -40,23 +40,28 @@ const AdminDashboardTab = ({
                   aria-label="Buscar por alumno, email del tutor o ID"
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm"
+                  className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-orange-500 focus:outline-none transition-all text-sm"
                 />
               </div>
 
               <div className="flex items-center gap-3 w-full md:w-auto">
-                <label htmlFor="levelFilter" className="text-sm font-semibold text-slate-500 whitespace-nowrap">Nivel Educativo:</label>
-                <select
-                  id="levelFilter"
-                  value={levelFilter}
-                  onChange={(e) => setLevelFilter(e.target.value)}
-                  className="w-full md:w-48 px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none"
-                >
-                  <option value="todos">Todos los niveles</option>
-                  <option value="inicial">Nivel Inicial</option>
-                  <option value="primaria">Primaria</option>
-                  <option value="secundaria">Secundaria</option>
-                </select>
+                <label htmlFor="levelFilter" className="text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">Nivel Educativo:</label>
+                <div className="relative w-full md:w-48">
+                  <select
+                    id="levelFilter"
+                    value={levelFilter}
+                    onChange={(e) => setLevelFilter(e.target.value)}
+                    className="w-full px-4 py-3 pr-10 bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:border-orange-500 focus:outline-none transition-all text-sm appearance-none cursor-pointer"
+                  >
+                    <option value="todos" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Todos los niveles</option>
+                    <option value="inicial" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Nivel Inicial</option>
+                    <option value="primaria" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Primaria</option>
+                    <option value="secundaria" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Secundaria</option>
+                  </select>
+                  <span className="material-symbols-outlined text-slate-400 dark:text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-lg">
+                    expand_more
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -69,12 +74,12 @@ const AdminDashboardTab = ({
             )}
 
             {/* Sub-tabs Selector */}
-            <div className="flex bg-slate-200/40 p-1 rounded-xl border border-slate-200/50 max-w-md">
+            <div className="flex bg-slate-200/40 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50 max-w-md">
               <button
                 onClick={() => setDashboardSubTab('students')}
                 className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${dashboardSubTab === 'students'
                   ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-transparent'
                   }`}
               >
                 Estudiantes y Tutores
@@ -83,7 +88,7 @@ const AdminDashboardTab = ({
                 onClick={() => setDashboardSubTab('staff')}
                 className={`flex-1 py-2 rounded-lg font-label font-bold text-xs transition-all cursor-pointer border-none ${dashboardSubTab === 'staff'
                   ? 'bg-orange-500 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-transparent'
                   }`}
               >
                 Personal Institucional
@@ -94,14 +99,14 @@ const AdminDashboardTab = ({
                   dashboardSubTab === 'pendientes'
                     ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
                     : solicitudesPendientes.length > 0
-                      ? 'bg-amber-100/80 text-amber-900 hover:bg-amber-200 border border-amber-300'
-                      : 'text-slate-600 hover:text-slate-900 bg-transparent'
+                      ? 'bg-amber-100/80 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-900/60 border border-amber-300 dark:border-amber-800'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-transparent'
                 }`}
               >
                 <span>Solicitudes</span>
                 {/* Contador con fondo rojo bien visible y legible */}
                 {solicitudesPendientes.length > 0 && (
-                  <span className="bg-red-600 text-white text-[11px] font-extrabold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-sm ring-2 ring-white">
+                  <span className="bg-red-600 text-white text-[11px] font-extrabold rounded-full min-w-[20px] h-5 px-1 flex items-center justify-center shadow-sm ring-2 ring-white dark:ring-slate-900">
                     {solicitudesPendientes.length}
                   </span>
                 )}
@@ -109,7 +114,7 @@ const AdminDashboardTab = ({
             </div>
 
             {/* Users Table */}
-            <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden transition-colors">
               <div className="overflow-x-auto">
                 {isLoadingData ? (
                   <div className="p-12 text-center text-slate-500">
@@ -128,7 +133,7 @@ const AdminDashboardTab = ({
                     <div className="hidden md:block">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-label font-bold text-xs uppercase tracking-wider">
+                          <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-400 font-label font-bold text-xs uppercase tracking-wider">
                             <th className="py-4 px-6">Estudiante / ID</th>
                             <th className="py-4 px-6">Nivel</th>
                             <th className="py-4 px-6">Tutor / Contacto</th>
@@ -136,14 +141,14 @@ const AdminDashboardTab = ({
                             <th className="py-4 px-6 text-center">Acciones</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 font-body text-sm text-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-body text-sm text-slate-700 dark:text-slate-200">
                           {filteredStudents.map((student) => {
                             const parent = parentsList.find(p => p.id === student.parentId) || { nombre: 'Sin Tutor', email: '', dni: '', mustChangePassword: true, emailInvalid: false };
                             return (
-                              <tr key={student.id} className="hover:bg-slate-50/50 transition-colors">
+                              <tr key={student.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                                 <td className="py-5 px-6">
                                   <div className="flex flex-col gap-0.5">
-                                    <span className="font-bold text-slate-800">{student.nombre}</span>
+                                    <span className="font-bold text-slate-800 dark:text-slate-100">{student.nombre}</span>
                                     <span className="text-xs text-slate-400 font-mono">
                                       {student.studentID_login} | DNI: {student.dni} | Género: {student.genero || 'No especificado'}
                                     </span>
@@ -159,7 +164,7 @@ const AdminDashboardTab = ({
                                 </td>
                                 <td className="py-5 px-6">
                                   <div className="flex flex-col gap-0.5">
-                                    <span className="font-semibold text-slate-700">{parent.nombre}</span>
+                                    <span className="font-semibold text-slate-700 dark:text-slate-200">{parent.nombre}</span>
                                     <span className="text-xs text-slate-500">{parent.email || student.emailPadre}</span>
                                     {parent.dni && <span className="text-xs text-slate-500">DNI: {parent.dni}</span>}
                                     {parent.emailInvalid && (
@@ -397,7 +402,7 @@ const AdminDashboardTab = ({
                     <div className="hidden md:block">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="bg-slate-50/70 border-b border-slate-100 text-slate-400 font-label font-bold text-xs uppercase tracking-wider">
+                          <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 text-slate-400 dark:text-slate-400 font-label font-bold text-xs uppercase tracking-wider">
                             <th className="py-4 px-6">Nombre / DNI</th>
                             <th className="py-4 px-6">Rol Institucional</th>
                             <th className="py-4 px-6">Contacto (Email)</th>
@@ -405,12 +410,12 @@ const AdminDashboardTab = ({
                             <th className="py-4 px-6 text-center">Acciones</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 font-body text-sm text-slate-700">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-body text-sm text-slate-700 dark:text-slate-200">
                           {filteredStaff.map((staff) => (
-                            <tr key={staff.id} className="hover:bg-slate-50/50 transition-colors">
+                            <tr key={staff.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                               <td className="py-5 px-6">
                                 <div className="flex flex-col gap-0.5">
-                                  <span className="font-bold text-slate-800">{staff.nombre}</span>
+                                  <span className="font-bold text-slate-800 dark:text-slate-100">{staff.nombre}</span>
                                   <span className="text-xs text-slate-400 font-mono">DNI: {staff.dni || 'No registrado'}</span>
                                 </div>
                               </td>

@@ -30,7 +30,7 @@ export const deleteTransportRoute = async (id) => {
 };
 
 // =======================
-// ESTUDIANTES (Asignaciones)
+// ESTUDIANTES (Asignaciones y Confirmaciones)
 // =======================
 
 export const getStudents = async () => {
@@ -39,13 +39,36 @@ export const getStudents = async () => {
 };
 
 // Asignar o desasignar recorrido de transporte a un alumno
-export const updateStudentTransport = async (studentId, transportRouteId) => {
+export const updateStudentTransport = async (studentId, transportRouteId, routeName = null, estado = 'confirmado') => {
   const docRef = doc(db, 'students', studentId);
-  await updateDoc(docRef, { transportRouteId });
+  const data = { transportRouteId: transportRouteId || null };
+  if (routeName !== null) {
+    data.transporte_recorrido = routeName;
+  }
+  if (estado !== null) {
+    data.transporte_estado = transportRouteId ? estado : 'sin_servicio';
+  }
+  await updateDoc(docRef, data);
+};
+
+// Confirmar solicitud de transporte por parte de administración
+export const confirmStudentTransport = async (studentId) => {
+  const docRef = doc(db, 'students', studentId);
+  await updateDoc(docRef, { transporte_estado: 'confirmado' });
 };
 
 // Habilitar o deshabilitar servicio de comedor
-export const updateStudentDining = async (studentId, diningRoomEnabled) => {
+export const updateStudentDining = async (studentId, diningRoomEnabled, estado = 'confirmado') => {
   const docRef = doc(db, 'students', studentId);
-  await updateDoc(docRef, { diningRoomEnabled });
+  await updateDoc(docRef, {
+    diningRoomEnabled,
+    usa_comedor: diningRoomEnabled,
+    comedor_estado: diningRoomEnabled ? estado : 'sin_servicio',
+  });
+};
+
+// Confirmar solicitud de comedor por parte de administración
+export const confirmStudentDining = async (studentId) => {
+  const docRef = doc(db, 'students', studentId);
+  await updateDoc(docRef, { comedor_estado: 'confirmado' });
 };

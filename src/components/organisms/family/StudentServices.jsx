@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../../services/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
+import { getTransportRoutes } from '../../../services/additionalServices';
 
 /**
  * Deportes institucionales con días y horarios representativos
@@ -28,8 +29,9 @@ const RUTAS_TRANSPORTE = [
 /**
  * StudentServices (Paso 4)
  * Gestión integral de Actividades Extracurriculares, Comedor y Transporte Escolar (RF-16 y RF-17).
+ * Soporta modo readOnly para el Portal del Alumno.
  */
-const StudentServices = ({ student, onStudentUpdated }) => {
+const StudentServices = ({ student, onStudentUpdated, readOnly = false }) => {
   // Estado local para los deportes seleccionados (IDs)
   const [selectedSports, setSelectedSports] = useState([]);
 
@@ -38,12 +40,33 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
   // Estado local para la ruta de transporte
   const [transporteRecorrido, setTransporteRecorrido] = useState('none');
-
-  // Estados de carga y feedback de guardado
+  const [availableRoutes, setAvailableRoutes] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  // Sincronizar estados locales cada vez que cambia el alumno seleccionado
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRoutes = async () => {
+      try {
+        const dbRoutes = await getTransportRoutes();
+        if (isMounted) {
+          if (dbRoutes && dbRoutes.length > 0) {
+            setAvailableRoutes(dbRoutes.map(r => ({ id: r.id, nombre: r.name || r.nombre, cost: r.cost })));
+          } else {
+            setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+          }
+        }
+      } catch (err) {
+        console.error('Error cargando rutas en familia:', err);
+        if (isMounted) {
+          setAvailableRoutes(RUTAS_TRANSPORTE.filter(r => r.id !== 'none'));
+        }
+      }
+    };
+    fetchRoutes();
+    return () => { isMounted = false; };
+  }, []);
+
   useEffect(() => {
     if (student) {
       // Sincronizar deportes (array de IDs)
@@ -53,13 +76,20 @@ const StudentServices = ({ student, onStudentUpdated }) => {
       setUsaComedor(Boolean(student.usa_comedor || student.diningRoomEnabled));
 
       // Sincronizar transporte (soporta transportRouteId y transporte_recorrido)
-      setTransporteRecorrido(student.transportRouteId || student.transporte_recorrido || 'none');
+      const rawRoute = student.transportRouteId || student.transporte_recorrido;
+      if (!rawRoute || rawRoute === 'none' || rawRoute === 'Sin servicio') {
+        setTransporteRecorrido('none');
+      } else {
+        const matchRoute = availableRoutes.find(r => r.id === rawRoute || r.nombre === rawRoute);
+        setTransporteRecorrido(matchRoute ? matchRoute.id : rawRoute);
+      }
       setSaveSuccess(false);
     }
-  }, [student]);
+  }, [student, availableRoutes]);
 
   // Manejador del toggle de un deporte (RF-16: Regla de máx 2 deportes)
   const handleSportToggle = (sportId) => {
+    if (readOnly) return;
     if (selectedSports.includes(sportId)) {
       // Si ya está seleccionado, lo quitamos
       setSelectedSports(selectedSports.filter((id) => id !== sportId));
@@ -81,12 +111,33 @@ const StudentServices = ({ student, onStudentUpdated }) => {
 
     try {
       const studentRef = doc(db, 'students', student.id);
+      const selectedRouteObj = availableRoutes.find(r => r.id === transporteRecorrido);
+      const routeName = selectedRouteObj ? selectedRouteObj.nombre : (transporteRecorrido === 'none' ? 'Sin servicio' : transporteRecorrido);
+      const routeId = transporteRecorrido === 'none' ? null : (selectedRouteObj ? selectedRouteObj.id : transporteRecorrido);
+
+      const isTransportChanged = (routeId || null) !== (student?.transportRouteId || null);
+      const transporteEstado = !routeId
+        ? 'sin_servicio'
+        : isTransportChanged
+        ? 'pendiente_confirmacion'
+        : (student?.transporte_estado || 'pendiente_confirmacion');
+
+      const isDiningChanged = Boolean(usaComedor) !== Boolean(student?.diningRoomEnabled || student?.usa_comedor);
+      const comedorEstado = !usaComedor
+        ? 'sin_servicio'
+        : isDiningChanged
+        ? 'pendiente_confirmacion'
+        : (student?.comedor_estado || 'pendiente_confirmacion');
+
       const updateData = {
         deportes: selectedSports,
         usa_comedor: usaComedor,
         diningRoomEnabled: usaComedor,
-        transporte_recorrido: transporteRecorrido,
-        transportRouteId: transporteRecorrido === 'none' ? null : transporteRecorrido,
+        transporte_recorrido: routeName,
+        transportRouteId: routeId,
+        transporte_estado: transporteEstado,
+        comedor_estado: comedorEstado,
+        servicios_ultima_solicitud: new Date().toISOString(),
       };
 
       await updateDoc(studentRef, updateData);
@@ -120,7 +171,8 @@ const StudentServices = ({ student, onStudentUpdated }) => {
   const initialComedor = Boolean(student?.usa_comedor || student?.diningRoomEnabled);
   const comedorChanged = initialComedor !== usaComedor;
 
-  const initialTransporte = student?.transportRouteId || student?.transporte_recorrido || 'none';
+  const currentRouteObj = availableRoutes.find(r => r.id === student?.transportRouteId || r.nombre === student?.transporte_recorrido);
+  const initialTransporte = currentRouteObj ? currentRouteObj.id : (student?.transportRouteId || student?.transporte_recorrido || 'none');
   const transporteChanged = initialTransporte !== transporteRecorrido;
 
   // Solo se activa si alguna de las 3 opciones cambió respecto a Firebase
@@ -226,9 +278,9 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        disabled={isDisabled}
+                        disabled={readOnly || isDisabled}
                         onChange={() => handleSportToggle(sport.id)}
-                        className="w-4 h-4 rounded text-orange-500 accent-orange-500 cursor-pointer disabled:cursor-not-allowed"
+                        className={`w-4 h-4 rounded text-orange-500 accent-orange-500 ${readOnly ? 'cursor-default' : 'cursor-pointer'} disabled:cursor-not-allowed`}
                       />
                       <div className="min-w-0">
                         <span className="text-sm font-semibold block truncate">
@@ -260,9 +312,11 @@ const StudentServices = ({ student, onStudentUpdated }) => {
             </div>
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-            <span>Para cambiar de disciplina, desmarque una de las actuales.</span>
-          </div>
+          {!readOnly && (
+            <div className="pt-2 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Para cambiar de disciplina, desmarque una de las actuales.</span>
+            </div>
+          )}
         </div>
 
         {/* ── COLUMNA 2: TRANSPORTE Y COMEDOR (5 columnas en desktop) ── */}
@@ -279,40 +333,68 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                   <p className="text-xs text-slate-400 dark:text-slate-500">(RF-17)</p>
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                transporteRecorrido && transporteRecorrido !== 'none'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-              }`}>
-                {transporteRecorrido && transporteRecorrido !== 'none' ? 'Activo' : 'Sin servicio'}
-              </span>
+              {transporteRecorrido && transporteRecorrido !== 'none' ? (
+                student?.transporte_estado === 'confirmado' ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Confirmado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Solicitud Pendiente
+                  </span>
+                )
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                  Sin servicio
+                </span>
+              )}
             </div>
 
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
                 Recorrido Asignado
               </label>
-              <div className="relative">
-                <select
-                  value={transporteRecorrido}
-                  onChange={(e) => setTransporteRecorrido(e.target.value)}
-                  className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-sm text-slate-800 dark:text-slate-100 pr-10 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
-                >
-                  {RUTAS_TRANSPORTE.map((ruta) => (
-                    <option key={ruta.id} value={ruta.id === 'none' ? 'none' : ruta.nombre}>
-                      {ruta.nombre}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined text-slate-400 absolute right-3 top-2.5 pointer-events-none text-lg">
-                  expand_more
-                </span>
-              </div>
+              {readOnly ? (
+                <div className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-sm font-medium text-slate-800 dark:text-slate-100 flex items-center justify-between">
+                  <span>
+                    {transporteRecorrido && transporteRecorrido !== 'none'
+                      ? (availableRoutes.find((r) => r.id === transporteRecorrido)?.nombre || transporteRecorrido)
+                      : 'No utiliza servicio de transporte'}
+                  </span>
+                  <span className="material-symbols-outlined text-slate-400 text-sm">lock</span>
+                </div>
+              ) : (
+                <div className="relative">
+                  <select
+                    value={transporteRecorrido}
+                    onChange={(e) => setTransporteRecorrido(e.target.value)}
+                    className="w-full appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-sm text-slate-800 dark:text-slate-100 pr-10 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
+                  >
+                    <option value="none">No utiliza servicio de transporte</option>
+                    {availableRoutes.map((ruta) => (
+                      <option key={ruta.id} value={ruta.id}>
+                        {ruta.nombre} {ruta.cost ? `(${ruta.cost})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined text-slate-400 absolute right-3 top-2.5 pointer-events-none text-lg">
+                    expand_more
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Detalle informativo de la ruta */}
             {transporteRecorrido && transporteRecorrido !== 'none' && (
               <div className="p-3 rounded-xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-800/40 text-xs space-y-1 text-slate-600 dark:text-slate-300 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">Recorrido asignado:</span>
+                  <strong className="text-slate-800 dark:text-white">
+                    {availableRoutes.find(r => r.id === transporteRecorrido)?.nombre || transporteRecorrido}
+                  </strong>
+                </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 dark:text-slate-400">Parada estimada:</span>
                   <strong className="text-slate-800 dark:text-white">Puerta principal · 07:15 hs</strong>
@@ -338,16 +420,37 @@ const StudentServices = ({ student, onStudentUpdated }) => {
                 </div>
               </div>
 
-              {/* Modern Switch Toggle */}
-              <label className="relative inline-flex items-center cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={usaComedor}
-                  onChange={(e) => setUsaComedor(e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-amber-500" />
-              </label>
+              <div className="flex items-center gap-3">
+                {usaComedor ? (
+                  student?.comedor_estado === 'confirmado' ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Confirmado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                      Solicitud Pendiente
+                    </span>
+                  )
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold">
+                    Inactivo
+                  </span>
+                )}
+
+                {!readOnly && (
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={usaComedor}
+                      onChange={(e) => setUsaComedor(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gradient-to-r peer-checked:from-orange-500 peer-checked:to-amber-500" />
+                  </label>
+                )}
+              </div>
             </div>
 
             <div className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition-all duration-200 ${
@@ -368,43 +471,60 @@ const StudentServices = ({ student, onStudentUpdated }) => {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 {usaComedor
                   ? 'Menú supervisado por nutricionistas del colegio. Incluye plato principal, postre y colación.'
+                  : readOnly
+                  ? 'El estudiante no se encuentra inscripto en el servicio de comedor para este ciclo.'
                   : 'Active el interruptor si desea que el estudiante almuerce en las instalaciones.'}
               </p>
+              {usaComedor && student?.comedor_estado === 'pendiente_confirmacion' && (
+                <div className="mt-2 pt-2 border-t border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-sm">info</span>
+                  <span>Su solicitud de comedor ha sido enviada. La administración la confirmará a la brevedad.</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* BOTÓN GENERAL PARA GUARDAR TODOS LOS CAMBIOS */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-            <span className="text-xs text-slate-400 dark:text-slate-500">
-              {hasChanges
-                ? '⚠️ Tienes modificaciones sin guardar.'
-                : '✓ Todos los servicios están sincronizados con la institución.'}
-            </span>
-
-            <button
-              type="button"
-              disabled={!hasChanges || isSaving}
-              onClick={handleSaveChanges}
-              className={`
-                w-full sm:w-auto px-7 py-3 rounded-full font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2
-                ${hasChanges && !isSaving
-                  ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.02] active:scale-95'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60'
-                }
-              `}
-            >
-              <span className="material-symbols-outlined text-lg">
-                {isSaving ? 'sync' : hasChanges ? 'save' : 'check'}
-              </span>
+          {/* BOTÓN GENERAL PARA GUARDAR O INFORMACIÓN DE SOLO LECTURA */}
+          {readOnly ? (
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-800 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+              <span className="material-symbols-outlined text-orange-500 text-xl shrink-0">info</span>
               <span>
-                {isSaving
-                  ? 'Guardando en Firebase...'
-                  : hasChanges
-                  ? 'Guardar Modificaciones'
-                  : 'Sin cambios pendientes'}
+                <strong>Modo de solo lectura:</strong> Las inscripciones y cambios en deportes, transporte y comedor escolar son gestionados exclusivamente por tus tutores legales.
               </span>
-            </button>
-          </div>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <span className="text-xs text-slate-400 dark:text-slate-500">
+                {hasChanges
+                  ? '⚠️ Tienes modificaciones sin guardar.'
+                  : '✓ Todos los servicios están sincronizados con la institución.'}
+              </span>
+
+              <button
+                type="button"
+                disabled={!hasChanges || isSaving}
+                onClick={handleSaveChanges}
+                className={`
+                  w-full sm:w-auto px-7 py-3 rounded-full font-bold text-sm transition-all duration-200 flex items-center justify-center gap-2
+                  ${hasChanges && !isSaving
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md hover:shadow-lg cursor-pointer hover:scale-[1.02] active:scale-95'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-slate-700 cursor-not-allowed opacity-60'
+                  }
+                `}
+              >
+                <span className="material-symbols-outlined text-lg">
+                  {isSaving ? 'sync' : hasChanges ? 'save' : 'check'}
+                </span>
+                <span>
+                  {isSaving
+                    ? 'Guardando en Firebase...'
+                    : hasChanges
+                    ? 'Guardar Modificaciones'
+                    : 'Sin cambios pendientes'}
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>
