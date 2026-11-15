@@ -463,7 +463,7 @@ const FamilyPanel = () => {
                 type="text"
                 value={linkDni}
                 onChange={(e) => setLinkDni(e.target.value)}
-                placeholder="Ej. 50111222 o EST-2026-101"
+                placeholder="Ingresá el DNI o legajo del estudiante"
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
               />
               <p className="text-[11px] text-slate-400 dark:text-slate-500">

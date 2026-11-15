@@ -48,7 +48,7 @@ const ROLES_INFO = {
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, login, logout, isLoggedIn } = useAuth();
+  const { user, login, logout, resetPassword, sendPasswordResetLink, isLoggedIn } = useAuth();
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +56,17 @@ const Login = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estados para el Modal de Recuperación de Contraseña
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [resetIdentifier, setResetIdentifier] = useState('');
+  const [resetDni, setResetDni] = useState('');
+  const [resetNewPass, setResetNewPass] = useState('');
+  const [resetConfirmPass, setResetConfirmPass] = useState('');
+  const [showResetPass, setShowResetPass] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
 
   // Redirigir según el rol del usuario autenticado
   useEffect(() => {
@@ -71,6 +82,71 @@ const Login = () => {
       }
     }
   }, [isLoggedIn, user, navigate]);
+
+  const handleOpenForgotModal = (e) => {
+    if (e) e.preventDefault();
+    setResetIdentifier(identifier || '');
+    setResetDni('');
+    setResetNewPass('');
+    setResetConfirmPass('');
+    setResetError('');
+    setResetSuccess('');
+    setShowForgotModal(true);
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    setResetError('');
+    setResetSuccess('');
+
+    if (!resetIdentifier.trim() || !resetDni.trim() || !resetNewPass.trim() || !resetConfirmPass.trim()) {
+      setResetError('Por favor, completá todos los campos requeridos.');
+      return;
+    }
+
+    if (resetNewPass.length < 6) {
+      setResetError('La nueva contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (resetNewPass !== resetConfirmPass) {
+      setResetError('Las contraseñas no coinciden. Verificalas.');
+      return;
+    }
+
+    setResetLoading(true);
+    const res = await resetPassword(resetIdentifier, resetDni, resetNewPass);
+    setResetLoading(false);
+
+    if (res.success) {
+      setResetSuccess(res.message || 'Contraseña actualizada con éxito.');
+      setIdentifier(resetIdentifier.trim());
+      setPassword(resetNewPass.trim());
+      setTimeout(() => {
+        setShowForgotModal(false);
+      }, 1800);
+    } else {
+      setResetError(res.error || 'No se pudo actualizar la contraseña.');
+    }
+  };
+
+  const handleSendResetEmailLink = async () => {
+    setResetError('');
+    setResetSuccess('');
+    const target = (resetIdentifier || identifier || '').trim();
+    if (!target || !target.includes('@')) {
+      setResetError('Ingresá una dirección de correo electrónico válida en el primer campo para enviarte el enlace.');
+      return;
+    }
+    setResetLoading(true);
+    const res = await sendPasswordResetLink(target);
+    setResetLoading(false);
+    if (res.success) {
+      setResetSuccess(res.message || 'Correo de recuperación enviado.');
+    } else {
+      setResetError(res.error || 'No se pudo enviar el correo de recuperación.');
+    }
+  };
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -198,16 +274,13 @@ const Login = () => {
     );
   }
 
-  // Login Form Screen (based on design mock)
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-body flex items-center justify-center p-4 sm:p-8">
       {/* Main Container */}
       <main className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row items-stretch bg-white rounded-xl shadow-[0px_20px_40px_rgba(35,44,81,0.06)] overflow-hidden">
         {/* Left Side: Visual/Branding Panel */}
         <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-orange-500 to-amber-400 p-12 flex-col justify-between overflow-hidden">
-          {/* Glassmorphism overlay for subtle texture */}
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm z-0"></div>
-          {/* Abstract decorative elements */}
           <div className="absolute -top-24 -left-24 w-64 h-64 bg-lime-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 z-0"></div>
           <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-yellow-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 z-0"></div>
 
@@ -267,7 +340,7 @@ const Login = () => {
           </button>
 
           <div className="max-w-md w-full mx-auto">
-            {/* Mobile Logo (visible only on small screens) */}
+            {/* Mobile Logo */}
             <div className="lg:hidden mb-10 text-center flex flex-col items-center mt-6">
               <img
                 loading="lazy"
@@ -301,7 +374,7 @@ const Login = () => {
                   className="block font-label text-sm font-medium text-slate-600 mb-2"
                   htmlFor="identifier"
                 >
-                  Correo Electrónico
+                  Correo Electrónico, Legajo o DNI
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -313,7 +386,7 @@ const Login = () => {
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 text-slate-800 placeholder-slate-400 border-2 border-slate-200 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-0 transition-colors font-body text-base"
                     id="identifier"
                     name="identifier"
-                    placeholder="ej. usuario@email.com"
+                    placeholder="Ingresá tu correo electrónico, DNI o legajo"
                     type="text"
                     required
                     value={identifier}
@@ -331,12 +404,13 @@ const Login = () => {
                   >
                     Contraseña
                   </label>
-                  <a
-                    className="font-label text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                    href="#"
+                  <button
+                    type="button"
+                    onClick={handleOpenForgotModal}
+                    className="font-label text-sm font-semibold text-orange-600 hover:text-orange-700 transition-colors cursor-pointer bg-transparent border-none p-0"
                   >
                     ¿Olvidaste tu contraseña?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -356,7 +430,7 @@ const Login = () => {
                   />
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
                     <button
-                      className="text-slate-400 hover:text-slate-600 focus:outline-none"
+                      className="text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -412,17 +486,173 @@ const Login = () => {
               <p className="font-body text-sm text-slate-500">
                 ¿Necesitas ayuda para acceder a tu cuenta?{' '}
                 <br className="sm:hidden" />
-                <a
-                  className="font-medium text-orange-600 hover:text-orange-700 transition-colors"
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => navigate('/contacto')}
+                  className="font-medium text-orange-600 hover:text-orange-700 transition-colors bg-transparent border-none p-0 cursor-pointer"
                 >
                   Contactar Soporte
-                </a>
+                </button>
               </p>
             </div>
           </div>
         </div>
       </main>
+
+      {/* ── MODAL DE RECUPERACIÓN DE CONTRASEÑA ── */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-5 text-left">
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-2xl">lock_reset</span>
+                </div>
+                <div>
+                  <h3 className="font-headline font-bold text-slate-900 text-lg">
+                    Recuperar Contraseña
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Validación de identidad institucional con DNI
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowForgotModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            {resetError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-red-600">error</span>
+                <span>{resetError}</span>
+              </div>
+            )}
+
+            {resetSuccess && (
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-emerald-600">check_circle</span>
+                <span>{resetSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Correo Electrónico, Legajo o Usuario
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined text-slate-400 text-lg absolute left-3.5 top-1/2 -translate-y-1/2">
+                    mail
+                  </span>
+                  <input
+                    type="text"
+                    value={resetIdentifier}
+                    onChange={(e) => setResetIdentifier(e.target.value)}
+                    placeholder="Ingresá tu correo electrónico, legajo o DNI"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  DNI del Titular Registrado (Para verificar)
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined text-slate-400 text-lg absolute left-3.5 top-1/2 -translate-y-1/2">
+                    badge
+                  </span>
+                  <input
+                    type="text"
+                    value={resetDni}
+                    onChange={(e) => setResetDni(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Ingresá el número de documento (sin puntos)"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Nueva Contraseña (mínimo 6 caracteres)
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined text-slate-400 text-lg absolute left-3.5 top-1/2 -translate-y-1/2">
+                    lock
+                  </span>
+                  <input
+                    type={showResetPass ? 'text' : 'password'}
+                    value={resetNewPass}
+                    onChange={(e) => setResetNewPass(e.target.value)}
+                    placeholder="Ingresá tu nueva contraseña"
+                    className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPass(!showResetPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {showResetPass ? 'visibility' : 'visibility_off'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Confirmar Nueva Contraseña
+                </label>
+                <div className="relative">
+                  <span className="material-symbols-outlined text-slate-400 text-lg absolute left-3.5 top-1/2 -translate-y-1/2">
+                    lock
+                  </span>
+                  <input
+                    type={showResetPass ? 'text' : 'password'}
+                    value={resetConfirmPass}
+                    onChange={(e) => setResetConfirmPass(e.target.value)}
+                    placeholder="Repetí tu nueva contraseña"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-800 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetLoading}
+                className="w-full py-3 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm shadow-md transition-all cursor-pointer disabled:opacity-60"
+              >
+                {resetLoading ? 'Procesando...' : 'Actualizar Contraseña con DNI'}
+              </button>
+            </form>
+
+            {/* Divisor */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px bg-slate-200 flex-1" />
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                O recibir enlace por correo
+              </span>
+              <div className="h-px bg-slate-200 flex-1" />
+            </div>
+
+            <button
+              type="button"
+              disabled={resetLoading}
+              onClick={handleSendResetEmailLink}
+              className="w-full py-2.5 px-4 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-base">forward_to_inbox</span>
+              <span>Enviar correo de restablecimiento</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
