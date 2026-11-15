@@ -14,6 +14,7 @@ const AdminFinancialReport = () => {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('todos'); // 'todos' | 'pagado' | 'pendiente'
   const [levelFilter, setLevelFilter] = useState('todos');   // 'todos' | 'inicial' | 'primaria' | 'secundaria'
+  const [periodFilter, setPeriodFilter] = useState('todos'); // 'todos' | 'octubre' | 'noviembre' | 'diciembre'
   const [notifiedStudents, setNotifiedStudents] = useState({});
 
   useEffect(() => {
@@ -80,7 +81,8 @@ const AdminFinancialReport = () => {
   const filteredPayments = payments.filter((p) => {
     const matchesStatus = statusFilter === 'todos' || p.status === statusFilter;
     const matchesLevel = levelFilter === 'todos' || (p.nivel || '').toLowerCase() === levelFilter;
-    return matchesStatus && matchesLevel;
+    const matchesPeriod = periodFilter === 'todos' || (p.period || '').toLowerCase().includes(periodFilter.toLowerCase());
+    return matchesStatus && matchesLevel && matchesPeriod;
   });
 
   if (loading) {
@@ -215,6 +217,17 @@ const AdminFinancialReport = () => {
 
           {/* Filtros */}
           <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={periodFilter}
+              onChange={(e) => setPeriodFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-100 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 cursor-pointer"
+            >
+              <option value="todos">Todos los Períodos</option>
+              <option value="octubre">Octubre 2026</option>
+              <option value="noviembre">Noviembre 2026</option>
+              <option value="diciembre">Diciembre 2026</option>
+            </select>
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
