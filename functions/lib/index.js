@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cf_completePasswordChange = exports.cf_updateUserProfile = exports.cf_changeStudentPassword = exports.cf_resetUserPasswordToDni = exports.cf_createAdministrativeUser = exports.cf_resetStudentPassword = exports.cf_loginStudent = exports.cf_activateStudentAccount = exports.cf_updateParentEmailAndResend = exports.cf_resendActivationLink = exports.cf_createParentAndStudents = void 0;
+exports.cf_triggerMonthlyRemindersManual = exports.cf_triggerDebtNotificationsManual = exports.cronDay20DebtReminder = exports.cronMonthlyTuitionReminder = exports.cf_completePasswordChange = exports.cf_updateUserProfile = exports.cf_changeStudentPassword = exports.cf_resetUserPasswordToDni = exports.cf_createAdministrativeUser = exports.cf_resetStudentPassword = exports.cf_loginStudent = exports.cf_activateStudentAccount = exports.cf_updateParentEmailAndResend = exports.cf_resendActivationLink = exports.cf_createParentAndStudents = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const admin = __importStar(require("firebase-admin"));
 const crypto = __importStar(require("crypto"));
@@ -107,9 +107,9 @@ exports.cf_createParentAndStudents = (0, https_1.onRequest)({ cors: true, invoke
         const studentDocIds = [];
         const createdStudentsInfo = [];
         // Procesar cada estudiante
-        for (const student of students) {
+        const studentPromises = students.map(async (student) => {
             if (!student.nombre || !student.dni) {
-                continue;
+                return null;
             }
             const studentID_login = await generateUniqueStudentIdLogin();
             // Hashear el DNI del alumno como su contraseña por defecto
@@ -129,12 +129,18 @@ exports.cf_createParentAndStudents = (0, https_1.onRequest)({ cors: true, invoke
                 nivel: student.nivel || 'inicial',
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
-            studentDocIds.push(studentRef.id);
-            createdStudentsInfo.push({
+            return {
                 id: studentRef.id,
                 studentID_login,
                 nombre: student.nombre
-            });
+            };
+        });
+        const resolvedStudents = await Promise.all(studentPromises);
+        for (const s of resolvedStudents) {
+            if (s) {
+                studentDocIds.push(s.id);
+                createdStudentsInfo.push(s);
+            }
         }
         // Guardar los datos del Padre en Firestore
         await db.collection('users').doc(parentUser.uid).set({
@@ -681,4 +687,15 @@ exports.cf_completePasswordChange = (0, https_1.onRequest)({ cors: true, invoker
         res.status(500).send({ error: error.message || 'Error interno.' });
     }
 });
+/**
+ * 12. Automatizaciones de Notificaciones por Correo (Funcionalidades 1 y 2 de la Rúbrica)
+ * - Recordatorio Mensual de Cuotas con Factura el último día hábil.
+ * - Aviso de Deuda automático el día 20 de cada mes.
+ * - Endpoints de disparo manual para auditoría y demostración.
+ */
+var notifications_1 = require("./notifications");
+Object.defineProperty(exports, "cronMonthlyTuitionReminder", { enumerable: true, get: function () { return notifications_1.cronMonthlyTuitionReminder; } });
+Object.defineProperty(exports, "cronDay20DebtReminder", { enumerable: true, get: function () { return notifications_1.cronDay20DebtReminder; } });
+Object.defineProperty(exports, "cf_triggerDebtNotificationsManual", { enumerable: true, get: function () { return notifications_1.cf_triggerDebtNotificationsManual; } });
+Object.defineProperty(exports, "cf_triggerMonthlyRemindersManual", { enumerable: true, get: function () { return notifications_1.cf_triggerMonthlyRemindersManual; } });
 //# sourceMappingURL=index.js.map

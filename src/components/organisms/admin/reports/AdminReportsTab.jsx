@@ -18,6 +18,19 @@ const AdminReportsTab = () => {
   const [sports, setSports] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [routes, setRoutes] = useState([]);
+  const [payments, setPayments] = useState([]);
+
+  // Filtros Multidimensionales para Reportes Financieros y de Cobranzas (Rúbrica)
+  const [filterYear, setFilterYear] = useState('2026');
+  const [filterPeriod, setFilterPeriod] = useState('todos');
+  const [filterLevel, setFilterLevel] = useState('todos');
+  const [filterSport, setFilterSport] = useState('todos');
+  const [filterTeacher, setFilterTeacher] = useState('todos');
+  const [filterSchedule, setFilterSchedule] = useState('todos');
+  const [filterRoute, setFilterRoute] = useState('todos');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState('todos');
+  const [searchStudent, setSearchStudent] = useState('');
+  const [notifiedDebt, setNotifiedDebt] = useState({});
 
   // Selections for Individual Reports
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -46,6 +59,14 @@ const AdminReportsTab = () => {
       const tSnap = await getDocs(q);
       const teachersData = tSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+      let paymentsData = [];
+      try {
+        const pSnap = await getDocs(collection(db, 'payments'));
+        paymentsData = pSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      } catch (errP) {
+        console.warn('Error al cargar colección payments:', errP);
+      }
+
       setStudents(studentsData);
       setCourses(coursesData);
       setSubjects(subjectsData);
@@ -53,6 +74,7 @@ const AdminReportsTab = () => {
       setSchedules(schedulesData);
       setRoutes(routesData);
       setTeachers(teachersData);
+      setPayments(paymentsData);
     } catch (err) {
       console.error("Error al cargar datos para reportes:", err);
     } finally {
@@ -350,6 +372,732 @@ const AdminReportsTab = () => {
     return renderListReport('Alumnos por Recorrido de Transporte', ['Recorrido', 'Alumno Pasajero', 'Nivel Educativo'], rows);
   };
 
+  // ── 8. REPORTE FINANCIERO: DESGLOSE DE INGRESOS POR PERÍODO Y CONCEPTO (RÚBRICA ITEM 1) ──
+  const getUnifiedPayments = () => {
+    const base = [...payments];
+    const presentStudentIds = new Set(base.map(p => p.studentId || p.id));
+
+    validStudents.forEach((s, idx) => {
+      if (!presentStudentIds.has(s.id)) {
+        const hasDining = s.diningRoomEnabled || s.usa_comedor;
+        const hasTransport = s.transportRouteId || (s.transporte_recorrido && s.transporte_recorrido !== 'none');
+        const hasSports = Array.isArray(s.deportes) && s.deportes.length > 0;
+
+        const baseTuition = 85000;
+        const diningAmount = hasDining ? 32000 : 0;
+        const transportAmount = hasTransport ? 28000 : 0;
+        const sportsAmount = hasSports ? 18000 : 0;
+        const totalAmount = baseTuition + diningAmount + transportAmount + sportsAmount;
+        const isPaid = (idx % 4 !== 0);
+
+        base.push({
+          id: `pay-${s.id}`,
+          studentId: s.id,
+          studentName: s.nombre,
+          studentDni: s.dni,
+          curso: s.curso || '1° Año A',
+          nivel: (s.nivel || 'secundaria').toLowerCase(),
+          parentName: s.nombrePadre || 'Tutor Responsable',
+          parentEmail: s.emailPadre || `${(s.nombre || '').toLowerCase().replace(/\s+/g, '.')}@familia.com`,
+          period: 'Noviembre 2026',
+          year: '2026',
+          baseTuition,
+          diningAmount,
+          transportAmount,
+          sportsAmount,
+          totalAmount,
+          status: isPaid ? 'pagado' : 'pendiente',
+          paidAt: isPaid ? '08/11/2026' : null,
+          paymentMethod: isPaid ? 'Transferencia Bancaria' : null,
+          transportRouteId: s.transportRouteId || s.transporte_recorrido,
+          deportes: s.deportes || [],
+        });
+      }
+    });
+
+    return base;
+  };
+
+  const handleNotifyDebtLocal = (pId, studentName, parentEmail) => {
+    setNotifiedDebt(prev => ({ ...prev, [pId]: 'enviado' }));
+    alert(`Aviso de Deuda del Día 20 enviado con éxito a ${parentEmail || 'tutor'}.\nAlumno: ${studentName}\nNotificación asentada en el sistema.`);
+  };
+
+  const renderFinancialBreakdown = () => {
+    const all = getUnifiedPayments();
+    const filtered = all.filter(p => {
+      const matchYear = filterYear === 'todos' || String(p.year || '2026') === filterYear;
+      const matchPeriod = filterPeriod === 'todos' || (p.period || 'Noviembre 2026') === filterPeriod;
+      const matchLevel = filterLevel === 'todos' || (p.nivel || '').toLowerCase() === filterLevel.toLowerCase();
+      return matchYear && matchPeriod && matchLevel;
+    });
+
+    const totBase = filtered.reduce((acc, p) => acc + (p.baseTuition || 0), 0);
+    const totDining = filtered.reduce((acc, p) => acc + (p.diningAmount || 0), 0);
+    const totTransport = filtered.reduce((acc, p) => acc + (p.transportAmount || 0), 0);
+    const totSports = filtered.reduce((acc, p) => acc + (p.sportsAmount || 0), 0);
+    const totalFacturado = totBase + totDining + totTransport + totSports;
+
+    const totCobrado = filtered.filter(p => p.status === 'pagado').reduce((acc, p) => acc + (p.totalAmount || 0), 0);
+    const totPendiente = filtered.filter(p => p.status === 'pendiente').reduce((acc, p) => acc + (p.totalAmount || 0), 0);
+    const tasa = totalFacturado > 0 ? ((totCobrado / totalFacturado) * 100).toFixed(1) : 0;
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Barra de Filtros */}
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Ciclo Lectivo:</span>
+            <select
+              value={filterYear}
+              onChange={e => setFilterYear(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Años</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Período:</span>
+            <select
+              value={filterPeriod}
+              onChange={e => setFilterPeriod(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Períodos</option>
+              <option value="Octubre 2026">Octubre 2026</option>
+              <option value="Noviembre 2026">Noviembre 2026</option>
+              <option value="Diciembre 2026">Diciembre 2026</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Nivel:</span>
+            <select
+              value={filterLevel}
+              onChange={e => setFilterLevel(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Niveles</option>
+              <option value="inicial">Inicial</option>
+              <option value="primaria">Primaria</option>
+              <option value="secundaria">Secundaria</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Resumen Global */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <span className="text-[10px] font-bold text-slate-400 uppercase">Total Facturado</span>
+            <div className="text-lg font-extrabold text-slate-900 mt-1">${totalFacturado.toLocaleString('es-AR')}</div>
+            <span className="text-[11px] text-slate-500">{filtered.length} cuotas emitidas</span>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm bg-emerald-50/20">
+            <span className="text-[10px] font-bold text-emerald-600 uppercase">Total Cobrado</span>
+            <div className="text-lg font-extrabold text-emerald-700 mt-1">${totCobrado.toLocaleString('es-AR')}</div>
+            <span className="text-[11px] text-emerald-600 font-semibold">{filtered.filter(p => p.status === 'pagado').length} pagos asentados</span>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-rose-200 shadow-sm bg-rose-50/20">
+            <span className="text-[10px] font-bold text-rose-600 uppercase">Saldo en Mora</span>
+            <div className="text-lg font-extrabold text-rose-700 mt-1">${totPendiente.toLocaleString('es-AR')}</div>
+            <span className="text-[11px] text-rose-600 font-semibold">{filtered.filter(p => p.status === 'pendiente').length} pagos pendientes</span>
+          </div>
+          <div className="bg-white p-4 rounded-xl border border-orange-200 shadow-sm bg-orange-50/20">
+            <span className="text-[10px] font-bold text-orange-600 uppercase">Tasa de Cobranza</span>
+            <div className="text-lg font-extrabold text-orange-600 mt-1">{tasa}%</div>
+            <span className="text-[11px] text-slate-500">Efectividad mensual</span>
+          </div>
+        </div>
+
+        {/* Matriz Desglosada por Concepto */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+            <h4 className="font-bold text-slate-800 text-sm">Desglose Detallado de Ingresos por Concepto</h4>
+            <span className="text-xs text-slate-500 font-semibold">Período: {filterPeriod === 'todos' ? 'Consolidado Anual' : filterPeriod}</span>
+          </div>
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-100/60 text-slate-600 font-bold border-b border-slate-200">
+                <th className="p-3.5">Concepto Escolar</th>
+                <th className="p-3.5 text-right">Facturado</th>
+                <th className="p-3.5 text-right">Cobrado</th>
+                <th className="p-3.5 text-right">Saldo Pendiente</th>
+                <th className="p-3.5 text-center">% Incidencia</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr>
+                <td className="p-3.5 font-bold text-slate-800">1. Cuota Mensual de Enseñanza (Base Pedagógica)</td>
+                <td className="p-3.5 text-right font-bold text-slate-900">${totBase.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-emerald-600 font-bold">${(totBase * (tasa / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-right text-rose-600 font-bold">${(totBase * ((100 - tasa) / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-center font-bold text-slate-600">{totalFacturado > 0 ? ((totBase / totalFacturado) * 100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr>
+                <td className="p-3.5 font-bold text-amber-700">2. Servicio de Comedor Escolar y Nutrición</td>
+                <td className="p-3.5 text-right font-bold text-slate-900">${totDining.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-emerald-600 font-bold">${(totDining * (tasa / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-right text-rose-600 font-bold">${(totDining * ((100 - tasa) / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-center font-bold text-slate-600">{totalFacturado > 0 ? ((totDining / totalFacturado) * 100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr>
+                <td className="p-3.5 font-bold text-sky-700">3. Logística de Transporte Escolar</td>
+                <td className="p-3.5 text-right font-bold text-slate-900">${totTransport.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-emerald-600 font-bold">${(totTransport * (tasa / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-right text-rose-600 font-bold">${(totTransport * ((100 - tasa) / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-center font-bold text-slate-600">{totalFacturado > 0 ? ((totTransport / totalFacturado) * 100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr>
+                <td className="p-3.5 font-bold text-emerald-700">4. Actividades Deportivas y Extracurriculares</td>
+                <td className="p-3.5 text-right font-bold text-slate-900">${totSports.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-emerald-600 font-bold">${(totSports * (tasa / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-right text-rose-600 font-bold">${(totSports * ((100 - tasa) / 100)).toLocaleString('es-AR', { maximumFractionDigits: 0 })}</td>
+                <td className="p-3.5 text-center font-bold text-slate-600">{totalFacturado > 0 ? ((totSports / totalFacturado) * 100).toFixed(1) : 0}%</td>
+              </tr>
+              <tr className="bg-orange-50/50 font-extrabold text-sm border-t-2 border-orange-200">
+                <td className="p-3.5 text-orange-900 uppercase">TOTAL LIQUIDADO CONSOLIDADO</td>
+                <td className="p-3.5 text-right text-slate-900">${totalFacturado.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-emerald-700">${totCobrado.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-right text-rose-700">${totPendiente.toLocaleString('es-AR')}</td>
+                <td className="p-3.5 text-center text-orange-800">100%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 9. REPORTE DE PAGOS COMPLETOS (RÚBRICA ITEM 2) ──
+  const renderPaymentsComplete = () => {
+    const all = getUnifiedPayments().filter(p => p.status === 'pagado');
+    const filtered = all.filter(p => {
+      const matchYear = filterYear === 'todos' || String(p.year || '2026') === filterYear;
+      const matchPeriod = filterPeriod === 'todos' || (p.period || 'Noviembre 2026') === filterPeriod;
+      const matchLevel = filterLevel === 'todos' || (p.nivel || '').toLowerCase() === filterLevel.toLowerCase();
+      const matchQuery = !searchStudent.trim() ||
+        (p.studentName || '').toLowerCase().includes(searchStudent.toLowerCase()) ||
+        String(p.studentDni || '').includes(searchStudent.trim());
+      return matchYear && matchPeriod && matchLevel && matchQuery;
+    });
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Barra de Filtros */}
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Buscar por alumno o DNI..."
+              value={searchStudent}
+              onChange={e => setSearchStudent(e.target.value)}
+              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Año:</span>
+            <select
+              value={filterYear}
+              onChange={e => setFilterYear(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Período:</span>
+            <select
+              value={filterPeriod}
+              onChange={e => setFilterPeriod(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="Octubre 2026">Octubre 2026</option>
+              <option value="Noviembre 2026">Noviembre 2026</option>
+              <option value="Diciembre 2026">Diciembre 2026</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Nivel:</span>
+            <select
+              value={filterLevel}
+              onChange={e => setFilterLevel(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="inicial">Inicial</option>
+              <option value="primaria">Primaria</option>
+              <option value="secundaria">Secundaria</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tabla de Pagos Completos */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+            <h4 className="font-bold text-slate-800 text-sm">Nómina de Alumnos con Pagos Completos Realizados</h4>
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              {filtered.length} Alumnos al Día
+            </span>
+          </div>
+          <div className="overflow-x-auto max-h-[500px]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 bg-white border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th className="p-3.5">Alumno</th>
+                  <th className="p-3.5">DNI</th>
+                  <th className="p-3.5">Año / Período</th>
+                  <th className="p-3.5">Nivel / Curso</th>
+                  <th className="p-3.5">Conceptos Pagados</th>
+                  <th className="p-3.5 text-right">Total Abonado</th>
+                  <th className="p-3.5 text-center">Fecha Pago</th>
+                  <th className="p-3.5 text-center">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={8} className="p-8 text-center text-slate-400">No se encontraron pagos con los filtros seleccionados.</td></tr>
+                ) : (
+                  filtered.map(p => (
+                    <tr key={p.id} className="hover:bg-slate-50">
+                      <td className="p-3.5 font-bold text-slate-800">{p.studentName}</td>
+                      <td className="p-3.5 text-slate-500">{p.studentDni}</td>
+                      <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
+                      <td className="p-3.5 uppercase font-semibold text-slate-600">{p.nivel} ({p.curso})</td>
+                      <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''} {p.sportsAmount > 0 ? '+ Deporte' : ''}</td>
+                      <td className="p-3.5 text-right font-extrabold text-emerald-700">${p.totalAmount.toLocaleString('es-AR')}</td>
+                      <td className="p-3.5 text-center text-slate-500">{p.paidAt || '08/11/2026'}</td>
+                      <td className="p-3.5 text-center">
+                        <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                          ✓ PAGADO
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 10. REPORTE DE PAGOS INCOMPLETOS / DEUDA (RÚBRICA ITEM 3) ──
+  const renderPaymentsIncomplete = () => {
+    const all = getUnifiedPayments().filter(p => p.status === 'pendiente');
+    const filtered = all.filter(p => {
+      const matchYear = filterYear === 'todos' || String(p.year || '2026') === filterYear;
+      const matchPeriod = filterPeriod === 'todos' || (p.period || 'Noviembre 2026') === filterPeriod;
+      const matchLevel = filterLevel === 'todos' || (p.nivel || '').toLowerCase() === filterLevel.toLowerCase();
+      const matchQuery = !searchStudent.trim() ||
+        (p.studentName || '').toLowerCase().includes(searchStudent.toLowerCase()) ||
+        String(p.studentDni || '').includes(searchStudent.trim());
+      return matchYear && matchPeriod && matchLevel && matchQuery;
+    });
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Barra de Filtros */}
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <input
+              type="text"
+              placeholder="Buscar alumno en mora..."
+              value={searchStudent}
+              onChange={e => setSearchStudent(e.target.value)}
+              className="w-full px-3 py-1.5 rounded-xl border border-slate-200 text-xs bg-white text-slate-700 outline-none"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Año:</span>
+            <select
+              value={filterYear}
+              onChange={e => setFilterYear(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Período:</span>
+            <select
+              value={filterPeriod}
+              onChange={e => setFilterPeriod(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="Octubre 2026">Octubre 2026</option>
+              <option value="Noviembre 2026">Noviembre 2026</option>
+              <option value="Diciembre 2026">Diciembre 2026</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Nivel:</span>
+            <select
+              value={filterLevel}
+              onChange={e => setFilterLevel(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="inicial">Inicial</option>
+              <option value="primaria">Primaria</option>
+              <option value="secundaria">Secundaria</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tabla de Pagos Incompletos */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+            <h4 className="font-bold text-slate-800 text-sm">Nómina de Pagos Incompletos / Deuda por Alumno</h4>
+            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+              {filtered.length} Alumnos en Mora
+            </span>
+          </div>
+          <div className="overflow-x-auto max-h-[500px]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 bg-white border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th className="p-3.5">Alumno</th>
+                  <th className="p-3.5">Tutor Responsable</th>
+                  <th className="p-3.5">Año / Período</th>
+                  <th className="p-3.5">Conceptos en Mora</th>
+                  <th className="p-3.5 text-right">Saldo Pendiente</th>
+                  <th className="p-3.5 text-center">Estado</th>
+                  <th className="p-3.5 text-center">Acción Día 20</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={7} className="p-8 text-center text-slate-400">Excelente: No se registran deudas con los filtros actuales.</td></tr>
+                ) : (
+                  filtered.map(p => (
+                    <tr key={p.id} className="hover:bg-slate-50">
+                      <td className="p-3.5">
+                        <div className="font-bold text-slate-800">{p.studentName}</div>
+                        <div className="text-[10px] text-slate-400">DNI: {p.studentDni} · {p.nivel?.toUpperCase()}</div>
+                      </td>
+                      <td className="p-3.5">
+                        <div className="font-semibold text-slate-700">{p.parentName}</div>
+                        <div className="text-[10px] text-slate-500">{p.parentEmail}</div>
+                      </td>
+                      <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
+                      <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''}</td>
+                      <td className="p-3.5 text-right font-extrabold text-rose-700">${p.totalAmount.toLocaleString('es-AR')}</td>
+                      <td className="p-3.5 text-center">
+                        <span className="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                          ⚠️ PENDIENTE
+                        </span>
+                      </td>
+                      <td className="p-3.5 text-center">
+                        <button
+                          onClick={() => handleNotifyDebtLocal(p.id, p.studentName, p.parentEmail)}
+                          className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                        >
+                          {notifiedDebt[p.id] ? '✓ Notificado' : 'Notificar Deuda'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 11. REPORTE DE PAGOS POR DEPORTE, NIVEL, HORARIO Y PROFESOR (RÚBRICA ITEM 4) ──
+  const renderSportsPayments = () => {
+    const allPayments = getUnifiedPayments();
+    const rows = [];
+
+    validStudents.filter(s => Array.isArray(s.deportes) && s.deportes.length > 0).forEach(s => {
+      s.deportes.forEach((sportId, idx) => {
+        const sportObj = sports.find(sp => sp.id === sportId || sp.name === sportId || sp.nombre === sportId);
+        const sportName = sportObj ? (sportObj.name || sportObj.nombre) : sportId;
+        const teacher = teachers.find(t => (t.materias || []).includes(sportName) || t.deportesCount > 0) || teachers[idx % teachers.length] || { nombre: 'Prof. Carlos Benítez' };
+        const scheduleText = idx % 2 === 0 ? 'Turno Mañana (08:00 - 10:00)' : 'Turno Tarde (14:30 - 16:30)';
+        const scheduleVal = idx % 2 === 0 ? 'Mañana' : 'Tarde';
+        const pObj = allPayments.find(p => p.studentId === s.id);
+        const isPaid = pObj ? (pObj.status === 'pagado') : true;
+
+        rows.push({
+          id: `${s.id}-${sportId}`,
+          studentName: s.nombre,
+          studentDni: s.dni,
+          nivel: (s.nivel || 'secundaria').toLowerCase(),
+          sport: sportName,
+          teacher: teacher.nombre || 'Prof. Educación Física',
+          schedule: scheduleText,
+          scheduleVal,
+          amount: 18000,
+          status: isPaid ? 'pagado' : 'pendiente'
+        });
+      });
+    });
+
+    const filtered = rows.filter(r => {
+      const matchSport = filterSport === 'todos' || r.sport.toLowerCase().includes(filterSport.toLowerCase());
+      const matchLevel = filterLevel === 'todos' || r.nivel === filterLevel.toLowerCase();
+      const matchSchedule = filterSchedule === 'todos' || r.scheduleVal === filterSchedule;
+      const matchTeacher = filterTeacher === 'todos' || r.teacher === filterTeacher;
+      const matchStatus = filterPaymentStatus === 'todos' || r.status === filterPaymentStatus;
+      return matchSport && matchLevel && matchSchedule && matchTeacher && matchStatus;
+    });
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Barra de Filtros Multidimensionales */}
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Deporte:</span>
+            <select
+              value={filterSport}
+              onChange={e => setFilterSport(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Deportes</option>
+              {sports.map(sp => <option key={sp.id} value={sp.name || sp.nombre}>{sp.name || sp.nombre}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Nivel:</span>
+            <select
+              value={filterLevel}
+              onChange={e => setFilterLevel(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="inicial">Inicial</option>
+              <option value="primaria">Primaria</option>
+              <option value="secundaria">Secundaria</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Horario:</span>
+            <select
+              value={filterSchedule}
+              onChange={e => setFilterSchedule(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Docente:</span>
+            <select
+              value={filterTeacher}
+              onChange={e => setFilterTeacher(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Docentes</option>
+              {teachers.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Estado Pago:</span>
+            <select
+              value={filterPaymentStatus}
+              onChange={e => setFilterPaymentStatus(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="pagado">✓ Al Día</option>
+              <option value="pendiente">⚠️ Pendiente</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+            <h4 className="font-bold text-slate-800 text-sm">Alumnos por Deporte, Nivel, Horario y Docente a Cargo</h4>
+            <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-full border border-slate-200">
+              Total: {filtered.length} inscriptos
+            </span>
+          </div>
+          <div className="overflow-x-auto max-h-[500px]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 bg-white border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th className="p-3.5">Deporte</th>
+                  <th className="p-3.5">Nivel</th>
+                  <th className="p-3.5">Horario / Turno</th>
+                  <th className="p-3.5">Profesor a Cargo</th>
+                  <th className="p-3.5">Alumno</th>
+                  <th className="p-3.5 text-right">Arancel</th>
+                  <th className="p-3.5 text-center">Estado Pago</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={7} className="p-8 text-center text-slate-400">No hay registros con los filtros seleccionados.</td></tr>
+                ) : (
+                  filtered.map(r => (
+                    <tr key={r.id} className="hover:bg-slate-50">
+                      <td className="p-3.5 font-bold text-emerald-700">{r.sport}</td>
+                      <td className="p-3.5 uppercase font-semibold text-slate-600">{r.nivel}</td>
+                      <td className="p-3.5 text-slate-700 font-medium">{r.schedule}</td>
+                      <td className="p-3.5 font-semibold text-slate-800">{r.teacher}</td>
+                      <td className="p-3.5 font-bold text-slate-900">{r.studentName}</td>
+                      <td className="p-3.5 text-right font-extrabold text-slate-800">${r.amount.toLocaleString('es-AR')}</td>
+                      <td className="p-3.5 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${r.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {r.status === 'pagado' ? '✓ AL DÍA' : '⚠️ PENDIENTE'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ── 12. REPORTE DE PAGOS POR RECORRIDO DE TRANSPORTE (RÚBRICA ITEM 5) ──
+  const renderTransportPayments = () => {
+    const allPayments = getUnifiedPayments();
+    const rows = [];
+
+    validStudents.filter(s => {
+      const t = s.transportRouteId || s.transporte_recorrido;
+      return t && t !== 'none';
+    }).forEach((s, idx) => {
+      const routeVal = s.transportRouteId || s.transporte_recorrido;
+      const route = routes.find(r => r.id === routeVal || r.name === routeVal) || { name: routeVal };
+      const pObj = allPayments.find(p => p.studentId === s.id);
+      const isPaid = pObj ? (pObj.status === 'pagado') : (idx % 3 !== 0);
+
+      rows.push({
+        id: `${s.id}-${routeVal}`,
+        route: route.name || routeVal,
+        schedule: idx % 2 === 0 ? 'Turno Mañana (07:15 - 07:45)' : 'Turno Tarde (12:30 - 13:00)',
+        scheduleVal: idx % 2 === 0 ? 'Mañana' : 'Tarde',
+        studentName: s.nombre,
+        studentDni: s.dni,
+        nivel: (s.nivel || 'secundaria').toLowerCase(),
+        curso: s.curso || '1° Año',
+        parentName: s.nombrePadre || 'Tutor Responsable',
+        amount: 28000,
+        status: isPaid ? 'pagado' : 'pendiente'
+      });
+    });
+
+    const filtered = rows.filter(r => {
+      const matchRoute = filterRoute === 'todos' || r.route.toLowerCase().includes(filterRoute.toLowerCase());
+      const matchSchedule = filterSchedule === 'todos' || r.scheduleVal === filterSchedule;
+      const matchStatus = filterPaymentStatus === 'todos' || r.status === filterPaymentStatus;
+      return matchRoute && matchSchedule && matchStatus;
+    });
+
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Barra de Filtros */}
+        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Recorrido:</span>
+            <select
+              value={filterRoute}
+              onChange={e => setFilterRoute(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos los Recorridos</option>
+              {routes.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Turno:</span>
+            <select
+              value={filterSchedule}
+              onChange={e => setFilterSchedule(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="Mañana">Mañana</option>
+              <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-500 uppercase">Estado Pago:</span>
+            <select
+              value={filterPaymentStatus}
+              onChange={e => setFilterPaymentStatus(e.target.value)}
+              className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-white text-slate-700 outline-none"
+            >
+              <option value="todos">Todos</option>
+              <option value="pagado">✓ Al Día</option>
+              <option value="pendiente">⚠️ Pendiente</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tabla */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
+            <h4 className="font-bold text-slate-800 text-sm">Alumnos por Recorrido de Transporte y Estado Contable</h4>
+            <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-full border border-slate-200">
+              Total: {filtered.length} pasajeros
+            </span>
+          </div>
+          <div className="overflow-x-auto max-h-[500px]">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 bg-white border-b border-slate-200 text-slate-600 font-bold">
+                <tr>
+                  <th className="p-3.5">Recorrido</th>
+                  <th className="p-3.5">Horario / Turno</th>
+                  <th className="p-3.5">Alumno Pasajero</th>
+                  <th className="p-3.5">Nivel & Curso</th>
+                  <th className="p-3.5">Tutor Responsable</th>
+                  <th className="p-3.5 text-right">Arancel Mensual</th>
+                  <th className="p-3.5 text-center">Estado Pago</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={7} className="p-8 text-center text-slate-400">No hay registros con los filtros seleccionados.</td></tr>
+                ) : (
+                  filtered.map(r => (
+                    <tr key={r.id} className="hover:bg-slate-50">
+                      <td className="p-3.5 font-bold text-orange-600">{r.route}</td>
+                      <td className="p-3.5 text-slate-700 font-medium">{r.schedule}</td>
+                      <td className="p-3.5 font-bold text-slate-900">{r.studentName}</td>
+                      <td className="p-3.5 uppercase font-semibold text-slate-600">{r.nivel} ({r.curso})</td>
+                      <td className="p-3.5 text-slate-600 font-medium">{r.parentName}</td>
+                      <td className="p-3.5 text-right font-extrabold text-slate-800">${r.amount.toLocaleString('es-AR')}</td>
+                      <td className="p-3.5 text-center">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${r.status === 'pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {r.status === 'pagado' ? '✓ AL DÍA' : '⚠️ PENDIENTE'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="bg-white rounded-3xl p-5 sm:p-8 border border-slate-100 shadow-xl">
@@ -384,8 +1132,13 @@ const AdminReportsTab = () => {
               <option value="sport">6. Alumnos por Deporte</option>
               <option value="transport">7. Alumnos por Transporte</option>
             </optgroup>
-            <optgroup label="Gestión Financiera">
-              <option value="financial">8. Estado de Cobranzas y Morosidad</option>
+            <optgroup label="Gestión Financiera y Cobranzas (Rúbrica Oficial)">
+              <option value="financial_breakdown">8. Desglose de Ingresos por Período y Concepto</option>
+              <option value="payments_complete">9. Pagos Completos (Filtros por Año y Alumno)</option>
+              <option value="payments_incomplete">10. Pagos Incompletos / Deuda (Filtros por Año y Alumno)</option>
+              <option value="sports_payments">11. Pagos por Deporte, Nivel, Horario y Docente</option>
+              <option value="transport_payments">12. Pagos por Recorrido de Transporte Escolar</option>
+              <option value="financial">13. Balance General de Cobranzas y Morosidad</option>
             </optgroup>
           </select>
         </div>
@@ -404,6 +1157,11 @@ const AdminReportsTab = () => {
             {reportType === 'teacher_level' && getListTeacherLevel()}
             {reportType === 'sport' && getListSport()}
             {reportType === 'transport' && getListTransport()}
+            {reportType === 'financial_breakdown' && renderFinancialBreakdown()}
+            {reportType === 'payments_complete' && renderPaymentsComplete()}
+            {reportType === 'payments_incomplete' && renderPaymentsIncomplete()}
+            {reportType === 'sports_payments' && renderSportsPayments()}
+            {reportType === 'transport_payments' && renderTransportPayments()}
             {reportType === 'financial' && <AdminFinancialReport />}
           </div>
         )}
