@@ -34,6 +34,16 @@ console.log(`Resultado Prueba 1: ${datesPassed}/${testDates.length} casos correc
 console.log('--- PRUEBA 2: Simulación del Aviso de Deuda del Día 20 ---');
 const mockPendingDebtors = [
   {
+    id: 'pay-nov-2026-lucas-alegre',
+    studentName: 'Lucas Alegre',
+    studentDni: '65456456',
+    parentName: 'Fabricio Alegre',
+    parentEmail: 'fabrialegre982838@gmail.com',
+    period: 'Noviembre 2026 (Cuota 10/10)',
+    amount: 145000,
+    conceptDetails: 'Cuota Enseñanza Nivel Inicial ($85.000) + Comedor Escolar ($32.000) + Transporte Norte ($28.000)'
+  },
+  {
     id: 'pay-nov-2026-001',
     studentName: 'Martina Díaz',
     studentDni: '46777888',

@@ -380,6 +380,12 @@ const AdminReportsTab = () => {
 
     validStudents.forEach((s, idx) => {
       if (!presentStudentIds.has(s.id)) {
+        const isLucas =
+          (s.nombre && s.nombre.toLowerCase().includes('lucas alegre')) ||
+          s.dni === '65456456' ||
+          s.emailPadre === 'fabrialegre982838@gmail.com' ||
+          s.id === '0qKurEFdSj34FSBKLGbt';
+
         const hasDining = s.diningRoomEnabled || s.usa_comedor;
         const hasTransport = s.transportRouteId || (s.transporte_recorrido && s.transporte_recorrido !== 'none');
         const hasSports = Array.isArray(s.deportes) && s.deportes.length > 0;
@@ -389,17 +395,18 @@ const AdminReportsTab = () => {
         const transportAmount = hasTransport ? 28000 : 0;
         const sportsAmount = hasSports ? 18000 : 0;
         const totalAmount = baseTuition + diningAmount + transportAmount + sportsAmount;
-        const isPaid = (idx % 4 !== 0);
+        // Lucas Alegre se inyecta explícitamente en estado de deuda pendiente
+        const isPaid = isLucas ? false : (idx % 4 !== 0);
 
         base.push({
           id: `pay-${s.id}`,
           studentId: s.id,
           studentName: s.nombre,
           studentDni: s.dni,
-          curso: s.curso || '1° Año A',
+          curso: s.curso || (s.nivel === 'inicial' ? 'Sala de 5 A' : '1° Año A'),
           nivel: (s.nivel || 'secundaria').toLowerCase(),
-          parentName: s.nombrePadre || 'Tutor Responsable',
-          parentEmail: s.emailPadre || `${(s.nombre || '').toLowerCase().replace(/\s+/g, '.')}@familia.com`,
+          parentName: isLucas ? 'Fabricio Alegre' : (s.nombrePadre || 'Tutor Responsable'),
+          parentEmail: isLucas ? 'fabrialegre982838@gmail.com' : (s.emailPadre || `${(s.nombre || '').toLowerCase().replace(/\s+/g, '.')}@familia.com`),
           period: 'Noviembre 2026',
           year: '2026',
           baseTuition,
@@ -412,9 +419,40 @@ const AdminReportsTab = () => {
           paymentMethod: isPaid ? 'Transferencia Bancaria' : null,
           transportRouteId: s.transportRouteId || s.transporte_recorrido,
           deportes: s.deportes || [],
+          conceptosDetalle: isLucas
+            ? 'Cuota Base Enseñanza Nivel Inicial ($85.000) + Comedor Escolar ($32.000) + Transporte Escolar Norte ($28.000)'
+            : undefined,
         });
       }
     });
+
+    // Inyección garantizada de Lucas Alegre con deuda activa vinculada al correo personal del usuario
+    const hasLucas = base.some(p => (p.studentName || '').toLowerCase().includes('lucas alegre') || p.studentDni === '65456456');
+    if (!hasLucas) {
+      base.unshift({
+        id: 'pay-lucas-alegre-nov-2026',
+        studentId: '0qKurEFdSj34FSBKLGbt',
+        studentName: 'Lucas Alegre',
+        studentDni: '65456456',
+        curso: 'Sala de 5 A',
+        nivel: 'inicial',
+        parentName: 'Fabricio Alegre',
+        parentEmail: 'fabrialegre982838@gmail.com',
+        period: 'Noviembre 2026',
+        year: '2026',
+        baseTuition: 85000,
+        diningAmount: 32000,
+        transportAmount: 28000,
+        sportsAmount: 0,
+        totalAmount: 145000,
+        status: 'pendiente',
+        paidAt: null,
+        paymentMethod: null,
+        transportRouteId: 'Recorrido Norte',
+        deportes: [],
+        conceptosDetalle: 'Cuota Base Enseñanza Nivel Inicial ($85.000) + Comedor Escolar ($32.000) + Transporte Escolar Norte ($28.000)',
+      });
+    }
 
     return base;
   };
@@ -703,6 +741,15 @@ const AdminReportsTab = () => {
         (p.studentName || '').toLowerCase().includes(searchStudent.toLowerCase()) ||
         String(p.studentDni || '').includes(searchStudent.trim());
       return matchYear && matchPeriod && matchLevel && matchQuery;
+    });
+
+    // Priorizar en la cabecera al alumno de prueba Lucas Alegre (notificaciones día 20)
+    filtered.sort((a, b) => {
+      const isA = (a.studentName || '').toLowerCase().includes('lucas alegre');
+      const isB = (b.studentName || '').toLowerCase().includes('lucas alegre');
+      if (isA && !isB) return -1;
+      if (!isA && isB) return 1;
+      return 0;
     });
 
     return (
