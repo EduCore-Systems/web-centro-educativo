@@ -92,6 +92,17 @@ const AdminReportsTab = () => {
   const getTeacherName = (id) => teachers.find(t => t.id === id)?.nombre || 'N/A';
   const getRouteName = (id) => routes.find(r => r.id === id || r.name === id)?.name || id || 'Sin Asignar';
 
+  const formatPeriodDisplay = (p) => {
+    if (!p) return 'Noviembre 2026';
+    const periodStr = String(p.period || p.mes || 'Noviembre 2026').trim();
+    const extractedYear = periodStr.match(/\d{4}/)?.[0] || '2026';
+    const yearStr = p.year ? String(p.year).trim() : extractedYear;
+    if (periodStr.includes(yearStr)) {
+      return periodStr;
+    }
+    return `${yearStr} · ${periodStr}`;
+  };
+
   const validStudents = students.filter(s => s.status !== 'pendiente');
 
   // --- REPORTES INDIVIDUALES ---
@@ -375,7 +386,16 @@ const AdminReportsTab = () => {
 
   // ── 8. REPORTE FINANCIERO: DESGLOSE DE INGRESOS POR PERÍODO Y CONCEPTO (RÚBRICA ITEM 1) ──
   const getUnifiedPayments = () => {
-    const base = [...payments];
+    const base = payments.map(p => {
+      const periodStr = String(p.period || p.mes || 'Noviembre 2026').trim();
+      const extractedYear = periodStr.match(/\d{4}/)?.[0] || '2026';
+      const yearStr = p.year ? String(p.year).trim() : extractedYear;
+      return {
+        ...p,
+        year: yearStr,
+        period: periodStr,
+      };
+    });
     const presentStudentIds = new Set(base.map(p => p.studentId || p.id));
 
     validStudents.forEach((s, idx) => {
@@ -709,7 +729,7 @@ const AdminReportsTab = () => {
                     <tr key={p.id} className="hover:bg-slate-50">
                       <td className="p-3.5 font-bold text-slate-800">{p.studentName}</td>
                       <td className="p-3.5 text-slate-500">{p.studentDni}</td>
-                      <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
+                      <td className="p-3.5 font-semibold text-slate-700">{formatPeriodDisplay(p)}</td>
                       <td className="p-3.5 uppercase font-semibold text-slate-600">{p.nivel} ({p.curso})</td>
                       <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''} {p.sportsAmount > 0 ? '+ Deporte' : ''}</td>
                       <td className="p-3.5 text-right font-extrabold text-emerald-700">${p.totalAmount.toLocaleString('es-AR')}</td>
@@ -862,7 +882,7 @@ const AdminReportsTab = () => {
                           <div className="font-semibold text-slate-700">{p.parentName}</div>
                           <div className="text-[10px] text-slate-500">{p.parentEmail}</div>
                         </td>
-                        <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
+                        <td className="p-3.5 font-semibold text-slate-700">{formatPeriodDisplay(p)}</td>
                         <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''}</td>
                         <td className="p-3.5 text-right font-extrabold text-rose-700">${p.totalAmount.toLocaleString('es-AR')}</td>
                         <td className="p-3.5 text-center">
