@@ -748,3 +748,16 @@ export const cf_completePasswordChange = onRequest({ cors: true, invoker: 'publi
     res.status(500).send({ error: error.message || 'Error interno.' });
   }
 });
+
+/**
+ * 12. Automatizaciones de Notificaciones por Correo (Funcionalidades 1 y 2 de la Rúbrica)
+ * - Recordatorio Mensual de Cuotas con Factura el último día hábil.
+ * - Aviso de Deuda automático el día 20 de cada mes.
+ * - Endpoints de disparo manual para auditoría y demostración.
+ */
+export {
+  cronMonthlyTuitionReminder,
+  cronDay20DebtReminder,
+  cf_triggerDebtNotificationsManual,
+  cf_triggerMonthlyRemindersManual,
+} from './notifications';
