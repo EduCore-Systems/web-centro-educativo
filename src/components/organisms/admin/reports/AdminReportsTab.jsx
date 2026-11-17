@@ -31,6 +31,7 @@ const AdminReportsTab = () => {
   const [filterPaymentStatus, setFilterPaymentStatus] = useState('todos');
   const [searchStudent, setSearchStudent] = useState('');
   const [notifiedDebt, setNotifiedDebt] = useState({});
+  const [debtModalPreview, setDebtModalPreview] = useState(null);
 
   // Selections for Individual Reports
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -418,9 +419,10 @@ const AdminReportsTab = () => {
     return base;
   };
 
-  const handleNotifyDebtLocal = (pId, studentName, parentEmail) => {
+  const handleNotifyDebtLocal = (payment) => {
+    const pId = payment.id || `${payment.studentName}-${payment.period}`;
     setNotifiedDebt(prev => ({ ...prev, [pId]: 'enviado' }));
-    alert(`Aviso de Deuda del Día 20 enviado con éxito a ${parentEmail || 'tutor'}.\nAlumno: ${studentName}\nNotificación asentada en el sistema.`);
+    setDebtModalPreview(payment);
   };
 
   const renderFinancialBreakdown = () => {
@@ -759,11 +761,30 @@ const AdminReportsTab = () => {
 
         {/* Tabla de Pagos Incompletos */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          <div className="bg-slate-50 p-4 border-b border-slate-200 flex justify-between items-center">
-            <h4 className="font-bold text-slate-800 text-sm">Nómina de Pagos Incompletos / Deuda por Alumno</h4>
-            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
-              {filtered.length} Alumnos en Mora
-            </span>
+          <div className="bg-slate-50 p-4 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            <div>
+              <h4 className="font-bold text-slate-800 text-sm">Nómina de Pagos Incompletos / Deuda por Alumno</h4>
+              <p className="text-[11px] text-slate-500">Automatización del Día 20 · Avisos de deuda programados</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200">
+                {filtered.length} Alumnos en Mora
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (filtered.length > 0) {
+                    handleNotifyDebtLocal(filtered[0]);
+                  } else {
+                    alert('No se registran alumnos con deuda bajo los filtros actuales.');
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-500/20 transition-all cursor-pointer"
+              >
+                <Icon name="bolt" className="text-sm" />
+                Disparar Aviso Día 20 en Pantalla
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto max-h-[500px]">
             <table className="w-full text-left text-xs border-collapse">
@@ -782,34 +803,37 @@ const AdminReportsTab = () => {
                 {filtered.length === 0 ? (
                   <tr><td colSpan={7} className="p-8 text-center text-slate-400">Excelente: No se registran deudas con los filtros actuales.</td></tr>
                 ) : (
-                  filtered.map(p => (
-                    <tr key={p.id} className="hover:bg-slate-50">
-                      <td className="p-3.5">
-                        <div className="font-bold text-slate-800">{p.studentName}</div>
-                        <div className="text-[10px] text-slate-400">DNI: {p.studentDni} · {p.nivel?.toUpperCase()}</div>
-                      </td>
-                      <td className="p-3.5">
-                        <div className="font-semibold text-slate-700">{p.parentName}</div>
-                        <div className="text-[10px] text-slate-500">{p.parentEmail}</div>
-                      </td>
-                      <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
-                      <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''}</td>
-                      <td className="p-3.5 text-right font-extrabold text-rose-700">${p.totalAmount.toLocaleString('es-AR')}</td>
-                      <td className="p-3.5 text-center">
-                        <span className="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[10px] font-extrabold">
-                          ⚠️ PENDIENTE
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-center">
-                        <button
-                          onClick={() => handleNotifyDebtLocal(p.id, p.studentName, p.parentEmail)}
-                          className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
-                        >
-                          {notifiedDebt[p.id] ? '✓ Notificado' : 'Notificar Deuda'}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  filtered.map(p => {
+                    const rowKey = p.id || `${p.studentName}-${p.period}`;
+                    return (
+                      <tr key={rowKey} className="hover:bg-slate-50">
+                        <td className="p-3.5">
+                          <div className="font-bold text-slate-800">{p.studentName}</div>
+                          <div className="text-[10px] text-slate-400">DNI: {p.studentDni} · {p.nivel?.toUpperCase()}</div>
+                        </td>
+                        <td className="p-3.5">
+                          <div className="font-semibold text-slate-700">{p.parentName}</div>
+                          <div className="text-[10px] text-slate-500">{p.parentEmail}</div>
+                        </td>
+                        <td className="p-3.5 font-semibold text-slate-700">{p.year} · {p.period}</td>
+                        <td className="p-3.5 text-slate-600">Cuota Base {p.diningAmount > 0 ? '+ Comedor' : ''} {p.transportAmount > 0 ? '+ Transp.' : ''}</td>
+                        <td className="p-3.5 text-right font-extrabold text-rose-700">${p.totalAmount.toLocaleString('es-AR')}</td>
+                        <td className="p-3.5 text-center">
+                          <span className="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-full text-[10px] font-extrabold">
+                            ⚠️ PENDIENTE
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <button
+                            onClick={() => handleNotifyDebtLocal(p)}
+                            className="px-2.5 py-1 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-[10px] font-bold transition-colors cursor-pointer"
+                          >
+                            {notifiedDebt[rowKey] ? '✓ Notificado' : 'Notificar Deuda'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
@@ -1166,6 +1190,111 @@ const AdminReportsTab = () => {
           </div>
         )}
       </div>
+
+      {/* ── MODAL DE VISTA PREVIA EN PANTALLA DEL AVISO DE DEUDA DÍA 20 ── */}
+      {debtModalPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-scale-up">
+            {/* Header del Modal */}
+            <div className="bg-gradient-to-r from-orange-500 to-amber-600 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <Icon name="mail" className="text-xl text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">Notificación Emitida · Cron Día 20</h3>
+                  <p className="text-xs text-orange-100">Vista previa en pantalla del aviso de deuda enviado</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDebtModalPreview(null)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+              >
+                <Icon name="close" className="text-lg" />
+              </button>
+            </div>
+
+            {/* Contenido del Correo */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs">
+              {/* Banner de Envío Exitoso */}
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
+                <Icon name="check_circle" className="text-xl text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <div>
+                  <div className="font-bold">✓ Notificación de Deuda procesada con éxito</div>
+                  <div className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                    Se registró el envío para el tutor: <strong>{debtModalPreview.parentEmail || 'tutor@educore.edu.ar'}</strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Plantilla Oficial del Correo */}
+              <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 bg-slate-50 dark:bg-slate-800/50 space-y-3">
+                <div className="border-b border-slate-200 dark:border-slate-700 pb-3 flex justify-between items-start">
+                  <div>
+                    <div className="text-slate-400 text-[10px] uppercase font-bold">Destinatario (Tutor)</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100 text-sm">{debtModalPreview.parentName}</div>
+                    <div className="text-slate-500 text-[11px]">{debtModalPreview.parentEmail}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-slate-400 text-[10px] uppercase font-bold">Estudiante</div>
+                    <div className="font-bold text-slate-800 dark:text-slate-100">{debtModalPreview.studentName}</div>
+                    <div className="text-slate-500 text-[11px]">DNI: {debtModalPreview.studentDni} · {debtModalPreview.nivel?.toUpperCase()}</div>
+                  </div>
+                </div>
+
+                {/* Recuadro de Deuda */}
+                <div className="p-4 bg-orange-50 dark:bg-orange-950/40 border-l-4 border-orange-500 rounded-r-xl">
+                  <div className="text-[11px] font-bold text-orange-800 dark:text-orange-300 uppercase tracking-wider">
+                    Importe Total en Mora al Día 20:
+                  </div>
+                  <div className="text-2xl font-black text-orange-600 dark:text-orange-400 mt-1">
+                    ${(debtModalPreview.totalAmount || 0).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">
+                    <strong>Período escolar:</strong> {debtModalPreview.year} · {debtModalPreview.period}
+                  </div>
+                  <div className="text-[11px] text-slate-600 dark:text-slate-300">
+                    <strong>Conceptos adeudados:</strong> Cuota Básica {debtModalPreview.diningAmount > 0 ? '+ Comedor Escolar' : ''} {debtModalPreview.transportAmount > 0 ? '+ Transporte Escolar' : ''}
+                  </div>
+                </div>
+
+                {/* Datos Bancarios Oficiales */}
+                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1.5">
+                  <div className="font-bold text-slate-700 dark:text-slate-200 text-[11px] border-b border-slate-100 dark:border-slate-800 pb-1">
+                    Datos Institucionales para Transferencia Bancaria Inmediata:
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-[11px]">
+                    <div><span className="text-slate-400">Banco:</span> <strong className="text-slate-800 dark:text-slate-100">Banco Santander Río</strong></div>
+                    <div><span className="text-slate-400">Titular:</span> <strong className="text-slate-800 dark:text-slate-100">Instituto Educativo EduCore</strong></div>
+                    <div><span className="text-slate-400">CUIT:</span> <strong className="text-slate-800 dark:text-slate-100">30-71449201-8</strong></div>
+                    <div><span className="text-slate-400">Alias CBU:</span> <strong className="text-orange-600 dark:text-orange-400">EDUCORE.CENTRO.PAGOS</strong></div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-[11px] text-amber-900 dark:text-amber-300">
+                  📱 <strong>Acción requerida:</strong> La familia podrá informar su transferencia y descargar el recibo desde la <strong>App Móvil EduCore</strong> en la pestaña de Cuotas.
+                </div>
+
+                <p className="text-[10px] text-slate-400 text-center pt-1">
+                  Generado automáticamente por Cloud Functions · Cron: 0 8 20 * * · Colección: notifications_history
+                </p>
+              </div>
+            </div>
+
+            {/* Footer del Modal */}
+            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDebtModalPreview(null)}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-100 rounded-xl font-bold transition-colors cursor-pointer"
+              >
+                Cerrar Notificación
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
