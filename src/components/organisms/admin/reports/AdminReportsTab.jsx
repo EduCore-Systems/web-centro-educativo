@@ -415,8 +415,8 @@ const AdminReportsTab = () => {
         const transportAmount = hasTransport ? 28000 : 0;
         const sportsAmount = hasSports ? 18000 : 0;
         const totalAmount = baseTuition + diningAmount + transportAmount + sportsAmount;
-        // Lucas Alegre se inyecta explícitamente en estado de deuda pendiente
-        const isPaid = isLucas ? false : (idx % 4 !== 0);
+        // Distribución equilibrada al 50% con deuda para demostración de reportes
+        const isPaid = isLucas ? false : (idx % 2 !== 0);
 
         base.push({
           id: `pay-${s.id}`,
